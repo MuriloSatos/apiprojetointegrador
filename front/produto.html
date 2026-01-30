@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Produtos</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="produto.js" defer></script>
+
+</head>
+
+<body>
+
+    <header>
+        <h1>Gerenciamento de Produtos</h1>
+        <p>Cadastro, edição, busca e exclusão</p>
+    </header>
+
+    <section class="card">
+        <h2>Pesquisar Produto</h2>
+        <input type="text" id="campoBusca" placeholder="Buscar Produto">
+        <button id="btn">Buscar</button>
+    </section>
+
+    <section class="card">
+        <h2>Cadastro / Edição</h2>
+
+        <input type="hidden" id="campoID">
+
+        <div class="grid">
+            <input id="campoNome" placeholder="Nome do produto">
+            <input id="campoTipo" placeholder="Tipo do produto">
+            <input id="campoTamanho" placeholder="Tamanho">
+            <input id="campoMarca" placeholder="Marca">
+            <input id="campoPreco" type="number" placeholder="Preço">
+            <input id="campoCodigo" placeholder="Código do produto">
+        </div>
+
+        <div class="actions">
+            <button id="btnSalvar" class="primary">Salvar</button>
+            <button id="btnAtualizar">Atualizar</button>
+            <button id="btnCancelar">Cancelar</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Produtos</h2>
+        <div id="listagem" class="lista"></div>
+    </section>
+
+    <script src="produto.js"></script>
+</body>
+
+</html>

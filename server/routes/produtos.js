@@ -3,9 +3,7 @@ const pool = require("../db");
 
 const router = express.Router();
 
-/* =========================
-   LISTAR PRODUTOS (COM FILTROS)
-========================= */
+
 router.get("/", async (req, res) => {
   try {
     let {
@@ -34,7 +32,7 @@ router.get("/", async (req, res) => {
 
     const query = `
       SELECT *
-      FROM sistema.produtos
+      FROM sistema.produto
       WHERE nomeproduto ILIKE $1
         AND tipoproduto ILIKE $2
         AND tamanhoproduto ILIKE $3
@@ -68,15 +66,13 @@ router.get("/", async (req, res) => {
   }
 });
 
-/* =========================
-   BUSCAR PRODUTO POR ID
-========================= */
+
 router.get("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
 
     const result = await pool.query(
-      "SELECT * FROM sistema.produtos WHERE id = $1",
+      "SELECT * FROM sistema.produto WHERE id = $1",
       [id]
     );
 
@@ -89,9 +85,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-/* =========================
-   CRIAR PRODUTO
-========================= */
+
 router.post("/", async (req, res) => {
   try {
     const {
@@ -100,31 +94,43 @@ router.post("/", async (req, res) => {
       preco,
       tamanhoproduto,
       marcaproduto,
-      codigoproduto
+      codigoproduto,
+      id
     } = req.body;
 
-    if (!nomeproduto || !tipoproduto || !preco)
-      return res.status(400).json({ error: "Campos obrigatórios: nomeproduto, tipoproduto, preco" });
+    if (!nomeproduto || !tipoproduto || preco == null) {
+      return res.status(400).json({
+        error: "Campos obrigatórios: nomeproduto, tipoproduto, preco"
+      });
+    }
 
     const result = await pool.query(
       `
-      INSERT INTO sistema.produtos
-      (nomeproduto, tipoproduto, preco, tamanhoproduto, marcaproduto, codigoproduto)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO sistema.produto
+      (nomeproduto, tipoproduto, preco, tamanhoproduto, marcaproduto, codigoproduto,id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
       `,
-      [nomeproduto, tipoproduto, preco, tamanhoproduto, marcaproduto, codigoproduto]
+      [
+        nomeproduto,
+        tipoproduto,
+        Number(preco),
+        tamanhoproduto || null,
+        marcaproduto || null,
+        codigoproduto || null,
+        id 
+      ]
     );
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: "Erro ao criar produto" });
+    console.error("Erro ao criar produto:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-/* =========================
-   ATUALIZAR PRODUTO
-========================= */
+
+
 router.put("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -135,12 +141,12 @@ router.put("/:id", async (req, res) => {
       preco,
       tamanhoproduto,
       marcaproduto,
-      codigoproduto
+      codigoproduto,
     } = req.body;
 
     const result = await pool.query(
       `
-      UPDATE sistema.produtos
+      UPDATE sistema.produto
       SET nomeproduto=$1,
           tipoproduto=$2,
           preco=$3,
@@ -162,15 +168,13 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-/* =========================
-   DELETAR PRODUTO
-========================= */
+
 router.delete("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
 
     const result = await pool.query(
-      "DELETE FROM sistema.produtos WHERE id = $1 RETURNING *",
+      "DELETE FROM sistema.produto WHERE id = $1 RETURNING *",
       [id]
     );
 
