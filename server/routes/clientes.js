@@ -144,7 +144,7 @@ router.put("/:id", async (req, res) => {
       SET nome  = $1,
           senha = $2,
           email = $3,
-          cpf   = $4
+          cpf   = $4  
       WHERE id = $5
       RETURNING *
       `,
@@ -177,7 +177,7 @@ router.delete("/:id", async (req, res) => {
 
     res.status(204).end();
   } catch (err) {
-    res.status(500).json({ error: "Erro ao deletar cliente" });
+    res.status(500).json({ error: "Erro ao deletar cliente",erros: err.message});
   }
 });
 

@@ -51,7 +51,7 @@ async function carregarmais() {
 }
 
 async function carregarmenos() {
-    offset = Math.max(0, offset - 3); // evita offset negativo
+    offset = Math.max(0, offset - 3);
     todoscarregar();
 }
 
@@ -102,9 +102,10 @@ async function inserirProduto() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "minha-chave": CLIENT_API_KEY
+                "minha-chave": CLIENT_API_KEY,
+                body: JSON.stringify(produto),
+
             },
-            body: JSON.stringify(produto)
         });
 
         if (!resposta.ok) throw new Error("Erro ao inserir produto");
