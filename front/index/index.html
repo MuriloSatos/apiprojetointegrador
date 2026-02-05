@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bike System</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <h1>Bike System</h1>
+
+        <nav class="nav-menu">
+            <a href="../produto/produto.html">Produtos</a>
+            <a href="../vendas/vendas.html">Vendas</a>
+
+        </nav>
+
+        <nav class="menu">
+            <a href="#produtos">Bikes</a>
+            <a href="#sobre">Sobre</a>
+            <a href="#contato">Contato</a>
+        </nav>
+    </header>
+<section class="banner">
+    <img src="../assets/bikess2.jpg" alt="Promoção Bike" class="banner-img">
+
+    <div class="banner-overlay">
+        <h1>Promoções Especiais</h1>
+        <a href="#" class="btn-banner">Saiba mais</a>
+    </div>
+</section>
+
+</section>
+
+    <section id="produtos" class="produtos">
+        <h2>Nossas Bikes</h2>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Bike Speed</h3>
+                <p class="preco">R$ 3.200,00</p>
+                <button onclick="comprar('Bike Speed')">Comprar</button>
+            </div>
+
+            <div class="card">
+                <h3>Bike MTB</h3>
+                <p class="preco">R$ 2.800,00</p>
+                <button onclick="comprar('Bike MTB')">Comprar</button>
+            </div>
+
+            <div class="card">
+                <h3>Bike Urbana</h3>
+                <p class="preco">R$ 1.900,00</p>
+                <button onclick="comprar('Bike Urbana')">Comprar</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="sobre" class="sobre">
+        <h2>Sobre o Projeto</h2>
+        <p>
+            Este sistema foi desenvolvido para vendas de bicicletas, com controle
+            de produtos, clientes e vendas, integrado a banco de dados.
+        </p>
+    </section>
+
+    <section id="contato" class="contato">
+        <h2>Contato</h2>
+        <p>Email: contato@bikesystem.com</p>
+        <p>Telefone: (11) 99999-9999</p>
+    </section>
+
+    <footer class="footer">
+        <p>© 2026 - Bike System</p>
+    </footer>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
