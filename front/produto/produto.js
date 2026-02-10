@@ -21,9 +21,7 @@ btnCancelar.addEventListener("click", cancelarEdicao);
 campoBusca.addEventListener("input", carregarProdutos);
 async function todoscarregar() {
     try {
-        const url = `${API}/?limit=${limite}&offset=${offset}`;
-
-        const resposta = await fetch(url, {
+        const resposta = await fetch(API, {
             headers: {
                 'minha-chave': CLIENT_API_KEY
             }
@@ -32,80 +30,69 @@ async function todoscarregar() {
         const dados = await resposta.json();
 
         listagem.innerHTML = "";
-        dados.forEach(m => criarCard(m));
+        dados.forEach(p => criarCard(p));
 
     } catch (erro) {
         console.error("Erro ao carregar:", erro.message);
     }
 }
+
 async function carregarProdutos() {
-    limite = 3;
-    offset = 0;
     todoscarregar();
 }
-
-
-async function carregarmais() {
-    offset = offset + 3;
-    todoscarregar();
-}
-
-async function carregarmenos() {
-    offset = Math.max(0, offset - 3);
-    todoscarregar();
-}
-
 
 function criarCard(p) {
     const card = document.createElement("div");
     card.classList.add("card");
 
     card.innerHTML = `
-    <h3>${p.nomeproduto}</h3>
-    <p><b>Tipo:</b> ${p.tipoproduto}</p>
-    <p><b>Tamanho:</b> ${p.tamanhoproduto ?? "-"}</p>
-    <p><b>Marca:</b> ${p.marcaproduto ?? "-"}</p>
-    <p><b>Preço:</b> R$ ${p.preco}</p>
-    <p><b>Código:</b> ${p.codigoproduto ?? "-"}</p>
+        <h3>${p.nomeproduto}</h3>
+        <p><b>ID:</b> ${p.id}</p>
+        <p><b>Tipo:</b> ${p.tipoproduto}</p>
+        <p><b>Tamanho:</b> ${p.tamanhoproduto ?? "-"}</p>
+        <p><b>Marca:</b> ${p.marcaproduto ?? "-"}</p>
+        <p><b>Preço:</b> R$ ${p.preco}</p>
+        <p><b>Código:</b> ${p.codigoproduto ?? "-"}</p>
 
-    <button class="btn-delete" onclick="deletar(${p.id})">Deletar</button>
-    <button class="btn-atualizar"
-      onclick="abrirEdicao(
-        ${p.id},
-        '${p.nomeproduto}',
-        '${p.tipoproduto}',
-        '${p.tamanhoproduto ?? ""}',
-        '${p.marcaproduto ?? ""}',
-        ${p.preco},
-        '${p.codigoproduto ?? ""}'
-      )">
-      Atualizar
-    </button>
-  `;
+        <button class="btn-delete" onclick="deletar(${p.id})">Deletar</button>
+        <button class="btn-atualizar"
+            onclick="abrirEdicao(
+                ${p.id},
+                '${p.nomeproduto}',
+                '${p.tipoproduto}',
+                '${p.tamanhoproduto ?? ""}',
+                '${p.marcaproduto ?? ""}',
+                ${p.preco},
+                '${p.codigoproduto ?? ""}'
+            )">
+            Atualizar
+        </button>
+    `;
 
     listagem.appendChild(card);
 }
 
-
 async function inserirProduto() {
-    const produto = {
-        nomeproduto: document.getElementById("campoNome").value,
-        tipoproduto: document.getElementById("campoTipo").value,
-        tamanhoproduto: document.getElementById("campoTamanho").value,
-        marcaproduto: document.getElementById("campoMarca").value,
-        preco: document.getElementById("campoPreco").value,
-        codigoproduto: document.getElementById("campoCodigo").value
-    };
+const produto = {
+    id: Number(document.getElementById("campoID").value),
+    nomeproduto: document.getElementById("campoNome").value,
+    tipoproduto: document.getElementById("campoTipo").value,
+    tamanhoproduto: document.getElementById("campoTamanho").value,
+    marcaproduto: document.getElementById("campoMarca").value,
+    preco: document.getElementById("campoPreco").value,
+    codigoproduto: document.getElementById("campoCodigo").value
+};
+
+
 
     try {
         const resposta = await fetch(API, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "minha-chave": CLIENT_API_KEY,
-                body: JSON.stringify(produto),
-
+                "minha-chave": CLIENT_API_KEY
             },
+            body: JSON.stringify(produto)
         });
 
         if (!resposta.ok) throw new Error("Erro ao inserir produto");
@@ -117,6 +104,7 @@ async function inserirProduto() {
         console.error("Erro ao inserir:", erro.message);
     }
 }
+
 
 async function deletar(id) {
     try {
@@ -149,6 +137,7 @@ function abrirEdicao(id, nome, tipo, tamanho, marca, preco, codigo) {
     btnAtualizar.style.display = "inline-block";
     btnCancelar.style.display = "inline-block";
 }
+
 
 async function salvarAtualizacao() {
     const id = document.getElementById("campoID").value;

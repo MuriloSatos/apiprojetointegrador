@@ -3,7 +3,7 @@ const pool = require("../db");
 
 const router = express.Router();
 
-
+// LISTAR PRODUTOS (Com Filtros)
 router.get("/", async (req, res) => {
   try {
     let {
@@ -18,6 +18,7 @@ router.get("/", async (req, res) => {
       limit
     } = req.query;
 
+    // Ajuste de filtros para busca parcial
     nomeproduto    = nomeproduto ? `%${nomeproduto}%` : `%`;
     tipoproduto    = tipoproduto ? `%${tipoproduto}%` : `%`;
     tamanhoproduto = tamanhoproduto ? `%${tamanhoproduto}%` : `%`;
@@ -66,11 +67,10 @@ router.get("/", async (req, res) => {
   }
 });
 
-
+// BUSCAR POR ID
 router.get("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-
     const result = await pool.query(
       "SELECT * FROM sistema.produto WHERE id = $1",
       [id]
@@ -85,56 +85,48 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-
+// CRIAR PRODUTO
 router.post("/", async (req, res) => {
   try {
     const {
       nomeproduto,
       tipoproduto,
-      preco,
       tamanhoproduto,
       marcaproduto,
-      codigoproduto,
-      id
+      preco,
+      codigoproduto
     } = req.body;
 
-    if (!nomeproduto || !tipoproduto || preco == null) {
-      return res.status(400).json({
-        error: "Campos obrigatórios: nomeproduto, tipoproduto, preco"
-      });
-    }
-
-    const result = await pool.query(
-      `
+    // AJUSTE: Removi o ID para o banco gerar automaticamente (SERIAL)
+    // AJUSTE: Corrigi 'sistema.produtos' para 'sistema.produto'
+    const query = `
       INSERT INTO sistema.produto
-      (nomeproduto, tipoproduto, preco, tamanhoproduto, marcaproduto, codigoproduto,id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *
-      `,
-      [
-        nomeproduto,
-        tipoproduto,
-        Number(preco),
-        tamanhoproduto || null,
-        marcaproduto || null,
-        codigoproduto || null,
-        id 
-      ]
-    );
+      (nomeproduto, tipoproduto, tamanhoproduto, marcaproduto, preco, codigoproduto)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
 
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Erro ao criar produto:", err);
-    res.status(500).json({ error: err.message });
+    const valores = [
+      nomeproduto,
+      tipoproduto,
+      tamanhoproduto,
+      marcaproduto,
+      preco,
+      codigoproduto
+    ];
+
+    const resultado = await pool.query(query, valores);
+    res.status(201).json(resultado.rows[0]);
+
+  } catch (erro) {
+    res.status(400).json({ erro: "Erro ao inserir produto", detalhes: erro.message });
   }
 });
 
-
-
+// ATUALIZAR PRODUTO
 router.put("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-
     const {
       nomeproduto,
       tipoproduto,
@@ -168,11 +160,10 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-
+// DELETAR PRODUTO
 router.delete("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-
     const result = await pool.query(
       "DELETE FROM sistema.produto WHERE id = $1 RETURNING *",
       [id]

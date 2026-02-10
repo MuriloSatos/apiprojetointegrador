@@ -1,169 +1,472 @@
+/* Configurações Globais */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+
+.destaque-sm {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 1.5rem;
+    margin-top: 80px;
+    color: var(--escura);
+}
+
+.estoque-label {
+    font-size: 0.85rem;
+    color: #777;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.linha-carrinho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn-remover {
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-remover:hover {
+    background: #cc0000;
+}
+
+.estoque {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 10px;
+    font-style: italic;
+}
+
+.item-carrinho {
+    border-left: 5px solid var(--primaria);
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+.item-carrinho button:hover {
+    background: #cc0000 !important;
+    transform: scale(1.1);
+}
+
+.total-carrinho {
+    text-align: right;
+    margin-top: 20px;
+    padding: 20px;
+}
+
+
+/* Garante que o container da imagem não corte o card */
+.img-placeholder {
+    width: 100%;
+    height: 200px;
+    background: #eee;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+/* Estiliza o botão comprar para ficar igual ao da sua imagem anterior */
+.cta-comprar {
+    background: var(--primaria);
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+.cta-comprar:hover {
+    background: #e65c00;
+    transform: scale(1.05);
+}
+:root {
+    --primaria: #ff6600;
+    /* Laranja Bike */
+    --escura: #1a1a1a;
+    --cinza: #f4f4f4;
+}
+
+.nav-principal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.menu-central,
+.menu-direita {
+    display: flex;
+    gap: 25px;
+    list-style: none;
+}
+
+.menu-central a,
+.menu-direita a {
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.menu-central a:hover,
+.menu-direita a:hover {
+    color: #ff6a00;
+}
+
 
 body {
-    background: #f4f4f4;
-    color: #222;
+    background-color: white;
+    color: var(--escura);
+    line-height: 1.6;
 }
 
-/* HEADER */
-.header {
-    background: #000;
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+header {
+    background: var(--escura);
     color: white;
-    padding: 20px;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.menu a {
-    color: white;
-    text-decoration: none;
-    margin-left: 20px;
+.logo {
+    font-size: 1.5rem;
     font-weight: bold;
+    letter-spacing: 2px;
 }
 
-.menu a:hover {
-    color: #00c853;
+.logo span {
+    color: var(--primaria);
 }
 
-.nav-menu {
+nav ul {
     display: flex;
-    gap: 60px;
+    list-style: none;
+    gap: 25px;
 }
 
-.nav-menu a:hover {
-    color: #00c853;
-}
-
-.nav-menu a {
+nav a {
     color: white;
     text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s;
 }
-/* --- CSS ATUALIZADO --- */
 
-.banner {
+nav a:hover {
+    color: var(--primaria);
+}
+
+/* Configurações Globais (Mantenha as suas anteriores) */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+:root {
+    --primaria: #ff6600;
+    --escura: #1a1a1a;
+    --cinza: #f4f4f4;
+}
+
+body {
+    background-color: white;
+    color: var(--escura);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header (Mantenha o seu anterior) */
+header {
+    background: var(--escura);
+    color: white;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.logo span {
+    color: var(--primaria);
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 25px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: var(--primaria);
+}
+/* Hero Section - Ajustada para Cobrir Toda a Tela */
+/* Hero Section - Ajustada para centralizar a bike */
+.hero {
+    position: relative;
     width: 100%;
-    max-width: 1200px;
-    height: 320px;
-    margin: 30px auto;
-    border-radius: 14px;
+    height: 770px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
-    position: relative; /* 💡 ESSENCIAL: Isso cria a referência para o overlay */
+    background-color: var(--escura);
 }
 
-.banner img {
+.hero img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Faz a imagem preencher o espaço sem distorcer */
-    display: block;
-}
+    object-fit: cover; 
+    
+    /* AJUSTE AQUI: 
+       'center' centraliza horizontalmente.
+       '70%' ou 'bottom' puxa a imagem para cima, mostrando mais a parte de baixo (onde a bike costuma estar).
+       Se a bike estiver muito no topo, mude para 'top'. */
+    object-position: center 70%; 
 
-.banner-overlay {
-    position: absolute; 
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    
-    /* Centraliza o conteúdo dentro do overlay */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    
-    /* Opcional: Um fundo levemente escuro para o texto não sumir na foto */
-    background: rgba(0, 0, 0, 0.3); 
-    text-align: center;
+    z-index: 1;
+    filter: brightness(0.5); 
 }
 
-.banner-overlay h1 {
-    color: white; /* Troquei para branco para melhor leitura */
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Sombra no texto */
-}
-
-.btn-banner {
-    display: inline-block; /* Garante que o padding funcione bem */
-    padding: 12px 30px;
-    background: #1f8f3a;
+/* Conteúdo Centralizado */
+.hero-content {
+    position: relative;
+    z-index: 2;
     color: white;
+    text-align: center;
+    padding: 0 20px;
+    max-width: 800px;
+}
+
+.hero-content h1 {
+    font-size: 4rem; /* Texto maior e mais impactante */
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+.hero-content p {
+    font-size: 1.4rem;
+    margin-bottom: 40px;
+    font-weight: 300;
+}
+
+/* Botão Estilizado */
+.cta {
+    background: var(--primaria);
+    color: white;
+    padding: 18px 50px;
     text-decoration: none;
-    border-radius: 20px;
+    border-radius: 50px; /* Botão mais arredondado e moderno */
     font-weight: bold;
-    transition: background 0.3s;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4);
 }
 
-.btn-banner:hover {
-    background: #166d2c;
+.cta:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(255, 102, 0, 0.6);
+    background: #e65c00;
 }
 
-/* PRODUTOS */
+
+/* Grid de Produtos (Mantenha o seu anterior) */
 .produtos {
-    padding: 60px 20px;
+    padding: 80px 20px;
     text-align: center;
 }
 
-.cards {
-    display: flex;
-    justify-content: center;
+.produtos h2 {
+    margin-bottom: 40px;
+    font-size: 2rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 30px;
-    margin-top: 40px;
-    flex-wrap: wrap;
 }
 
 .card {
-    background: white;
-    width: 260px;
-    padding: 25px;
+    background: var(--cinza);
+    padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
 }
 
-.card h3 {
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.img-placeholder {
+    height: 200px;
+    background: #ddd;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #888;
+}
+
+
+
+
+
+.hero-content h1 {
+    font-size: 3.5rem;
     margin-bottom: 10px;
 }
 
-.preco {
-    font-size: 20px;
-    color: #00c853;
-    margin-bottom: 15px;
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
 }
 
-.card button {
-    background: #00c853;
-    border: none;
+.cta {
+    background: var(--primaria);
     color: white;
-    padding: 10px;
-    width: 100%;
-    cursor: pointer;
+    padding: 15px 40px;
+    text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
+    transition: transform 0.3s;
 }
 
-.card button:hover {
-    background: #009624;
+.cta:hover {
+    transform: scale(1.05);
 }
 
-/* SOBRE */
-.sobre,
-.contato {
-    padding: 60px 20px;
+/* Grid de Produtos */
+.produtos {
+    padding: 80px 20px;
     text-align: center;
-    background: white;
-    margin-top: 20px;
 }
 
-/* FOOTER */
-.footer {
-    background: #000;
-    color: #aaa;
-    text-align: center;
-    padding: 15px;
-    margin-top: 40px;
+.produtos h2 {
+    margin-bottom: 40px;
+    font-size: 2rem;
+}
+/* Container dos cards */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+}
+
+/* O Card igual ao início */
+.card {
+    background: var(--cinza); /* Aquele cinza claro #f4f4f4 */
+    padding: 20px;
+    border-radius: 10px;
+    transition: 0.3s;
+    text-align: center; /* Centraliza o texto e o preço */
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* O espaço da imagem (Placeholder) */
+.img-placeholder {
+    height: 200px;
+    background: #ddd; /* Cinza um pouco mais escuro */
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #888;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Ajuste da imagem dentro do quadrado cinza */
+.img-placeholder img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Não corta a imagem, mantém ela inteira dentro do quadro */
+}
+
+.card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: var(--escura);
+}
+
+.card p {
+    font-weight: bold;
+    color: var(--escura);
+    margin-bottom: 15px;
+}
+.img-placeholder {
+    height: 200px;
+    background: #ddd;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #888;
 }

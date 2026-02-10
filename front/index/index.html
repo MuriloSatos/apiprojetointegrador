@@ -1,83 +1,63 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
-    <title>Bike System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Pro | Sinta a Liberdade</title>
     <link rel="stylesheet" href="index.css">
-</head>
+    <script src="index.js" defer></script> </head>
 
 <body>
+    <header>
+        <nav class="container nav-principal">
+            <div class="logo">
+                BIKE<span>PROMAX</span>
+            </div>
 
-    <header class="header">
-        <h1>Bike System</h1>
+            <ul class="menu-central">
+                <li><a href="../produto/produto.html">Produtos</a></li>
+            </ul>
 
-        <nav class="nav-menu">
-            <a href="../produto/produto.html">Produtos</a>
-            <a href="../vendas/vendas.html">Vendas</a>
-
-        </nav>
-
-        <nav class="menu">
-            <a href="#produtos">Bikes</a>
-            <a href="#sobre">Sobre</a>
-            <a href="#contato">Contato</a>
+            <ul class="menu-direita">
+                <li>
+                    <a href="javascript:void(0)" class="carrinho-link" onclick="abrirModal()">
+                        🛒 Carrinho <span id="contagem-carrinho">(0)</span>
+                    </a>
+                </li>
+                <li><a href="../login/login.html" class="btn-login">Login</a></li>
+            </ul>
         </nav>
     </header>
-<section class="banner">
-    <img src="../assets/bikess2.jpg" alt="Promoção Bike" class="banner-img">
 
-    <div class="banner-overlay">
-        <h1>Promoções Especiais</h1>
-        <a href="#" class="btn-banner">Saiba mais</a>
-    </div>
-</section>
-
-</section>
-
-    <section id="produtos" class="produtos">
-        <h2>Nossas Bikes</h2>
-
-        <div class="cards">
-            <div class="card">
-                <h3>Bike Speed</h3>
-                <p class="preco">R$ 3.200,00</p>
-                <button onclick="comprar('Bike Speed')">Comprar</button>
-            </div>
-
-            <div class="card">
-                <h3>Bike MTB</h3>
-                <p class="preco">R$ 2.800,00</p>
-                <button onclick="comprar('Bike MTB')">Comprar</button>
-            </div>
-
-            <div class="card">
-                <h3>Bike Urbana</h3>
-                <p class="preco">R$ 1.900,00</p>
-                <button onclick="comprar('Bike Urbana')">Comprar</button>
-            </div>
+    <section class="hero">
+        <img src="../assets/as.png" alt="Bicicleta Laranja no Banner">
+        <div class="hero-content">
+            <h1>Domine qualquer trilha.</h1>
+            <p>Encontre a performance que você busca com as melhores máquinas do mercado.</p>
+            <a href="../produto/produto.html" class="cta">Ver Modelos</a>
         </div>
     </section>
 
-    <section id="sobre" class="sobre">
-        <h2>Sobre o Projeto</h2>
-        <p>
-            Este sistema foi desenvolvido para vendas de bicicletas, com controle
-            de produtos, clientes e vendas, integrado a banco de dados.
-        </p>
+    <section class="container">
+        <h2 class="destaque-sm" style="text-align: center; margin-top: 40px;">Destaques da Semana</h2>
+        <div class="grid" id="catalogo-home"></div>
     </section>
 
-    <section id="contato" class="contato">
-        <h2>Contato</h2>
-        <p>Email: contato@bikesystem.com</p>
-        <p>Telefone: (11) 99999-9999</p>
-    </section>
+    <div id="modal-carrinho" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal()">&times;</span>
+            <h2 style="text-align: center; color: #1a1a1a;">🛒 Seu Carrinho</h2>
+            
+            <div id="itens-carrinho">
+                </div>
 
-    <footer class="footer">
-        <p>© 2026 - Bike System</p>
-    </footer>
+            <div class="modal-footer" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="total-carrinho" style="margin: 0;">Total: R$ 0,00</h3>
+                <button class="cta" onclick="alert('Pedido finalizado!')" style="padding: 10px 20px; background: #ff6600; color: white; border: none; border-radius: 5px; cursor: pointer;">Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
 
-    <script src="index.js"></script>
 </body>
-
 </html>
