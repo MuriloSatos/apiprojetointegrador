@@ -1,55 +1,66 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Produtos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIKE PROMAX | Catálogo Completo</title>
     <link rel="stylesheet" href="produto.css">
     <script src="produto.js" defer></script>
-
 </head>
 
 <body>
-
     <header>
-        <h1>Gerenciamento de Produtos</h1>
-        <p>Cadastro, edição, busca e exclusão</p>
+        <nav class="container nav-principal">
+            <div class="logo">
+                BIKE<span>PROMAX</span>
+            </div>
+
+            <ul class="menu-central">
+                <li><a href="produto.html" style="font-weight: bold; border-bottom: 2px solid #ff6600;">Catálogo</a></li>
+            </ul>
+
+            <ul class="menu-direita">
+                <li>
+                    <a href="javascript:void(0)" class="carrinho-link" onclick="abrirModal()">
+                        🛒 Carrinho <span id="contagem-carrinho">(0)</span>
+                    </a>
+                </li>
+                <li><a href="../login/login.html" class="btn-login">Login</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <section class="card">
-        <h2>Pesquisar Produto</h2>
-        <input type="text" id="campoBusca" placeholder="Buscar Produto">
-        <button id="btn">Buscar</button>
-    </section>
-
-    <section class="card">
-        <h2>Cadastro / Edição</h2>
-
-        <input type="hidden" id="campoID">
-        <div class="grid">
-            <input id="campoID" type="number" placeholder="ID do produto">
-            <input id="campoNome" placeholder="Nome do produto">
-            <input id="campoTipo" placeholder="Tipo do produto">
-            <input id="campoTamanho" placeholder="Tamanho">
-            <input id="campoMarca" placeholder="Marca">
-            <input id="campoPreco" type="number" placeholder="Preço">
-            <input id="campoCodigo" placeholder="Código do produto">
-        </div>
-
-
-        <div class="actions">
-            <button id="btnSalvar" class="primary">Salvar</button>
-            <button id="btnAtualizar">Atualizar</button>
-            <button id="btnCancelar">Cancelar</button>
+    <section class="hero-curto" style="background: #1a1a1a; padding: 60px 0; text-align: center; color: white;">
+        <div class="container">
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Explorar Equipamentos</h1>
+            <p style="color: #ccc;">A melhor seleção para quem busca performance e durabilidade.</p>
         </div>
     </section>
 
-    <section class="card">
-        <h2>Produtos</h2>
-        <div id="listagem" class="lista"></div>
-    </section>
+    <main class="container">
+        <h2 class="destaque-sm" style="text-align: left; margin: 40px 0 20px; text-transform: uppercase;">
+            Nossas Máquinas
+        </h2>
+        
+        <div class="grid" id="catalogo-home">
+            </div>
+    </main>
 
-    <script src="produto.js"></script>
+    <div id="modal-carrinho" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal()">&times;</span>
+            <h2 style="text-align: center; color: #1a1a1a;">🛒 Seu Carrinho</h2>
+            
+            <div id="itens-carrinho">
+                </div>
+
+            <div class="modal-footer" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="total-carrinho" style="margin: 0;">Total: R$ 0,00</h3>
+                <button class="cta" onclick="alert('Pedido finalizado!')" style="padding: 10px 20px; background: #ff6600; color: white; border: none; border-radius: 5px; cursor: pointer;">Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
+
 </body>
-
 </html>

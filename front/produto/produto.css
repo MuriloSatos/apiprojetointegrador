@@ -1,137 +1,153 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
+/* Configurações Globais */
+:root {
+    --primaria: #ff6600; /* Laranja BikePro */
+    --escura: #1a1a1a;
+    --cinza-claro: #f4f4f4;
+    --branco: #ffffff;
 }
 
 body {
-  background: #f4f6f8;
-  padding: 30px;
-  color: #333;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--cinza-claro);
+    color: var(--escura);
 }
 
-/* HEADER */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header e Nav */
 header {
-  text-align: center;
-  margin-bottom: 30px;
+    background: var(--escura);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-header h1 {
-  font-size: 2rem;
-  margin-bottom: 5px;
+.nav-principal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-header p {
-  color: #666;
+.logo {
+    color: var(--branco);
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -1px;
 }
 
-/* CARD */
-.card {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+.logo span {
+    color: var(--primaria);
 }
 
-.card h2 {
-  margin-bottom: 15px;
-  font-size: 1.3rem;
+.menu-central, .menu-direita {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
 }
 
-/* INPUTS */
-input {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 0.95rem;
-  width: 100%;
+.menu-central a, .menu-direita a {
+    text-decoration: none;
+    color: var(--branco);
+    font-size: 0.9rem;
+    transition: 0.3s;
 }
 
-input:focus {
-  outline: none;
-  border-color: #4a90e2;
+.menu-central a:hover {
+    color: var(--primaria);
 }
 
-/* GRID */
+/* Grid de Máquinas */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
 }
 
-/* BOTÕES */
-button {
-  padding: 10px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.95rem;
-  background: #444;
-  color: #fff;
-  transition: 0.2s;
+/* Card do Produto */
+.card-produto {
+    background: var(--branco);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
 }
 
-button:hover {
-  background: #222;
+.card-produto:hover {
+    transform: translateY(-10px);
 }
 
-button.primary {
-  background: #4a90e2;
+.card-produto img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 15px;
 }
 
-button.primary:hover {
-  background: #357bd8;
+.card-produto h3 {
+    font-size: 1.1rem;
+    margin: 10px 0;
 }
 
-.actions {
-  display: flex;
-  gap: 10px;
+.preco-tag {
+    color: var(--primaria);
+    font-size: 1.3rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 15px;
 }
 
-#btnAtualizar,
-#btnCancelar {
-  display: none;
+.btn-adicionar {
+    background: var(--escura);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    transition: 0.3s;
 }
 
-/* LISTAGEM */
-.lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
+.btn-adicionar:hover {
+    background: var(--primaria);
 }
 
-/* CARD PRODUTO */
-.card .card {
-  background: #fafafa;
-  border: 1px solid #ddd;
+/* Modal Estilização */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
 }
 
-.card h3 {
-  margin-bottom: 8px;
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 15px;
+    position: relative;
 }
 
-.card p {
-  margin-bottom: 5px;
-  font-size: 0.9rem;
-}
-
-/* BOTÕES DO CARD */
-.btn-delete {
-  background: #e74c3c;
-  margin-right: 5px;
-}
-
-.btn-delete:hover {
-  background: #c0392b;
-}
-
-.btn-atualizar {
-  background: #f39c12;
-}
-
-.btn-atualizar:hover {
-  background: #d68910;
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    cursor: pointer;
 }

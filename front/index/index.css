@@ -1,4 +1,11 @@
-/* Configurações Globais */
+/* --- CONFIGURAÇÕES GLOBAIS E VARIÁVEIS --- */
+:root {
+    --primaria: #ff6600; /* Laranja Bike */
+    --escura: #1a1a1a;
+    --cinza: #f4f4f4;
+    --branca: #ffffff;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,100 +13,26 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.destaque-sm {
-    text-align: center;
-    margin: 20px 0;
-    font-size: 1.5rem;
-    margin-top: 80px;
+body {
+    background-color: var(--branca);
     color: var(--escura);
+    line-height: 1.6;
 }
 
-.estoque-label {
-    font-size: 0.85rem;
-    color: #777;
-    margin-bottom: 10px;
-    font-weight: 500;
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-.linha-carrinho {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-}
-
-.btn-remover {
-    background: #ff4444;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.btn-remover:hover {
-    background: #cc0000;
-}
-
-.estoque {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 10px;
-    font-style: italic;
-}
-
-.item-carrinho {
-    border-left: 5px solid var(--primaria);
-    border-radius: 4px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-}
-
-.item-carrinho button:hover {
-    background: #cc0000 !important;
-    transform: scale(1.1);
-}
-
-.total-carrinho {
-    text-align: right;
-    margin-top: 20px;
-    padding: 20px;
-}
-
-
-/* Garante que o container da imagem não corte o card */
-.img-placeholder {
-    width: 100%;
-    height: 200px;
-    background: #eee;
-    overflow: hidden;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-
-/* Estiliza o botão comprar para ficar igual ao da sua imagem anterior */
-.cta-comprar {
-    background: var(--primaria);
-    color: white;
-    border: none;
-    padding: 10px 30px;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: 0.3s;
-}
-
-.cta-comprar:hover {
-    background: #e65c00;
-    transform: scale(1.05);
-}
-:root {
-    --primaria: #ff6600;
-    /* Laranja Bike */
-    --escura: #1a1a1a;
-    --cinza: #f4f4f4;
+/* --- HEADER & NAVEGAÇÃO --- */
+header {
+    background: var(--escura);
+    color: var(--branca);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .nav-principal {
@@ -108,54 +41,6 @@
     justify-content: space-between;
 }
 
-.menu-central,
-.menu-direita {
-    display: flex;
-    gap: 25px;
-    list-style: none;
-}
-
-.menu-central a,
-.menu-direita a {
-    text-decoration: none;
-    color: #ffffff;
-    font-weight: 500;
-}
-
-.menu-central a:hover,
-.menu-direita a:hover {
-    color: #ff6a00;
-}
-
-
-body {
-    background-color: white;
-    color: var(--escura);
-    line-height: 1.6;
-}
-
-.container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* Header */
-header {
-    background: var(--escura);
-    color: white;
-    padding: 20px 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 .logo {
     font-size: 1.5rem;
     font-weight: bold;
@@ -166,97 +51,28 @@ nav {
     color: var(--primaria);
 }
 
-nav ul {
+.menu-central, .menu-direita {
     display: flex;
-    list-style: none;
     gap: 25px;
+    list-style: none;
 }
 
-nav a {
-    color: white;
+.menu-central a, .menu-direita a {
     text-decoration: none;
+    color: var(--branca);
     font-weight: 500;
     transition: 0.3s;
 }
 
-nav a:hover {
+.menu-central a:hover, .menu-direita a:hover {
     color: var(--primaria);
 }
 
-/* Configurações Globais (Mantenha as suas anteriores) */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-:root {
-    --primaria: #ff6600;
-    --escura: #1a1a1a;
-    --cinza: #f4f4f4;
-}
-
-body {
-    background-color: white;
-    color: var(--escura);
-    line-height: 1.6;
-}
-
-.container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* Header (Mantenha o seu anterior) */
-header {
-    background: var(--escura);
-    color: white;
-    padding: 20px 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    letter-spacing: 2px;
-}
-
-.logo span {
-    color: var(--primaria);
-}
-
-nav ul {
-    display: flex;
-    list-style: none;
-    gap: 25px;
-}
-
-nav a {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    transition: 0.3s;
-}
-
-nav a:hover {
-    color: var(--primaria);
-}
-/* Hero Section - Ajustada para Cobrir Toda a Tela */
-/* Hero Section - Ajustada para centralizar a bike */
+/* --- HERO SECTION --- */
 .hero {
     position: relative;
     width: 100%;
-    height: 770px; 
+    height: 600px; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -268,81 +84,60 @@ nav a:hover {
     width: 100%;
     height: 100%;
     object-fit: cover; 
-    
-    /* AJUSTE AQUI: 
-       'center' centraliza horizontalmente.
-       '70%' ou 'bottom' puxa a imagem para cima, mostrando mais a parte de baixo (onde a bike costuma estar).
-       Se a bike estiver muito no topo, mude para 'top'. */
     object-position: center 70%; 
-
     position: absolute;
     top: 0;
     left: 0;
     z-index: 1;
-    filter: brightness(0.5); 
+    filter: brightness(0.4); 
 }
 
-/* Conteúdo Centralizado */
 .hero-content {
     position: relative;
     z-index: 2;
-    color: white;
+    color: var(--branca);
     text-align: center;
     padding: 0 20px;
     max-width: 800px;
 }
 
 .hero-content h1 {
-    font-size: 4rem; /* Texto maior e mais impactante */
+    font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 20px;
     text-transform: uppercase;
-    letter-spacing: -1px;
-    line-height: 1.1;
 }
 
-.hero-content p {
-    font-size: 1.4rem;
-    margin-bottom: 40px;
-    font-weight: 300;
-}
-
-/* Botão Estilizado */
 .cta {
     background: var(--primaria);
-    color: white;
-    padding: 18px 50px;
+    color: var(--branca);
+    padding: 15px 40px;
     text-decoration: none;
-    border-radius: 50px; /* Botão mais arredondado e moderno */
+    border-radius: 50px;
     font-weight: bold;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
+    transition: 0.3s;
     display: inline-block;
-    box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
 }
 
 .cta:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 20px rgba(255, 102, 0, 0.6);
+    transform: translateY(-3px);
     background: #e65c00;
 }
 
-
-/* Grid de Produtos (Mantenha o seu anterior) */
-.produtos {
-    padding: 80px 20px;
+/* --- DESTAQUES E GRID DE PRODUTOS --- */
+.destaque-sm {
     text-align: center;
-}
-
-.produtos h2 {
-    margin-bottom: 40px;
     font-size: 2rem;
+    margin: 60px 0 30px;
+    color: var(--escura);
 }
 
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 30px;
+    padding-bottom: 80px;
 }
 
 .card {
@@ -350,6 +145,7 @@ nav a:hover {
     padding: 20px;
     border-radius: 10px;
     transition: 0.3s;
+    text-align: center;
 }
 
 .card:hover {
@@ -364,109 +160,136 @@ nav a:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    color: #888;
-}
-
-
-
-
-
-.hero-content h1 {
-    font-size: 3.5rem;
-    margin-bottom: 10px;
-}
-
-.hero-content p {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-}
-
-.cta {
-    background: var(--primaria);
-    color: white;
-    padding: 15px 40px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: transform 0.3s;
-}
-
-.cta:hover {
-    transform: scale(1.05);
-}
-
-/* Grid de Produtos */
-.produtos {
-    padding: 80px 20px;
-    text-align: center;
-}
-
-.produtos h2 {
-    margin-bottom: 40px;
-    font-size: 2rem;
-}
-/* Container dos cards */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    padding: 20px 0;
-}
-
-/* O Card igual ao início */
-.card {
-    background: var(--cinza); /* Aquele cinza claro #f4f4f4 */
-    padding: 20px;
-    border-radius: 10px;
-    transition: 0.3s;
-    text-align: center; /* Centraliza o texto e o preço */
-}
-
-.card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* O espaço da imagem (Placeholder) */
-.img-placeholder {
-    height: 200px;
-    background: #ddd; /* Cinza um pouco mais escuro */
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: #888;
-    border-radius: 5px;
+    border-radius: 8px;
     overflow: hidden;
 }
 
-/* Ajuste da imagem dentro do quadrado cinza */
 .img-placeholder img {
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain; /* Não corta a imagem, mantém ela inteira dentro do quadro */
+    object-fit: contain;
 }
 
 .card h3 {
-    font-size: 1.2rem;
     margin-bottom: 10px;
-    color: var(--escura);
+    font-size: 1.2rem;
 }
 
 .card p {
     font-weight: bold;
-    color: var(--escura);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
-.img-placeholder {
-    height: 200px;
-    background: #ddd;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+
+.cta-comprar {
+    background: var(--primaria);
+    color: var(--branca);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 5px;
     font-weight: bold;
-    color: #888;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cta-comprar:hover {
+    background: #e65c00;
+}
+
+/* --- CARRINHO LATERAL (SIDEBAR) --- */
+.modal {
+    display: none; /* Controlado via JS */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+/* Barra Lateral */
+.modal-content {
+    position: fixed;
+    right: -450px; /* Começa fora da tela */
+    top: 0;
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+    background-color: var(--branca);
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
+    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estado Aberto */
+.modal.aberto {
+    display: block;
+}
+
+.modal.aberto .modal-content {
+    right: 0; /* Desliza para dentro */
+}
+
+/* Cabeçalho do Carrinho */
+.modal-content h2 {
+    padding: 25px;
+    background: var(--escura);
+    color: var(--branca);
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+/* Área de Itens com Scroll */
+#itens-carrinho {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.linha-carrinho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.btn-remover {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-remover:hover {
+    background: #cc0000;
+    transform: scale(1.1);
+}
+
+/* Rodapé do Carrinho */
+.modal-footer {
+    padding: 25px;
+    background: #f9f9f9;
+    border-top: 1px solid #ddd;
+}
+
+/* Botão Fechar (X) */
+.close-modal {
+    position: absolute;
+    top: 18px;
+    right: 25px;
+    font-size: 32px;
+    color: var(--branca);
+    cursor: pointer;
+    z-index: 1002;
+}
+
+.close-modal:hover {
+    color: var(--primaria);
 }
