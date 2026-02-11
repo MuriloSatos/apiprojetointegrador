@@ -13,11 +13,15 @@
     <header>
         <nav class="container nav-principal">
             <div class="logo">
-                BIKE<span>PROMAX</span>
+                <a href="../index/index.html" style="text-decoration: none; color: inherit;">
+                    BIKE<span>PROMAX</span>
+                </a>
             </div>
 
+
             <ul class="menu-central">
-                <li><a href="produto.html" style="font-weight: bold; border-bottom: 2px solid #ff6600;">Catálogo</a></li>
+                <li><a href="../index/index.html">Inicio</a></li>
+                <li><a href="../produto/produto.html">Catalago</a></li>
             </ul>
 
             <ul class="menu-direita">
@@ -42,25 +46,29 @@
         <h2 class="destaque-sm" style="text-align: left; margin: 40px 0 20px; text-transform: uppercase;">
             Nossas Máquinas
         </h2>
-        
+
         <div class="grid" id="catalogo-home">
-            </div>
+        </div>
     </main>
 
     <div id="modal-carrinho" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModal()">&times;</span>
             <h2 style="text-align: center; color: #1a1a1a;">🛒 Seu Carrinho</h2>
-            
-            <div id="itens-carrinho">
-                </div>
 
-            <div class="modal-footer" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+            <div id="itens-carrinho">
+            </div>
+
+            <div class="modal-footer"
+                style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
                 <h3 id="total-carrinho" style="margin: 0;">Total: R$ 0,00</h3>
-                <button class="cta" onclick="alert('Pedido finalizado!')" style="padding: 10px 20px; background: #ff6600; color: white; border: none; border-radius: 5px; cursor: pointer;">Finalizar Compra</button>
+                <button class="cta" onclick="alert('Pedido finalizado!')"
+                    style="padding: 10px 20px; background: #ff6600; color: white; border: none; border-radius: 5px; cursor: pointer;">Finalizar
+                    Compra</button>
             </div>
         </div>
     </div>
 
 </body>
+
 </html>

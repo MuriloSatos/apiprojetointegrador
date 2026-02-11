@@ -1,50 +1,69 @@
-/* --- CONFIGURAÇÕES GLOBAIS E VARIÁVEIS --- */
-:root {
-    --primaria: #ff6600; /* Laranja Bike */
-    --escura: #1a1a1a;
-    --cinza: #f4f4f4;
-    --branca: #ffffff;
+/* Fundo do Modal (o que está embaçando) */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 3000; /* Aumentei o z-index para garantir que fique na frente de tudo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px); /* Esse é o efeito de embaçar que você viu */
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Caixa Branca Centralizada no Meio da Tela */
+.modal-content.login-pequeno {
+    background-color: white;
+    position: absolute; /* Necessário para centralizar */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* O segredo para o centro exato */
+    padding: 30px;
+    width: 90%;
+    max-width: 350px; /* Modal pequeno como você pediu */
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+:root {
+    --primaria: #ff6600; /* Laranja BikePro */
+    --escura: #1a1a1a;
+    --cinza-claro: #f4f4f4;
+    --branco: #ffffff;
 }
 
 body {
-    background-color: var(--branca);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--cinza-claro);
     color: var(--escura);
-    line-height: 1.6;
 }
 
 .container {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* --- HEADER & NAVEGAÇÃO --- */
+/* Header e Nav */
 header {
     background: var(--escura);
-    color: var(--branca);
-    padding: 20px 0;
+    padding: 15px 0;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
 .nav-principal {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
 }
 
 .logo {
+    color: var(--branco);
+    font-weight: 800;
     font-size: 1.5rem;
-    font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: -1px;
 }
 
 .logo span {
@@ -52,22 +71,23 @@ header {
 }
 
 .menu-central, .menu-direita {
-    display: flex;
-    gap: 25px;
     list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
 }
 
 .menu-central a, .menu-direita a {
     text-decoration: none;
-    color: var(--branca);
-    font-weight: 500;
+    color: var(--branco);
+    font-size: 0.9rem;
     transition: 0.3s;
 }
 
-.menu-central a:hover, .menu-direita a:hover {
+.menu-central a:hover {
     color: var(--primaria);
 }
-
 /* --- HERO SECTION --- */
 .hero {
     position: relative;
