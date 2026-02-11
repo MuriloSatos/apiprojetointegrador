@@ -1,31 +1,38 @@
 /* Fundo do Modal (o que está embaçando) */
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
-    z-index: 3000; /* Aumentei o z-index para garantir que fique na frente de tudo */
+    z-index: 3000;
+    /* Aumentei o z-index para garantir que fique na frente de tudo */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px); /* Esse é o efeito de embaçar que você viu */
+    backdrop-filter: blur(5px);
+    /* Esse é o efeito de embaçar que você viu */
 }
 
 /* Caixa Branca Centralizada no Meio da Tela */
 .modal-content.login-pequeno {
     background-color: white;
-    position: absolute; /* Necessário para centralizar */
+    position: absolute;
+    /* Necessário para centralizar */
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* O segredo para o centro exato */
+    transform: translate(-50%, -50%);
+    /* O segredo para o centro exato */
     padding: 30px;
     width: 90%;
-    max-width: 350px; /* Modal pequeno como você pediu */
+    max-width: 350px;
+    /* Modal pequeno como você pediu */
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
+
 :root {
-    --primaria: #ff6600; /* Laranja BikePro */
+    --primaria: #ff6600;
+    /* Laranja BikePro */
     --escura: #1a1a1a;
     --cinza-claro: #f4f4f4;
     --branco: #ffffff;
@@ -70,7 +77,8 @@ header {
     color: var(--primaria);
 }
 
-.menu-central, .menu-direita {
+.menu-central,
+.menu-direita {
     list-style: none;
     display: flex;
     gap: 20px;
@@ -78,7 +86,8 @@ header {
     padding: 0;
 }
 
-.menu-central a, .menu-direita a {
+.menu-central a,
+.menu-direita a {
     text-decoration: none;
     color: var(--branco);
     font-size: 0.9rem;
@@ -88,11 +97,23 @@ header {
 .menu-central a:hover {
     color: var(--primaria);
 }
-/* --- HERO SECTION --- */
+
+/* --- VARIÁVEIS (Ajustadas para consistência) --- */
+:root {
+    --primaria: #ff6600;
+    /* Laranja BikePro */
+    --escura: #1a1a1a;
+    --cinza-claro: #f4f4f4;
+    --branco: #ffffff;
+    /* Nome padronizado para var(--branco) */
+}
+
+/* --- HERO SECTION (BANNER) --- */
 .hero {
     position: relative;
+    /* Define o container como referência */
     width: 100%;
-    height: 600px; 
+    height: 600px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,25 +124,32 @@ header {
 .hero img {
     width: 100%;
     height: 100%;
-    object-fit: cover; 
-    object-position: center 70%; 
+    object-fit: cover;
+    object-position: center 70%;
     position: absolute;
+    /* Sai do fluxo e fica no fundo */
     top: 0;
     left: 0;
     z-index: 1;
-    filter: brightness(0.4); 
+    /* Camada de baixo */
+    filter: brightness(0.4);
+    /* Escurece a imagem para o branco brilhar */
 }
 
 .hero-content {
     position: relative;
     z-index: 2;
-    color: var(--branca);
+    /* Camada de cima, garante que fique sobre a imagem */
+    color: var(--branco);
+    /* Corrigido de --branca para --branco */
     text-align: center;
     padding: 0 20px;
     max-width: 800px;
 }
 
 .hero-content h1 {
+    color: var(--branco);
+    /* Garante o título em branco */
     font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 20px;
@@ -130,7 +158,8 @@ header {
 
 .cta {
     background: var(--primaria);
-    color: var(--branca);
+    color: var(--branco);
+    /* Texto do botão em branco */
     padding: 15px 40px;
     text-decoration: none;
     border-radius: 50px;
@@ -143,6 +172,35 @@ header {
 .cta:hover {
     transform: translateY(-3px);
     background: #e65c00;
+    color: var(--branco);
+    /* Mantém branco no hover */
+}
+
+/* --- MODAL DE LOGIN (Ajuste de Cor) --- */
+.modal-content.login-pequeno {
+    background-color: var(--branco);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    width: 90%;
+    max-width: 350px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* --- GRID DE PRODUTOS --- */
+.cta-comprar {
+    background: var(--primaria);
+    color: var(--branco);
+    /* Botões de compra em branco */
+    border: none;
+    padding: 10px 25px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
 /* --- DESTAQUES E GRID DE PRODUTOS --- */
@@ -217,7 +275,8 @@ header {
 
 /* --- CARRINHO LATERAL (SIDEBAR) --- */
 .modal {
-    display: none; /* Controlado via JS */
+    display: none;
+    /* Controlado via JS */
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -231,7 +290,8 @@ header {
 /* Barra Lateral */
 .modal-content {
     position: fixed;
-    right: -450px; /* Começa fora da tela */
+    right: -450px;
+    /* Começa fora da tela */
     top: 0;
     width: 100%;
     max-width: 400px;
@@ -249,7 +309,8 @@ header {
 }
 
 .modal.aberto .modal-content {
-    right: 0; /* Desliza para dentro */
+    right: 0;
+    /* Desliza para dentro */
 }
 
 /* Cabeçalho do Carrinho */
