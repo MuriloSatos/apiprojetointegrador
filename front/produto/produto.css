@@ -4,6 +4,7 @@
     --escura: #1a1a1a;
     --cinza-claro: #f4f4f4;
     --branco: #ffffff;
+    --danger: #ff4444;
 }
 
 body {
@@ -64,10 +65,80 @@ header {
     color: var(--primaria);
 }
 
+/* --- SEÇÃO DE FILTROS --- */
+.filtros-container {
+    background: var(--branco);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 30px 0;
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    flex-wrap: wrap;
+}
+
+.campo-filtro {
+    flex: 1;
+    min-width: 200px;
+}
+
+.campo-filtro label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+/* Inputs e Selects padronizados */
+.campo-filtro input, 
+.campo-filtro select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    outline: none;
+    transition: 0.3s;
+    font-family: inherit;
+    background-color: var(--branco);
+}
+
+.campo-filtro select {
+    cursor: pointer;
+    appearance: none; /* Remove seta padrão em alguns navegadores */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.campo-filtro input:focus, 
+.campo-filtro select:focus {
+    border-color: var(--primaria);
+    box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.1);
+}
+
+.btn-limpar {
+    padding: 12px 20px;
+    background: #eee;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    height: 42px; /* Alinhamento com os inputs */
+}
+
+.btn-limpar:hover {
+    background: #ddd;
+}
+
 /* Grid de Máquinas */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
     margin-bottom: 50px;
 }
@@ -80,6 +151,8 @@ header {
     text-align: center;
     box-shadow: 0 10px 20px rgba(0,0,0,0.05);
     transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .card-produto:hover {
@@ -110,12 +183,13 @@ header {
     background: var(--escura);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 12px 20px;
+    border-radius: 6px;
     cursor: pointer;
     width: 100%;
     font-weight: bold;
     transition: 0.3s;
+    margin-top: auto;
 }
 
 .btn-adicionar:hover {
@@ -124,7 +198,7 @@ header {
 
 /* Modal Estilização */
 .modal {
-    display: none;
+    display: none; 
     position: fixed;
     z-index: 2000;
     left: 0;
@@ -139,9 +213,61 @@ header {
     margin: 5% auto;
     padding: 30px;
     width: 90%;
-    max-width: 500px;
+    max-width: 450px;
     border-radius: 15px;
     position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+/* Linhas do Carrinho */
+.linha-carrinho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.linha-carrinho span {
+    font-size: 0.95rem;
+}
+
+.btn-remover {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.2s;
+}
+
+.btn-remover:hover {
+    background: #cc0000;
+}
+
+.modal-footer {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.cta-finalizar {
+    background: var(--primaria);
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 8px;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.3s;
+}
+
+.cta-finalizar:hover {
+    filter: brightness(1.1);
 }
 
 .close-modal {
@@ -150,4 +276,9 @@ header {
     top: 15px;
     font-size: 28px;
     cursor: pointer;
+    color: #999;
+}
+
+.close-modal:hover {
+    color: var(--escura);
 }

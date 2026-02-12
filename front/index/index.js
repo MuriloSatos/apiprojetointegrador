@@ -1,9 +1,74 @@
 const API = "http://127.0.0.1:3000/produtos";
+const API_LOGIN = "http://127.0.0.1:3000/adm/login"; 
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 let carrinho = [];
 
-// 1. CARREGAR PRODUTOS DO BANCO
-// 1. CARREGAR PRODUTOS DO BANCO
+// --- 1. MODAL DE LOGIN (CENTRAL) ---
+function abrirModalLogin() {
+    const modal = document.getElementById('modal-login');
+    if (modal) modal.style.display = 'block';
+}
+
+function fecharModalLogin() {
+    const modal = document.getElementById('modal-login');
+    if (modal) modal.style.display = 'none';
+}
+
+// Lógica de Login Real via Banco de Dados
+document.getElementById('form-login')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+
+    try {
+        // Faz a chamada para o seu backend que consulta o Supabase
+        const resposta = await fetch(API_LOGIN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, senha })
+        });
+
+        const resultado = await resposta.json();
+
+        if (resposta.ok) {
+            alert(`Bem-vindo, ${resultado.nome}!`);
+
+            // Salva no localStorage para persistir o login
+            localStorage.setItem('usuarioLogado', JSON.stringify(resultado));
+
+            atualizarMenu(resultado.perfil); // 'adm' ou 'cliente'
+            fecharModalLogin();
+        } else {
+            alert(resultado.erro || "Usuário ou senha inválidos.");
+        }
+    } catch (erro) {
+        console.error("Erro ao fazer login:", erro);
+        alert("Erro ao conectar com o servidor.");
+    }
+});
+
+function atualizarMenu(perfil) {
+    const menu = document.getElementById('menu-navegacao');
+    if (!menu) return;
+
+    // Se for ADM, adiciona links extras baseados na sua estrutura de pastas
+    if (perfil === "adm") {
+        menu.innerHTML = `
+            <li><a href="../index/index.html">Inicio</a></li>
+            <li><a href="../produto/produto.html">Catalago</a></li>
+            <li><a href="../vendas/vendas.html" style="color: #ff6600;">Relatórios</a></li>
+            <li><a href="../cliente/clientes.html" style="color: #ff6600;">Usuários</a></li>
+        `;
+    } else {
+        menu.innerHTML = `
+            <li><a href="../index/index.html">Inicio</a></li>
+            <li><a href="../produto/produto.html">Catalago</a></li>
+        `;
+    }
+}
+
+// --- 2. CARREGAR PRODUTOS (LIMITADO A 3 PARA DESTAQUE) ---
 async function carregarProdutosDoBanco() {
     const grid = document.getElementById('catalogo-home');
     if (!grid) return;
@@ -14,16 +79,13 @@ async function carregarProdutosDoBanco() {
         });
         const todosProdutos = await resposta.json();
 
-        // AJUSTE AQUI: Filtra para mostrar apenas os 3 primeiros
+        // Mostra apenas os 3 primeiros produtos na Home
         const produtosExibidos = todosProdutos.slice(0, 3);
-
         grid.innerHTML = "";
 
-        // Agora usamos o array limitado (produtosExibidos) para o loop
         produtosExibidos.forEach(bike => {
             const card = document.createElement('div');
             card.className = 'card';
-
             card.innerHTML = `
                 <div class="img-placeholder">
                     <img src="../assets/as.png" alt="${bike.nomeproduto}" style="width:100%; height:100%; object-fit:contain;">
@@ -37,125 +99,44 @@ async function carregarProdutosDoBanco() {
         });
     } catch (erro) {
         console.error("Erro ao carregar produtos:", erro);
-        grid.innerHTML = "<p>Erro ao carregar as bicicletas do catálogo.</p>";
+        grid.innerHTML = "<p>Erro ao carregar o catálogo.</p>";
     }
 }
-// 2. FUNÇÕES DO MODAL (SIDEBAR)
+
+// --- 3. LÓGICA DO CARRINHO (SIDEBAR) ---
 function abrirModal() {
     const modal = document.getElementById('modal-carrinho');
     if (modal) {
-        modal.classList.add('aberto'); // Adiciona a classe para deslizar
-        document.body.style.overflow = 'hidden'; // Trava o scroll da página de fundo
+        modal.classList.add('aberto');
+        document.body.style.overflow = 'hidden';
     }
 }
 
 function fecharModal() {
     const modal = document.getElementById('modal-carrinho');
     if (modal) {
-        modal.classList.remove('aberto'); // Remove a classe para esconder
-        document.body.style.overflow = 'auto'; // Libera o scroll
+        modal.classList.remove('aberto');
+        document.body.style.overflow = 'auto';
     }
 }
 
-// Fecha o modal se o usuário clicar no fundo escuro (fora da barra branca)
-window.onclick = function (event) {
-    const modal = document.getElementById('modal-carrinho');
-    if (event.target == modal) {
-        fecharModal();
-    }
-}
+// Fechar modais ao clicar fora
+window.addEventListener('click', function (event) {
+    const modalLogin = document.getElementById('modal-login');
+    const modalCarrinho = document.getElementById('modal-carrinho');
 
-// Função para finalizar a compra e atualizar o estoque
-async function finalizarCompra() {
-    if (carrinho.length === 0) {
-        alert("Seu carrinho está vazio!");
-        return;
-    }
+    if (event.target == modalLogin) fecharModalLogin();
+    if (event.target == modalCarrinho) fecharModal();
+});
 
-    try {
-        // Percorre cada item do carrinho para atualizar o estoque individualmente
-        for (const item of carrinho) {
-            // Buscamos o produto para saber o estoque atual (ou enviamos comando de decremento)
-            await fetch(`${API}/atualizar-estoque`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'minha-chave': CLIENT_API_KEY
-                },
-                body: JSON.stringify({ 
-                    nome: item.nome, 
-                    quantidade: 1 // Diminui 1 unidade
-                })
-            });
-        }
-
-        alert('Pedido finalizado com sucesso! O estoque foi atualizado.');
-        
-        // Limpa o carrinho e fecha o modal
-        carrinho = [];
-        atualizarTelaCarrinho();
-        fecharModal();
-        
-        // Recarrega os produtos na tela para mostrar o novo estoque
-        carregarProdutosDoBanco();
-
-    } catch (erro) {
-        console.error("Erro ao processar compra:", erro);
-        alert("Houve um erro ao finalizar a compra.");
-    }
-}
-
-// 3. LÓGICA DO CARRINHO
-function adicionarAoCarrinho(nome, preco) {
-    const item = {
-        id: Date.now(),
-        nome: nome,
-        preco: parseFloat(preco)
-    };
-
-    carrinho.push(item);
-    atualizarTelaCarrinho();
-    abrirModal(); // Abre a barra lateral automaticamente
-}
-
-function removerDoCarrinho(id) {
-    carrinho = carrinho.filter(item => item.id !== id);
-    atualizarTelaCarrinho();
-}
-
-function atualizarTelaCarrinho() {
-    const lista = document.getElementById('itens-carrinho');
-    const totalElemento = document.getElementById('total-carrinho');
-    const contagemNav = document.getElementById('contagem-carrinho');
-
-    if (lista) {
-        lista.innerHTML = "";
-        let total = 0;
-
-        carrinho.forEach(item => {
-            total += item.preco;
-            lista.innerHTML += `
-                <div class="linha-carrinho">
-                    <span style="font-size: 0.95rem;">
-                        <strong>${item.nome}</strong><br>
-                        <small>R$ ${item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</small>
-                    </span>
-                    <button class="btn-remover" onclick="removerDoCarrinho(${item.id})">X</button>
-                </div>
-            `;
-        });
-
-        if (totalElemento) {
-            totalElemento.innerText = `Total: R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-        }
-    }
-
-    if (contagemNav) {
-        contagemNav.innerText = `(${carrinho.length})`;
-    }
-}
-
-// 4. INICIALIZAÇÃO
+// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     carregarProdutosDoBanco();
+
+    // Verifica se já existe alguém logado ao carregar a página
+    const salvo = localStorage.getItem('usuarioLogado');
+    if (salvo) {
+        const user = JSON.parse(salvo);
+        atualizarMenu(user.perfil);
+    }
 });

@@ -13,13 +13,14 @@
     <header>
         <nav class="container nav-principal">
             <div class="logo">
-                BIKE<span>PROMAX</span>
+                <a href="../index/index.html" style="text-decoration: none; color: inherit;">
+                    BIKE<span>PROMAX</span>
+                </a>
             </div>
-
             <ul class="menu-central">
-                <li><a href="produto.html" style="font-weight: bold; border-bottom: 2px solid #ff6600;">Catálogo</a></li>
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="produto.html">Catálogo</a></li>
             </ul>
-
             <ul class="menu-direita">
                 <li>
                     <a href="javascript:void(0)" class="carrinho-link" onclick="abrirModal()">
@@ -31,18 +32,36 @@
         </nav>
     </header>
 
-    <section class="hero-curto" style="background: #1a1a1a; padding: 60px 0; text-align: center; color: white;">
+    <section class="hero-curto">
         <div class="container">
-            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Explorar Equipamentos</h1>
-            <p style="color: #ccc;">A melhor seleção para quem busca performance e durabilidade.</p>
+            <h1>Explorar Equipamentos</h1>
+            <p>A melhor seleção para quem busca performance e durabilidade.</p>
         </div>
     </section>
 
     <main class="container">
-        <h2 class="destaque-sm" style="text-align: left; margin: 40px 0 20px; text-transform: uppercase;">
-            Nossas Máquinas
-        </h2>
-        
+        <div class="filtros-container">
+            <div class="campo-filtro">
+                <label>BUSCAR POR NOME</label>
+                <input type="text" id="input-busca" placeholder="Ex: Mountain Bike...">
+            </div>
+
+            <div class="campo-filtro">
+                <label>CATEGORIA</label>
+                <select id="select-tipo">
+                    <option value="">Todos os Tipos</option>
+                </select>
+            </div>
+
+            <div class="campo-filtro">
+                <label>PREÇO MÁXIMO</label>
+                <input type="number" id="input-preco" placeholder="Ex: 5000">
+            </div>
+
+            <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
+        </div>
+
+        <h2 class="destaque-sm">Nossas Máquinas</h2>
         <div class="grid" id="catalogo-home">
             </div>
     </main>
@@ -50,17 +69,13 @@
     <div id="modal-carrinho" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModal()">&times;</span>
-            <h2 style="text-align: center; color: #1a1a1a;">🛒 Seu Carrinho</h2>
-            
-            <div id="itens-carrinho">
-                </div>
-
-            <div class="modal-footer" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
-                <h3 id="total-carrinho" style="margin: 0;">Total: R$ 0,00</h3>
-                <button class="cta" onclick="alert('Pedido finalizado!')" style="padding: 10px 20px; background: #ff6600; color: white; border: none; border-radius: 5px; cursor: pointer;">Finalizar Compra</button>
+            <h2>🛒 Seu Carrinho</h2>
+            <div id="itens-carrinho"></div>
+            <div class="modal-footer">
+                <h3 id="total-carrinho">Total: R$ 0,00</h3>
+                <button class="cta-finalizar" onclick="finalizarCompra()">Finalizar Compra</button>
             </div>
         </div>
     </div>
-
 </body>
 </html>

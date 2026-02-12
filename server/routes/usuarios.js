@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
 
 
         const query = `
-      SELECT *   FROM sistema.adm
+        SELECT * FROM sistema.adm
     `;
 
 
@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({
-            error: "Erro ao listar adms",
+            error: "Erro ao listar usuarios",
             detalhes: err.message
         });
     }
@@ -42,16 +42,16 @@ router.get("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
 
         const result = await pool.query(
-            "SELECT * FROM sistema.adm WHERE id = $1",
+            "SELECT * FROM sistema.usuarios WHERE id = $1",
             [id]
         );
 
         if (result.rows.length === 0)
-            return res.status(404).json({ error: "Adm não encontrado" });
+            return res.status(404).json({ error: "Usuario não encontrado" });
 
         res.json(result.rows[0]);
     } catch (err) {
-        res.status(500).json({ error: "Erro ao buscar adm" });
+        res.status(500).json({ error: "Erro ao buscar usuario" });
     }
 });
 
@@ -74,7 +74,7 @@ router.post("/", async (req, res) => {
 
         const result = await pool.query(
             `
-      INSERT INTO sistema.adm
+      INSERT INTO sistema.usuarios
       (nome, senha, email, id, perfil)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *
@@ -90,7 +90,7 @@ router.post("/", async (req, res) => {
 
         res.status(201).json(result.rows[0]);
     } catch (err) {
-        console.error("Erro ao criar Adm:", err);
+        console.error("Erro ao criar Usuario:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -110,7 +110,7 @@ router.put("/:id", async (req, res) => {
 
         const result = await pool.query(
             `
-      UPDATE sistema.adm
+      UPDATE sistema.usuarios
       SET nome  = $1,
           senha = $2,
           email = $3,
@@ -122,7 +122,7 @@ router.put("/:id", async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Adm não encontrado" });
+            return res.status(404).json({ error: "Usuario não encontrado" });
         }
 
         res.json(result.rows[0]);
@@ -138,16 +138,16 @@ router.delete("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
 
         const result = await pool.query(
-            "DELETE FROM sistema.adm WHERE id = $1 RETURNING *",
+            "DELETE FROM sistema.usuarios WHERE id = $1 RETURNING *",
             [id]
         );
 
         if (result.rows.length === 0)
-            return res.status(404).json({ error: "Adm não encontrado" });
+            return res.status(404).json({ error: "Usuario não encontrado" });
 
         res.status(204).end();
     } catch (err) {
-        res.status(500).json({ error: "Erro ao deletar adm" });
+        res.status(500).json({ error: "Erro ao deletar usuario" });
     }
 });
 

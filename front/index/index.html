@@ -6,17 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bike Pro | Sinta a Liberdade</title>
     <link rel="stylesheet" href="index.css">
-    <script src="index.js" defer></script> </head>
+    <script src="index.js" defer></script>
+</head>
 
 <body>
     <header>
         <nav class="container nav-principal">
             <div class="logo">
-                BIKE<span>PROMAX</span>
+                <a href="../index/index.html" style="text-decoration: none; color: inherit;">
+                    BIKE<span>PROMAX</span>
+                </a>
             </div>
 
-            <ul class="menu-central">
-                <li><a href="../produto/produto.html">Produtos</a></li>
+            <ul class="menu-central" id="menu-navegacao">
+                <li><a href="../index/index.html">Inicio</a></li>
+                <li><a href="../produto/produto.html">Catalago</a></li>
             </ul>
 
             <ul class="menu-direita">
@@ -25,7 +29,7 @@
                         🛒 Carrinho <span id="contagem-carrinho">(0)</span>
                     </a>
                 </li>
-                <li><a href="../login/login.html" class="btn-login">Login</a></li>
+                <li><a href="javascript:void(0)" class="btn-login" onclick="abrirModalLogin()">Login</a></li>
             </ul>
         </nav>
     </header>
@@ -48,16 +52,42 @@
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModal()">&times;</span>
             <h2 style="text-align: center; color: #1a1a1a;">🛒 Seu Carrinho</h2>
-            
-            <div id="itens-carrinho">
-                </div>
-
-            <div class="modal-footer" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+            <div id="itens-carrinho"></div>
+            <div class="modal-footer"
+                style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
                 <h3 id="total-carrinho" style="margin: 0;">Total: R$ 0,00</h3>
-                <button class="cta" onclick="alert('Pedido finalizado!')" style="padding: 10px 20px; background: #ff6600; color: white; border: none; border-radius: 5px; cursor: pointer;">Finalizar Compra</button>
+                <button class="cta" onclick="alert('Pedido finalizado!')">Finalizar Compra</button>
             </div>
         </div>
     </div>
 
+    <div id="modal-login" class="modal">
+        <div class="modal-content login-pequeno">
+            <span class="close-modal" onclick="fecharModalLogin()">&times;</span>
+
+            <h2 style="text-align: center; color: #1a1a1a; margin-bottom: 20px;">Login</h2>
+
+            <form id="form-login" style="display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">E-mail:</label>
+                    <input type="email" id="login-email" required placeholder="seu@email.com"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Senha:</label>
+                    <input type="password" id="login-senha" required placeholder="******"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+                </div>
+
+                <button type="submit" class="btn-adicionar"
+                    style="background: #ff6600; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
 </body>
+
 </html>
