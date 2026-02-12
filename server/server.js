@@ -23,7 +23,7 @@ app.use("/clientes", clientesRouter);
 app.use("/vendas", vendasRouter);
 app.use("/usuarios", admRouter);
 
-// Rota raiz
+// Rota raizz
 app.get("/", (req, res) => {
   res.send("🌎 API de Produtos rodando! Acesse a documentação em /api-docs");
 });
