@@ -56,28 +56,54 @@ document.getElementById('form-login')?.addEventListener('submit', async function
         alert("Erro ao conectar com o servidor.");
     }
 });
-
 function atualizarMenu(perfil) {
     const menu = document.getElementById('menu-navegacao');
     if (!menu) return;
 
-    // Define os links com base no perfil ('adm' ou 'cliente')
-    if (perfil === "adm") {
-        menu.innerHTML = `
-            <li><a href="../index/index.html">Início</a></li>
-            <li><a href="../produto/produto.html">Catálogo</a></li>
-            <li><a href="../vendas/vendas.html" style="color: #ff6600;">Relatórios</a></li>
-            <li><a href="../cliente/clientes.html" style="color: #ff6600;">Usuários</a></li>
-            <li><a href="#" onclick="logout()">Sair</a></li>
-        `;
+    // Limpa o menu antes de reconstruir para não duplicar
+    menu.innerHTML = "";
+
+    const salvo = localStorage.getItem('usuarioLogado');
+    const usuario = salvo ? JSON.parse(salvo) : null;
+
+    if (usuario) {
+        // MENU PARA USUÁRIO LOGADO
+        if (perfil === "adm") {
+            menu.innerHTML = `
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="../produto/produto.html">Catálogo</a></li>
+                <li><a href="../vendas/vendas.html" style="color: #ff6600;">Relatórios</a></li>
+                <li><a href="../cliente/clientes.html" style="color: #ff6600;">Usuários</a></li>
+                <li><a href="#" onclick="logout()">Sair (${usuario.nome})</a></li>
+            `;
+        } else {
+            menu.innerHTML = `
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="../produto/produto.html">Catálogo</a></li>
+                <li><a href="#" onclick="logout()">Sair (${usuario.nome})</a></li>
+            `;
+        }
     } else {
+        // MENU PARA QUEM NÃO ESTÁ LOGADO (Substitui o "Login" fixo)
         menu.innerHTML = `
             <li><a href="../index/index.html">Início</a></li>
             <li><a href="../produto/produto.html">Catálogo</a></li>
-            <li><a href="#" onclick="logout()">Sair</a></li>
+            <li><a href="#" onclick="abrirModalLogin()">Login</a></li>
         `;
     }
 }
+document.addEventListener('DOMContentLoaded', () => {
+    carregarProdutosDoBanco();
+    atualizarContador();
+    
+    const salvo = localStorage.getItem('usuarioLogado');
+    if (salvo) {
+        const user = JSON.parse(salvo);
+        atualizarMenu(user.perfil);
+    } else {
+        atualizarMenu(null); // Isso vai colocar o link "Login" dinamicamente
+    }
+});
 
 function logout() {
     localStorage.removeItem('usuarioLogado');
