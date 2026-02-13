@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra - Bike Store</title>
+    <link rel="stylesheet" href="pagamento.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Finalizar Compra</h1>
+        
+        <div class="checkout-grid">
+            <div class="resumo-pedido">
+                <h3>Resumo do Pedido</h3>
+                <div id="lista-itens-pagamento">
+                    </div>
+                <hr>
+                <div class="total-container">
+                    <span>Total:</span>
+                    <span id="valor-total">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="formulario-pagamento">
+                <h3>Informações de Pagamento</h3>
+                <form id="form-finalizar">
+                    <label for="metodo">Forma de Pagamento</label>
+                    <select id="metodo" required>
+                        <option value="pix">PIX (5% de desconto)</option>
+                        <option value="cartao">Cartão de Crédito</option>
+                        <option value="boleto">Boleto Bancário</option>
+                    </select>
+
+                    <div id="detalhes-cartao" style="display:none;">
+                        <input type="text" placeholder="Número do Cartão" maxlength="16">
+                        <div class="row">
+                            <input type="text" placeholder="MM/AA" maxlength="5">
+                            <input type="text" placeholder="CVV" maxlength="3">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-confirmar">Confirmar e Pagar</button>
+                    <a href="../index/index.html" class="btn-voltar">Voltar à Loja</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="pagamento.js"></script>
+</body>
+</html>

@@ -52,6 +52,7 @@ function configurarFiltroTipos(lista) {
 }
 
 // 3. RENDERIZAR PRODUTOS NA TELA
+// 3. RENDERIZAR PRODUTOS NA TELA
 function renderizarProdutos(lista) {
     const grid = document.getElementById('catalogo-home');
     if (!grid) return;
@@ -66,10 +67,18 @@ function renderizarProdutos(lista) {
         const preco = parseFloat(item.preco) || 0;
         const tipo = item.tipoproduto || "Geral";
         const estoque = item.estoque !== undefined ? item.estoque : 0;
+        
+        // PEGA A IMAGEM DO BANCO OU USA UMA PADRÃO CASO ESTEJA VAZIO
+        // Se a coluna no banco tiver outro nome (ex: url_imagem), mude item.imagem para item.url_imagem
+        const imagemSrc = item.imagem ? item.imagem : "../assets/sem-foto.png";
 
         return `
             <div class="card-produto">
-                <img src="../assets/as.png" alt="${nome}" onerror="this.src='https://via.placeholder.com/200?text=Sem+Imagem'">
+                <div class="img-container" style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                    <img src="${imagemSrc}" alt="${nome}" 
+                         style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                         onerror="this.src='https://via.placeholder.com/200?text=Erro+na+Imagem'">
+                </div>
                 <h3>${nome}</h3>
                 <span class="preco-tag">R$ ${preco.toLocaleString('pt-br', { minimumFractionDigits: 2 })}</span>
                 <p style="font-size: 0.8rem; color: #666;">Categoria: ${tipo}</p>
@@ -122,12 +131,66 @@ function limparFiltros() {
     renderizarProdutos(todosProdutos);
 }
 
-// 5. CARRINHO E MODAL
+// --- 3. LÓGICA DO CARRINHO (SIDEBAR) ---
+
 function adicionarAoCarrinho(nome, preco) {
-    const item = { id: Date.now(), nome, preco };
-    carrinho.push(item);
-    atualizarInterface();
+    // Adiciona o item ao array de carrinho
+    carrinho.push({ nome, preco: parseFloat(preco) });
+    
+    // Salva no localStorage para que a página de pagamento possa ler esses dados
+    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinho));
+    
+    atualizarInterfaceCarrinho();
     abrirModal();
+}
+
+function atualizarInterfaceCarrinho() {
+    const contador = document.getElementById('contagem-carrinho');
+    const lista = document.getElementById('itens-carrinho');
+    const totalElem = document.getElementById('total-carrinho');
+
+    if (contador) contador.innerText = `(${carrinho.length})`;
+
+    if (lista) {
+        lista.innerHTML = carrinho.map((item, index) => `
+            <div class="linha-carrinho">
+                <span>${item.nome}</span>
+                <strong>R$ ${item.preco.toLocaleString('pt-br', { minimumFractionDigits: 2 })}</strong>
+                <button class="btn-remover" onclick="removerDoCarrinho(${index})">×</button>
+            </div>
+        `).join('');
+    }
+
+    if (totalElem) {
+        const total = carrinho.reduce((acc, curr) => acc + curr.preco, 0);
+        totalElem.innerText = `Total: R$ ${total.toLocaleString('pt-br', { minimumFractionDigits: 2 })}`;
+    }
+}
+
+function removerDoCarrinho(index) {
+    carrinho.splice(index, 1);
+    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinho));
+    atualizarInterfaceCarrinho();
+}
+
+// FUNÇÃO DE REDIRECIONAMENTO
+function finalizarCompra() {
+    if (carrinho.length === 0) {
+        alert("Seu carrinho está vazio!");
+        return;
+    }
+
+    // Verifica se o usuário está logado antes de pagar (opcional, mas recomendado)
+    const usuario = localStorage.getItem('usuarioLogado');
+    if (!usuario) {
+        alert("Por favor, faça login para finalizar a compra.");
+        abrirModalLogin();
+        return;
+    }
+
+    // Redireciona para a sua página de pagamento
+    // Certifique-se de que o caminho "../pagamento/pagamento.html" está correto
+    window.location.href = "../pagamento/pagamento.html";
 }
 
 function atualizarInterface() {
@@ -173,3 +236,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inPreco) inPreco.addEventListener('input', aplicarFiltros);
     if (selTipo) selTipo.addEventListener('change', aplicarFiltros);
 });
+
+// --- REDIRECIONAMENTO PARA PAGAMENTO ---
+function finalizarCompra() {
+    if (carrinho.length === 0) {
+        alert("Seu carrinho está vazio!");
+        return;
+    }
+
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+    
+    if (!usuario) {
+        alert("Você precisa estar logado para comprar.");
+        abrirModalLogin();
+        return;
+    }
+
+    // Se o login deu certo, enviamos para a tela de pagamento
+    window.location.href = "../pagamento/pagamento.html";
+}
+
+// --- CONTROLE DE ACESSO POR PERFIL ---
+function atualizarMenu(perfil) {
+    const menu = document.getElementById('menu-navegacao');
+    if (!menu) return;
+
+    // Conforme sua imagem: perfis 'adm' e 'cliente'
+    if (perfil === "adm") {
+        menu.innerHTML = `
+            <li><a href="../index/index.html">Início</a></li>
+            <li><a href="../produto/produto.html">Catálogo</a></li>
+            <li><a href="../vendas/vendas.html" style="color: #ff6600;">Relatórios</a></li>
+            <li><a href="../cliente/clientes.html" style="color: #ff6600;">Usuários</a></li>
+        `;
+    } else {
+        // Para 'cliente', apenas o básico
+        menu.innerHTML = `
+            <li><a href="../index/index.html">Início</a></li>
+            <li><a href="../produto/produto.html">Catálogo</a></li>
+        `;
+    }
+}

@@ -217,18 +217,58 @@ header {
     gap: 30px;
     padding-bottom: 80px;
 }
-
-.card {
-    background: var(--cinza);
-    padding: 20px;
-    border-radius: 10px;
-    transition: 0.3s;
-    text-align: center;
+/* --- GRID DE PRODUTOS (Ajustado para 4 colunas) --- */
+.grid {
+    display: grid;
+    /* Força exatamente 4 colunas iguais */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 25px;
+    padding-bottom: 80px;
 }
 
-.card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+/* --- CARD DE PRODUTO (Sem fundo cinza) --- */
+.card, .card-produto {
+    background: transparent; /* Remove o fundo cinza */
+    padding: 10px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card:hover, .card-produto:hover {
+    transform: translateY(-8px);
+    background: #ffffff; /* Ganha um fundo branco limpo no hover */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* --- CONTAINER DA IMAGEM --- */
+.img-placeholder, .img-container {
+    height: 200px;
+    background: transparent; /* Remove o fundo cinza de trás da foto */
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.img-placeholder img, .img-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Mantém a proporção da bike sem cortar */
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 1100px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
 }
 
 .img-placeholder {
