@@ -1,0 +1,60 @@
+/* Container da Tabela */
+.tabela-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-top: 20px;
+    overflow-x: auto; /* Garante que funcione no celular */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+thead {
+    background: var(--escura);
+    color: white;
+}
+
+th, td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Badges de Perfil */
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge.adm {
+    background: #ffe6d5;
+    color: var(--primaria);
+}
+
+.badge.cliente {
+    background: #e1f5fe;
+    color: #0288d1;
+}
+
+/* Alinhamento do cabeçalho */
+.header-tabela {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.destaque-sm span {
+    color: var(--primaria);
+}

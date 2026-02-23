@@ -1,50 +1,44 @@
-/* Configurações Globais */
+/* --- VARIÁVEIS --- */
 :root {
-    --primaria: #ff6600; /* Laranja BikePro */
+    --primaria: #ff6600;
     --escura: #1a1a1a;
-    --cinza-claro: #f4f4f4;
     --branco: #ffffff;
-    --danger: #ff4444;
+    --cinza-bg: #f4f4f4;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --transition: 0.3s ease;
 }
 
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: var(--cinza-claro);
-    color: var(--escura);
+    background-color: var(--cinza-bg);
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* Header e Nav */
+/* --- HEADER --- */
 header {
-    background: var(--escura);
+    background: #000;
     padding: 15px 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    border-bottom: 3px solid var(--primaria);
 }
 
 .nav-principal {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .logo {
     color: var(--branco);
     font-weight: 800;
     font-size: 1.5rem;
+    text-decoration: none;
     letter-spacing: -1px;
 }
 
-.logo span {
-    color: var(--primaria);
-}
+.logo span { color: var(--primaria); }
 
 .menu-central, .menu-direita {
     list-style: none;
@@ -52,233 +46,203 @@ header {
     gap: 20px;
     margin: 0;
     padding: 0;
+    align-items: center;
 }
 
 .menu-central a, .menu-direita a {
     text-decoration: none;
     color: var(--branco);
     font-size: 0.9rem;
-    transition: 0.3s;
+    transition: var(--transition);
 }
 
-.menu-central a:hover {
-    color: var(--primaria);
+.menu-central a:hover { color: var(--primaria); }
+
+.btn-login-top {
+    background: var(--primaria);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
 }
 
-/* --- SEÇÃO DE FILTROS --- */
-.filtros-container {
-    background: var(--branco);
+/* --- BARRA DE PESQUISA --- */
+.barra-acoes {
+    background: white;
     padding: 20px;
     border-radius: 12px;
-    margin: 30px 0;
+    margin: 20px auto;
+    max-width: 1100px;
     display: flex;
-    gap: 20px;
     align-items: flex-end;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    flex-wrap: wrap;
+    gap: 15px;
+    box-shadow: var(--shadow);
 }
 
-.campo-filtro {
+.filtros-container {
+    display: flex;
     flex: 1;
-    min-width: 200px;
+    gap: 15px;
 }
+
+.campo-filtro { display: flex; flex-direction: column; gap: 5px; }
+.campo-filtro.pesquisa { flex: 2; }
 
 .campo-filtro label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: bold;
-    margin-bottom: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #888;
     text-transform: uppercase;
 }
 
-/* Inputs e Selects padronizados */
-.campo-filtro input, 
-.campo-filtro select {
-    width: 100%;
-    padding: 12px;
+.campo-filtro input, .campo-filtro select {
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 6px;
-    box-sizing: border-box;
-    outline: none;
-    transition: 0.3s;
-    font-family: inherit;
-    background-color: var(--branco);
+    background: #f9f9f9;
 }
 
-.campo-filtro select {
-    cursor: pointer;
-    appearance: none; /* Remove seta padrão em alguns navegadores */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 14px;
-}
-
-.campo-filtro input:focus, 
-.campo-filtro select:focus {
-    border-color: var(--primaria);
-    box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.1);
-}
-
-.btn-limpar {
-    padding: 12px 20px;
-    background: #eee;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-    height: 42px; /* Alinhamento com os inputs */
-}
-
-.btn-limpar:hover {
-    background: #ddd;
-}
-
-/* Grid de Máquinas */
+/* --- GRID DE PRODUTOS --- */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 30px;
-    margin-bottom: 50px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
 
-/* Card do Produto */
+/* --- CARD DO PRODUTO (ALINHAMENTO TOTAL) --- */
 .card-produto {
     background: var(--branco);
-    border-radius: 12px;
     padding: 20px;
+    border-radius: 12px;
     text-align: center;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
+    height: 450px; /* Altura fixa garantida */
+    justify-content: space-between;
+    overflow: hidden; 
+    transition: var(--transition);
+    box-sizing: border-box;
 }
 
 .card-produto:hover {
-    transform: translateY(-10px);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+/* CONTAINER DA IMAGEM - Garante que o link não apareça como texto */
+.img-container {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    margin-bottom: 15px;
+    overflow: hidden; /* Força o sumiço de qualquer texto de link quebrado */
 }
 
 .card-produto img {
-    width: 100%;
-    height: 200px;
-    object-fit: contain;
-    margin-bottom: 15px;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Não distorce a bike */
+    display: block;
 }
 
+/* TÍTULO - Proteção contra nomes ou links gigantes */
 .card-produto h3 {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    color: var(--escura);
     margin: 10px 0;
+    height: 42px; /* Espaço para 2 linhas */
+    line-height: 1.2;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical;
+    word-break: break-word; 
+}
+
+.card-produto p {
+    font-size: 0.8rem;
+    color: #888;
+    margin: 5px 0;
 }
 
 .preco-tag {
-    color: var(--primaria);
-    font-size: 1.3rem;
-    font-weight: bold;
     display: block;
-    margin-bottom: 15px;
+    color: var(--primaria);
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 10px 0;
 }
 
-.btn-adicionar {
-    background: var(--escura);
+.btn-acao-comprar {
+    background: var(--primaria);
     color: white;
     border: none;
-    padding: 12px 20px;
-    border-radius: 6px;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
     cursor: pointer;
     width: 100%;
-    font-weight: bold;
-    transition: 0.3s;
-    margin-top: auto;
+    transition: var(--transition);
 }
 
-.btn-adicionar:hover {
-    background: var(--primaria);
-}
+.btn-acao-comprar:hover { background: #e65c00; }
 
-/* Modal Estilização */
+/* --- MODAIS --- */
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7);
+    z-index: 1000;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(3px);
 }
 
 .modal-content {
     background-color: white;
     margin: 5% auto;
     padding: 30px;
-    width: 90%;
-    max-width: 450px;
     border-radius: 15px;
+    max-width: 450px;
     position: relative;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 
-/* Linhas do Carrinho */
-.linha-carrinho {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.linha-carrinho span {
-    font-size: 0.95rem;
-}
-
-.btn-remover {
-    background: var(--danger);
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: 0.2s;
-}
-
-.btn-remover:hover {
-    background: #cc0000;
-}
-
-.modal-footer {
-    margin-top: 25px;
-    text-align: center;
-}
-
-.cta-finalizar {
-    background: var(--primaria);
-    color: white;
-    border: none;
-    padding: 15px 25px;
-    border-radius: 8px;
-    width: 100%;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 15px;
-    transition: 0.3s;
-}
-
-.cta-finalizar:hover {
-    filter: brightness(1.1);
-}
-
-.close-modal {
+.close {
     position: absolute;
-    right: 20px;
-    top: 15px;
-    font-size: 28px;
+    right: 20px; top: 15px;
+    font-size: 24px;
     cursor: pointer;
-    color: #999;
 }
 
-.close-modal:hover {
-    color: var(--escura);
+/* --- FORMULÁRIO DE CADASTRO --- */
+#form-cadastro-produto {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
+
+.campo-filtro-modal { display: flex; flex-direction: column; gap: 4px; }
+.campo-filtro-modal label { font-size: 0.7rem; font-weight: 700; color: #666; }
+.campo-filtro-modal input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+.previa-box {
+    width: 100%;
+    height: 140px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.previa-box img { max-width: 100%; max-height: 100%; object-fit: contain; }

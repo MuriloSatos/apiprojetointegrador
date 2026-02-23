@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIKE PROMAX | Catálogo Completo</title>
+    <title>BIKE PROMAX | Catálogo</title>
     <link rel="stylesheet" href="produto.css">
     <script src="produto.js" defer></script>
 </head>
@@ -17,69 +17,123 @@
                     BIKE<span>PROMAX</span>
                 </a>
             </div>
-            <ul class="menu-central">
-                <li><a href="../index/index.html">Inicio</a></li>
-                <li><a href="../produto/produto.html">Catalago</a></li>
-                <li><a href="../vendas/vendas.html">Venda</a></li>
-                <li><a href="../cliente/cliente.html">Cliente</a></li>
-                <li><a href="../usuario/usuario.html">Usuarios</a></li>
+
+            <ul class="menu-central" id="menu-navegacao">
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="../produto/produto.html">Catálogo</a></li>
+                <li><a href="../vendas/vendas.html">Vendas</a></li>
+                <li><a href="../cliente/cliente.html">Clientes</a></li>
+                <li><a href="../usuario/usuario.html">Usuários</a></li>
             </ul>
+
             <ul class="menu-direita">
                 <li>
                     <a href="javascript:void(0)" class="carrinho-link" onclick="abrirModal()">
                         🛒 Carrinho <span id="contagem-carrinho">(0)</span>
                     </a>
                 </li>
-                <li><a href="../login/login.html" class="btn-login">Login</a></li>
+                <li><button class="btn-login-top" onclick="abrirModalLogin()">Login</button></li>
             </ul>
         </nav>
     </header>
 
-    <section class="hero-curto">
-        <div class="container">
-            <h1>Explorar Equipamentos</h1>
-            <p>A melhor seleção para quem busca performance e durabilidade.</p>
-        </div>
-    </section>
-
     <main class="container">
-        <div class="filtros-container">
-            <div class="campo-filtro">
-                <label>BUSCAR POR NOME</label>
-                <input type="text" id="input-busca" placeholder="Ex: Mountain Bike...">
+        <section class="barra-acoes">
+            <div class="filtros-container">
+                <div class="campo-filtro barra-pesquisa">
+                    <label>O que você está procurando?</label>
+                    <input type="text" id="input-busca" placeholder="Ex: Mountain Bike Aro 29...">
+                </div>
+
+                <div class="campo-filtro">
+                    <label>Categoria</label>
+                    <select id="select-tipo">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+
+                <div class="campo-filtro">
+                    <label>Preço Máximo</label>
+                    <input type="number" id="input-preco" placeholder="R$">
+                </div>
             </div>
 
-            <div class="campo-filtro">
-                <label>CATEGORIA</label>
-                <select id="select-tipo">
-                    <option value="">Todos os Tipos</option>
-                </select>
-            </div>
+            <button id="btn-abrir-cadastro" class="btn-novo" style="display: none;" onclick="abrirModalCadastro()">
+                + Novo Produto
+            </button>
+        </section>
 
-            <div class="campo-filtro">
-                <label>PREÇO MÁXIMO</label>
-                <input type="number" id="input-preco" placeholder="Ex: 5000">
-            </div>
-
-            <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
-        </div>
-
-        <h2 class="destaque-sm">Nossas Máquinas</h2>
-        <div class="grid" id="catalogo-home">
-        </div>
+        <div class="grid" id="catalogo-home"></div>
     </main>
+
+    <div id="modal-novo-produto" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModalCadastro()">&times;</span>
+            <h2>📦 Novo Produto</h2>
+            <form id="form-cadastro-produto">
+                
+                <div class="campo-filtro-modal">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="cad-nome" placeholder="Ex: Bicicleta Aro 29 Groove" required>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="campo-filtro-modal" style="flex: 1;">
+                        <label>Categoria/Tipo</label>
+                        <input type="text" id="cad-tipo" placeholder="Ex: MTB" required>
+                    </div>
+                    <div class="campo-filtro-modal" style="flex: 1;">
+                        <label>Preço (R$)</label>
+                        <input type="number" step="0.01" id="cad-preco" placeholder="0.00" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="campo-filtro-modal" style="flex: 1;">
+                        <label>Tamanho</label>
+                        <input type="text" id="cad-tamanho" placeholder="Ex: 17 / Aro 29" required>
+                    </div>
+                    <div class="campo-filtro-modal" style="flex: 1;">
+                        <label>Marca</label>
+                        <input type="text" id="cad-marca" placeholder="Ex: Oggi" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="campo-filtro-modal" style="flex: 1;">
+                        <label>Código Prod.</label>
+                        <input type="number" id="cad-codigo" placeholder="ID numérico" required>
+                    </div>
+                    <div class="campo-filtro-modal" style="flex: 1;">
+                        <label>Estoque</label>
+                        <input type="number" id="cad-estoque" value="1" required>
+                    </div>
+                </div>
+
+                <div class="campo-filtro-modal">
+                    <label>URL da Imagem</label>
+                    <input type="text" id="cad-imagem" placeholder="https://link-da-foto.jpg" required>
+                </div>
+
+                <div class="previa-box">
+                    <img id="previa-img" src="" alt="Prévia">
+                </div>
+
+                <button type="submit" class="btn-acao-salvar">Salvar Produto</button>
+            </form>
+        </div>
+    </div>
 
     <div id="modal-carrinho" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="fecharModal()">&times;</span>
+            <span class="close" onclick="fecharModal()">&times;</span>
             <h2>🛒 Seu Carrinho</h2>
             <div id="itens-carrinho"></div>
-            <div class="modal-footer">
+            <div class="cart-footer">
                 <h3 id="total-carrinho">Total: R$ 0,00</h3>
-                <button class="cta-finalizar" onclick="finalizarCompra()">Finalizar Compra</button>
+                <button class="btn-acao-salvar" onclick="finalizarCompra()">Finalizar Compra</button>
             </div>
         </div>
     </div>
 </body>
-
 </html>

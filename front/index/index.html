@@ -53,18 +53,21 @@
         <div class="grid" id="catalogo-home"></div>
     </section>
 
-    <div id="modal-carrinho" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="fecharModal()">&times;</span>
-            <h2 style="text-align: center; color: #1a1a1a;">🛒 Seu Carrinho</h2>
-            <div id="itens-carrinho"></div>
-            <div class="modal-footer"
-                style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
-                <h3 id="total-carrinho" style="margin: 0;">Total: R$ 0,00</h3>
-                <button class="cta" onclick="alert('Pedido finalizado!')">Finalizar Compra</button>
-            </div>
+<div id="modal-carrinho" class="modal">
+    <div class="modal-content" id="modal-carrinho-content">
+        <span class="close-modal" onclick="fecharModal()">&times;</span>
+        <h2 style="text-align: center; color: white;">🛒 Seu Carrinho</h2>
+        
+        <div id="itens-carrinho"></div>
+
+        <div class="modal-footer">
+            <h3 id="total-carrinho">Total: R$ 0,00</h3>
+            <button class="cta" style="width: 100%; border: none; cursor: pointer;" onclick="finalizarCompra()">
+                Finalizar Compra
+            </button>
         </div>
     </div>
+</div>  
 
     <div id="modal-login" class="modal">
         <div class="modal-content login-pequeno">
@@ -93,6 +96,8 @@
         </div>
     </div>
 
+
+</section>
 </body>
 
 </html>
