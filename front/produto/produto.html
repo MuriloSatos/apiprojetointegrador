@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +7,6 @@
     <link rel="stylesheet" href="produto.css">
     <script src="produto.js" defer></script>
 </head>
-
 <body>
     <header>
         <nav class="container nav-principal">
@@ -21,18 +19,11 @@
             <ul class="menu-central" id="menu-navegacao">
                 <li><a href="../index/index.html">Início</a></li>
                 <li><a href="../produto/produto.html">Catálogo</a></li>
-                <li><a href="../vendas/vendas.html">Vendas</a></li>
-                <li><a href="../cliente/cliente.html">Clientes</a></li>
-                <li><a href="../usuario/usuario.html">Usuários</a></li>
             </ul>
 
-            <ul class="menu-direita">
-                <li>
-                    <a href="javascript:void(0)" class="carrinho-link" onclick="abrirModal()">
-                        🛒 Carrinho <span id="contagem-carrinho">(0)</span>
-                    </a>
-                </li>
-                <li><button class="btn-login-top" onclick="abrirModalLogin()">Login</button></li>
+            <ul class="menu-direita" id="menu-direita">
+                <li><a href="javascript:void(0)" onclick="abrirModal()">🛒 Carrinho <span id="contagem-carrinho">(0)</span></a></li>
+                <li><button class="btn-login-top" onclick="window.location.href='../login/login.html'">Login</button></li>
             </ul>
         </nav>
     </header>
@@ -44,14 +35,12 @@
                     <label>O que você está procurando?</label>
                     <input type="text" id="input-busca" placeholder="Ex: Mountain Bike Aro 29...">
                 </div>
-
                 <div class="campo-filtro">
                     <label>Categoria</label>
                     <select id="select-tipo">
                         <option value="">Todas</option>
                     </select>
                 </div>
-
                 <div class="campo-filtro">
                     <label>Preço Máximo</label>
                     <input type="number" id="input-preco" placeholder="R$">
@@ -71,38 +60,42 @@
             <span class="close" onclick="fecharModalCadastro()">&times;</span>
             <h2>📦 Novo Produto</h2>
             <form id="form-cadastro-produto">
-                
                 <div class="campo-filtro-modal">
                     <label>Nome do Produto</label>
-                    <input type="text" id="cad-nome" placeholder="Ex: Bicicleta Aro 29 Groove" required>
+                    <input type="text" id="cad-nome" placeholder="Ex: Bike Oggi 29" required>
+                </div>
+
+                <div class="campo-filtro-modal">
+                    <label>Imagem do Produto (Arquivo)</label>
+                    <input type="file" id="cad-imagem" accept="image/*" required>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
                     <div class="campo-filtro-modal" style="flex: 1;">
-                        <label>Categoria/Tipo</label>
-                        <input type="text" id="cad-tipo" placeholder="Ex: MTB" required>
+                        <label>Categoria</label>
+                        <input type="text" id="cad-tipo" required>
                     </div>
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Preço (R$)</label>
-                        <input type="number" step="0.01" id="cad-preco" placeholder="0.00" required>
+                        <input type="number" step="0.01" id="cad-preco" required>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Tamanho</label>
-                        <input type="text" id="cad-tamanho" placeholder="Ex: 17 / Aro 29" required>
+                        <input type="text" id="cad-tamanho" required>
                     </div>
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Marca</label>
-                        <input type="text" id="cad-marca" placeholder="Ex: Oggi" required>
+                        <input type="text" id="cad-marca" required>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
                     <div class="campo-filtro-modal" style="flex: 1;">
-                        <label>Código Prod.</label>
-                        <input type="number" id="cad-codigo" placeholder="ID numérico" required>
+                        <label>Código</label>
+                        <input type="number" id="cad-codigo" required>
                     </div>
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Estoque</label>
@@ -110,29 +103,12 @@
                     </div>
                 </div>
 
-                <div class="campo-filtro-modal">
-                    <label>URL da Imagem</label>
-                    <input type="text" id="cad-imagem" placeholder="https://link-da-foto.jpg" required>
-                </div>
-
                 <div class="previa-box">
-                    <img id="previa-img" src="" alt="Prévia">
+                    <img id="previa-img" src="" alt="Prévia" style="max-width: 100%; max-height: 150px;">
                 </div>
 
                 <button type="submit" class="btn-acao-salvar">Salvar Produto</button>
             </form>
-        </div>
-    </div>
-
-    <div id="modal-carrinho" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="fecharModal()">&times;</span>
-            <h2>🛒 Seu Carrinho</h2>
-            <div id="itens-carrinho"></div>
-            <div class="cart-footer">
-                <h3 id="total-carrinho">Total: R$ 0,00</h3>
-                <button class="btn-acao-salvar" onclick="finalizarCompra()">Finalizar Compra</button>
-            </div>
         </div>
     </div>
 </body>

@@ -11,7 +11,6 @@ function atualizarMenu() {
     const menuCentral = document.getElementById('menu-navegacao');
     const menuDireita = document.querySelector('.menu-direita');
 
-    // Caso: USUÁRIO NÃO LOGADO (Mostra apenas Início e Catálogo)
     if (!user) {
         if (menuCentral) {
             menuCentral.innerHTML = `
@@ -25,9 +24,7 @@ function atualizarMenu() {
                 <li><a href="javascript:void(0)" onclick="abrirModalLogin()">Login</a></li>
             `;
         }
-    } 
-    // Caso: USUÁRIO LOGADO (Verifica Perfil conforme imagens enviadas)
-    else {
+    } else {
         let linksExtras = "";
         if (user.perfil === "adm") {
             linksExtras = `
@@ -53,21 +50,20 @@ function atualizarMenu() {
             `;
         }
     }
-    atualizarContador(); // Atualiza o número no ícone após montar o menu
+    atualizarContador();
 }
 
-// --- 2. FUNÇÃO DE ATUALIZAR CONTADOR (ESTAVA FALTANDO) ---
+// --- 2. FUNÇÃO DE ATUALIZAR CONTADOR ---
 
 function atualizarContador() {
     const contador = document.getElementById('contagem-carrinho');
     if (contador) {
-        // Soma a quantidade total de itens no array (ex: 2 bikes X + 1 bike Y = 3 no ícone)
         const totalItens = carrinho.reduce((total, item) => total + item.quantidade, 0);
         contador.innerText = `(${totalItens})`;
     }
 }
 
-// --- 3. LÓGICA DO CARRINHO PROFISSIONAL ---
+// --- 3. LÓGICA DO CARRINHO ---
 
 function adicionarAoCarrinho(nome, preco, imagem) {
     const itemExistente = carrinho.find(item => item.nome === nome);
@@ -144,8 +140,24 @@ function removerDoCarrinho(id) {
     renderizarCarrinho();
 }
 
-// --- 4. LOGIN E LOGOUT ---
+// --- 4. SISTEMA DE LOGIN, CADASTRO E RECUPERAÇÃO ---
 
+// Alternar entre as telas do Modal
+function alternarTela(tela) {
+    const login = document.getElementById('secao-login');
+    const cadastro = document.getElementById('secao-cadastro');
+    const esqueci = document.getElementById('secao-esqueci');
+
+    if (login) login.style.display = 'none';
+    if (cadastro) cadastro.style.display = 'none';
+    if (esqueci) esqueci.style.display = 'none';
+
+    if (tela === 'login') login.style.display = 'block';
+    if (tela === 'cadastro') cadastro.style.display = 'block';
+    if (tela === 'esqueci') esqueci.style.display = 'block';
+}
+
+// Lógica de Login (Existente)
 document.getElementById('form-login')?.addEventListener('submit', async function (e) {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim();
@@ -160,9 +172,57 @@ document.getElementById('form-login')?.addEventListener('submit', async function
             localStorage.setItem('usuarioLogado', JSON.stringify(user));
             window.location.reload();
         } else {
-            alert("Login inválido!");
+            alert("E-mail ou senha incorretos.");
         }
-    } catch (err) { alert("Erro de conexão com o servidor."); }
+    } catch (err) { alert("Erro ao conectar com o servidor."); }
+});
+
+// --- LOGICA DE CADASTRO AJUSTADA ---
+document.getElementById('form-cadastro')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    
+    // Captura os valores
+    const nome = document.getElementById('cad-nome').value.trim();
+    const email = document.getElementById('cad-email').value.trim();
+    const senha = document.getElementById('cad-senha').value.trim();
+
+    const novoUsuario = {
+        id: String(Date.now()), // Gerar ID como string evita erros em alguns servidores
+        nome: nome,
+        email: email,
+        senha: senha,
+        perfil: "cliente"
+    };
+
+    try {
+        const resposta = await fetch(API_LOGIN, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+                // Remova a 'minha-chave' temporariamente se o json-server estiver bloqueando
+            },
+            body: JSON.stringify(novoUsuario)
+        });
+
+        if (resposta.ok) {
+            alert("Cadastro realizado com sucesso!");
+            alternarTela('login');
+        } else {
+            const erroTexto = await resposta.text();
+            console.error("Erro do servidor:", erroTexto);
+            alert("Erro ao salvar no banco de dados. Verifique o console do VS Code.");
+        }
+    } catch (err) {
+        console.error("Erro de conexão:", err);
+        alert("Não foi possível conectar ao servidor.");
+    }
+});
+// Lógica de Esqueci Senha (Simulação)
+document.getElementById('form-esqueci')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const email = document.getElementById('esqueci-email').value;
+    alert(`Enviamos um link de recuperação para: ${email}`);
+    alternarTela('login');
 });
 
 function logout() {
@@ -179,27 +239,49 @@ async function carregarDestaques() {
         const res = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
         const dados = await res.json();
         grid.innerHTML = "";
+
+        // Definimos o caminho padrão de erro uma única vez para facilitar
+        const IMG_DEFAULT = '/front/assets/sem-foto.png';
+
         dados.slice(0, 4).forEach(bike => {
+            // Verificamos se bike.imagem existe. Se sim, usamos ela. 
+            // Se não, usamos o IMG_DEFAULT.
+            let imagemExibir = bike.imagem ? bike.imagem : IMG_DEFAULT;
+
+            // Se o caminho no banco não começar com http ou /, 
+            // podemos ajustar para garantir que aponte para a pasta certa
+            if (bike.imagem && !bike.imagem.startsWith('http') && !bike.imagem.startsWith('/')) {
+                imagemExibir = `/front/${bike.imagem}`;
+            }
+
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div class="img-placeholder"><img src="${bike.imagem || '../assets/sem-foto.png'}" style="width:100%; height:100%; object-fit:contain;"></div>
-                <h3>${bike.nomeproduto}</h3>
-                <span class="price">R$ ${parseFloat(bike.preco).toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
-                <button class="cta-comprar" onclick="adicionarAoCarrinho('${bike.nomeproduto}', ${bike.preco}, '${bike.imagem}')">Comprar</button>
+                <div class="img-placeholder">
+                    <img src="${imagemExibir}" 
+                         alt="${bike.nomeproduto || 'Produto'}"
+                         onerror="this.onerror=null;this.src='${IMG_DEFAULT}'" 
+                         style="width:100%; height:100%; object-fit:contain;">
+                </div>
+                <h3>${bike.nomeproduto || 'Sem nome'}</h3>
+                <span class="price">R$ ${parseFloat(bike.preco || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+                <button class="cta-comprar" onclick="adicionarAoCarrinho('${bike.nomeproduto}', ${bike.preco}, '${imagemExibir}')">Comprar</button>
             `;
             grid.appendChild(card);
         });
-    } catch (e) { console.log("Erro ao carregar produtos:", e); }
+    } catch (e) { 
+        console.error("Erro ao carregar produtos:", e); 
+    }
 }
-
 // --- 6. CONTROLE DE MODAIS ---
 function abrirModal() { document.getElementById('modal-carrinho').classList.add('aberto'); }
 function fecharModal() { document.getElementById('modal-carrinho').classList.remove('aberto'); }
-function abrirModalLogin() { document.getElementById('modal-login').style.display = 'block'; }
+function abrirModalLogin() { 
+    document.getElementById('modal-login').style.display = 'block'; 
+    alternarTela('login'); // Sempre abre na tela de login
+}
 function fecharModalLogin() { document.getElementById('modal-login').style.display = 'none'; }
 
-// Fecha clicando fora
 window.onclick = (e) => {
     if (e.target.id === 'modal-login') fecharModalLogin();
     if (e.target.id === 'modal-carrinho') fecharModal();

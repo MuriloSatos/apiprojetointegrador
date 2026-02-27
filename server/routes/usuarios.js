@@ -2,35 +2,69 @@ const express = require("express");
 const pool = require("../db");
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+// ==========================================
+// ROTAS DE AUTENTICAÇÃO (PÚBLICAS)
+// ==========================================
+
+// LOGIN: POST /usuarios/login
+router.post("/login", async (req, res) => {
     try {
-        const { email, senha } = req.query;
+        const { email, senha } = req.body;
 
-        // LOGIN: Se houver email e senha, filtra no banco
-        if (email && senha) {
-            const query = `
-                SELECT id, nome, email, perfil 
-                FROM sistema.usuarios 
-                WHERE email = $1 AND senha = $2
-            `;
-            const result = await pool.query(query, [email, senha]);
+        const query = `
+            SELECT id, nome, email, perfil 
+            FROM sistema.usuarios 
+            WHERE email = $1 AND senha = $2
+        `;
+        const result = await pool.query(query, [email, senha]);
 
-            if (result.rows.length > 0) {
-                // Retorna apenas o objeto do usuário (o que evita o erro de undefined)
-                return res.json(result.rows[0]);
-            } else {
-                return res.status(401).json({ error: "Credenciais inválidas" });
-            }
+        if (result.rows.length > 0) {
+            // Retorna o objeto usuario para o frontend salvar no localStorage
+            return res.json({ usuario: result.rows[0] });
+        } else {
+            return res.status(401).json({ error: "E-mail ou senha incorretos" });
         }
-
-        // LISTAGEM GERAL: Se não houver filtro, retorna todos (usado pelo ADM)
-        const result = await pool.query("SELECT id, nome, email, perfil FROM sistema.usuarios");
-        res.json(result.rows);
-
     } catch (err) {
-        res.status(500).json({ error: "Erro no servidor" });
+        res.status(500).json({ error: "Erro interno no servidor" });
     }
 });
+
+// CADASTRO DE CLIENTE: POST /usuarios/cadastro
+// Rota pública para quando o cliente se registra sozinho
+router.post("/cadastro", async (req, res) => {
+    try {
+        const { nome, email, senha } = req.body;
+        const perfil = 'cliente'; // Todo cadastro via site nasce como cliente
+
+        const result = await pool.query(
+            `INSERT INTO sistema.usuarios (nome, senha, email, perfil)
+             VALUES ($1, $2, $3, $4) RETURNING id, nome, email, perfil`,
+            [nome, senha, email, perfil]
+        );
+
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        if (err.code === '23505') { // Erro de e-mail duplicado no banco
+            return res.status(400).json({ error: "Este e-mail já está cadastrado" });
+        }
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// ROTAS DE GESTÃO (PROTEGIDAS PELA API KEY NO SERVER.JS)
+// ==========================================
+
+// LISTAR TODOS (Usado na tabela de gestão)
+router.get("/", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT id, nome, email, perfil FROM sistema.usuarios ORDER BY id ASC");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao buscar usuários" });
+    }
+});
+
 // BUSCAR POR ID
 router.get("/:id", async (req, res) => {
     try {
@@ -49,26 +83,17 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// CRIAR USUÁRIO
+// CRIAR USUÁRIO VIA ADM
 router.post("/", async (req, res) => {
     try {
         const { nome, email, senha, perfil } = req.body;
-
-        if (!nome || !senha || !email || !perfil) {
-            return res.status(400).json({
-                error: "Campos obrigatórios: nome, senha, email, perfil"
-            });
-        }
-
         const result = await pool.query(
             `INSERT INTO sistema.usuarios (nome, senha, email, perfil)
              VALUES ($1, $2, $3, $4) RETURNING id, nome, email, perfil`,
             [nome, senha, email, perfil]
         );
-
         res.status(201).json(result.rows[0]);
     } catch (err) {
-        console.error("Erro ao criar Usuário:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -77,19 +102,16 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { nome, email, senha, perfil } = req.body;
+        const { nome, email, perfil } = req.body;
 
         const result = await pool.query(
             `UPDATE sistema.usuarios
-             SET nome = $1, senha = $2, email = $3, perfil = $4
-             WHERE id = $5 RETURNING id, nome, email, perfil`,
-            [nome, senha, email, perfil, id]
+             SET nome = $1, email = $2, perfil = $3
+             WHERE id = $4 RETURNING id, nome, email, perfil`,
+            [nome, email, perfil, id]
         );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-
+        if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado" });
         res.json(result.rows[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -100,14 +122,9 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const result = await pool.query(
-            "DELETE FROM sistema.usuarios WHERE id = $1 RETURNING *",
-            [id]
-        );
+        const result = await pool.query("DELETE FROM sistema.usuarios WHERE id = $1 RETURNING *", [id]);
 
-        if (result.rows.length === 0)
-            return res.status(404).json({ error: "Usuário não encontrado" });
-
+        if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado" });
         res.status(204).end();
     } catch (err) {
         res.status(500).json({ error: "Erro ao deletar usuário" });
