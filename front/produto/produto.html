@@ -22,7 +22,7 @@
             </ul>
 
             <ul class="menu-direita" id="menu-direita">
-                <li><a href="javascript:void(0)" onclick="abrirModal()">🛒 Carrinho <span id="contagem-carrinho">(0)</span></a></li>
+                <li><a href="javascript:void(0)" onclick="abrirModalCarrinho()">🛒 Carrinho <span id="contagem-carrinho">(0)</span></a></li>
                 <li><button class="btn-login-top" onclick="window.location.href='../login/login.html'">Login</button></li>
             </ul>
         </nav>
@@ -62,53 +62,62 @@
             <form id="form-cadastro-produto">
                 <div class="campo-filtro-modal">
                     <label>Nome do Produto</label>
-                    <input type="text" id="cad-nome" placeholder="Ex: Bike Oggi 29" required>
+                    <input type="text" id="cad-nome" name="nomeproduto" placeholder="Ex: Bike Oggi 29" required>
                 </div>
 
                 <div class="campo-filtro-modal">
                     <label>Imagem do Produto (Arquivo)</label>
-                    <input type="file" id="cad-imagem" accept="image/*" required>
+                    <input type="file" id="cad-imagem" name="imagem" accept="image/*" required>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Categoria</label>
-                        <input type="text" id="cad-tipo" required>
+                        <input type="text" id="cad-tipo" name="tipoproduto" required>
                     </div>
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Preço (R$)</label>
-                        <input type="number" step="0.01" id="cad-preco" required>
+                        <input type="number" step="1" id="cad-preco" name="preco" required>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Tamanho</label>
-                        <input type="text" id="cad-tamanho" required>
+                        <input type="text" id="cad-tamanho" name="tamanhoproduto" required>
                     </div>
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Marca</label>
-                        <input type="text" id="cad-marca" required>
+                        <input type="text" id="cad-marca" name="marcaproduto" required>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Código</label>
-                        <input type="number" id="cad-codigo" required>
+                        <input type="number" id="cad-codigo" name="codigoproduto" required>
                     </div>
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Estoque</label>
-                        <input type="number" id="cad-estoque" value="1" required>
+                        <input type="number" id="cad-estoque" name="estoque" value="1" required>
                     </div>
                 </div>
 
                 <div class="previa-box">
-                    <img id="previa-img" src="" alt="Prévia" style="max-width: 100%; max-height: 150px;">
+                    <img id="previa-img" src="" alt="Prévia" style="max-width: 100%; max-height: 150px; display: block; margin: 10px auto;">
                 </div>
 
                 <button type="submit" class="btn-acao-salvar">Salvar Produto</button>
             </form>
+        </div>
+    </div>
+
+    <div id="modal-carrinho" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModalCarrinho()">&times;</span>
+            <h2>🛒 Seu Carrinho</h2>
+            <div id="itens-carrinho"></div>
+            <button class="btn-acao-salvar" onclick="alert('Finalizar compra em breve!')">Finalizar Compra</button>
         </div>
     </div>
 </body>
