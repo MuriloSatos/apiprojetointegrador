@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="produto.css">
     <script src="produto.js" defer></script>
 </head>
+
 <body>
     <header>
         <nav class="container nav-principal">
@@ -22,8 +24,10 @@
             </ul>
 
             <ul class="menu-direita" id="menu-direita">
-                <li><a href="javascript:void(0)" onclick="abrirModalCarrinho()">🛒 Carrinho <span id="contagem-carrinho">(0)</span></a></li>
-                <li><button class="btn-login-top" onclick="window.location.href='../login/login.html'">Login</button></li>
+                <li><a href="javascript:void(0)" onclick="abrirModalCarrinho()">🛒 Carrinho <span
+                            id="contagem-carrinho">(0)</span></a></li>
+                <li><button class="btn-login-top" onclick="window.location.href='../login/login.html'">Login</button>
+                </li>
             </ul>
         </nav>
     </header>
@@ -77,7 +81,7 @@
                     </div>
                     <div class="campo-filtro-modal" style="flex: 1;">
                         <label>Preço (R$)</label>
-                        <input type="number" step="1" id="cad-preco" name="preco" required>
+                        <input type="number" step="0.01" id="cad-preco" name="preco" placeholder="0.00" required>
                     </div>
                 </div>
 
@@ -104,7 +108,8 @@
                 </div>
 
                 <div class="previa-box">
-                    <img id="previa-img" src="" alt="Prévia" style="max-width: 100%; max-height: 150px; display: block; margin: 10px auto;">
+                    <img id="previa-img" src="" alt="Prévia"
+                        style="max-width: 100%; max-height: 150px; display: block; margin: 10px auto;">
                 </div>
 
                 <button type="submit" class="btn-acao-salvar">Salvar Produto</button>
@@ -121,4 +126,5 @@
         </div>
     </div>
 </body>
+
 </html>

@@ -105,14 +105,18 @@ header {
 }
 
 /* --- GRID DE PRODUTOS --- */
+/* Grade de Produtos */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    /* Força 4 colunas por padrão */
+    grid-template-columns: repeat(4, 1fr); 
     gap: 25px;
     max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
 }
+
+
 
 /* --- CARD DO PRODUTO (ALINHAMENTO TOTAL) --- */
 .card-produto {
@@ -260,3 +264,11 @@ header {
     object-fit: contain; /* Mantém a proporção da bike */
 }
 .previa-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+
+/* Ajuste para telas menores (Tablets e Celulares) */
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}

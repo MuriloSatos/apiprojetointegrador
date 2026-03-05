@@ -47,11 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarMenu();
     atualizarInterfaceCarrinho();
 
+    // Listeners de busca e filtros
     document.getElementById('input-busca')?.addEventListener('input', aplicarFiltros);
     document.getElementById('input-preco')?.addEventListener('input', aplicarFiltros);
     document.getElementById('select-tipo')?.addEventListener('change', aplicarFiltros);
     document.getElementById('form-cadastro-produto')?.addEventListener('submit', salvarNovoProduto);
 
+    // Pré-visualização da imagem no cadastro
     const cadImagem = document.getElementById('cad-imagem');
     if (cadImagem) {
         cadImagem.addEventListener('change', function (e) {
@@ -91,15 +93,17 @@ function renderizarProdutos(lista) {
 
     grid.innerHTML = lista.map(item => {
         const imgPath = item.imagem ? (item.imagem.startsWith('http') ? item.imagem : URL_ASSETS + item.imagem) : '../assets/sem-foto.png';
+        const precoNum = parseFloat(item.preco || 0);
+        
         return `
             <div class="card-produto">
                 <div class="img-container"><img src="${imgPath}" onerror="this.src='../assets/sem-foto.png'"></div>
                 <div class="info-produto">
                     <h3>${item.nomeproduto}</h3>
                     <p>${item.marcaproduto} | ${item.tamanhoproduto}</p>
-                    <span class="preco-tag">R$ ${Number(item.preco).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <span class="preco-tag">R$ ${precoNum.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                 </div>
-                <button class="btn-acao-comprar" onclick="adicionarAoCarrinho('${item.nomeproduto}', ${item.preco}, '${item.imagem}')">Comprar</button>
+                <button class="btn-acao-comprar" onclick="adicionarAoCarrinho('${item.nomeproduto}', ${precoNum}, '${item.imagem}')">Comprar</button>
             </div>
         `;
     }).join('');
@@ -109,15 +113,18 @@ async function salvarNovoProduto(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    // Tratamento para evitar NaN (converte para número antes de enviar)
+    // Validação e limpeza de campos numéricos
     const camposNumericos = ['preco', 'codigoproduto', 'estoque'];
     for (let campo of camposNumericos) {
-        const valor = formData.get(campo);
-        if (!valor || isNaN(valor)) {
-            alert(`O campo ${campo} deve ser um número válido.`);
+        let valorOriginal = formData.get(campo);
+        let valorLimpo = valorOriginal.replace(',', '.').trim(); 
+
+        if (valorLimpo === "" || isNaN(valorLimpo)) {
+            alert(`O campo ${campo} precisa de um número válido.`);
             return;
         }
-        formData.set(campo, Math.round(Number(valor))); 
+
+        formData.set(campo, campo === 'preco' ? parseFloat(valorLimpo) : Math.floor(Number(valorLimpo)));
     }
 
     try {
@@ -127,15 +134,18 @@ async function salvarNovoProduto(e) {
             body: formData
         });
 
+        const dados = await res.json();
+
         if (res.ok) {
-            alert("✅ Produto adicionado com sucesso!");
-            location.reload();
+            alert("✅ Produto cadastrado com sucesso!");
+            fecharModalCadastro();
+            carregarCatalogo(); // Recarrega a lista sem dar refresh na página toda
         } else {
-            const erroData = await res.json();
-            alert("❌ Erro: " + (erroData.detalhes || "Erro ao salvar."));
+            alert("❌ Erro: " + (dados.detalhes || "Erro ao salvar."));
         }
     } catch (err) {
-        console.error("Erro:", err);
+        console.error("Erro na requisição:", err);
+        alert("Erro ao conectar com o servidor.");
     }
 }
 
@@ -143,7 +153,7 @@ async function salvarNovoProduto(e) {
 function adicionarAoCarrinho(nome, preco, imagem) {
     const item = carrinho.find(i => i.nome === nome);
     if (item) item.quantidade++;
-    else carrinho.push({ nome, preco, imagem, quantidade: 1 });
+    else carrinho.push({ nome, preco: parseFloat(preco), imagem, quantidade: 1 });
 
     localStorage.setItem('carrinho_bikes', JSON.stringify(carrinho));
     atualizarInterfaceCarrinho();
@@ -163,7 +173,7 @@ function aplicarFiltros() {
 
     const filtrados = todosProdutos.filter(p => {
         const matchesBusca = p.nomeproduto.toLowerCase().includes(busca) || p.marcaproduto.toLowerCase().includes(busca);
-        const matchesPreco = Number(p.preco) <= precoMax;   
+        const matchesPreco = parseFloat(p.preco) <= precoMax;   
         const matchesTipo = tipo === "" || p.tipoproduto === tipo;
         return matchesBusca && matchesPreco && matchesTipo;
     });
@@ -173,7 +183,7 @@ function aplicarFiltros() {
 function popularFiltroCategorias(produtos) {
     const select = document.getElementById('select-tipo');
     if (!select) return;
-    const tipos = [...new Set(produtos.map(p => p.tipoproduto))];
+    const tipos = [...new Set(produtos.map(p => p.tipoproduto))].filter(t => t);
     select.innerHTML = '<option value="">Todas</option>' + 
         tipos.map(t => `<option value="${t}">${t}</option>`).join('');
 }
