@@ -1,8 +1,8 @@
 const express = require("express");
 require("dotenv").config();
 const cors = require('cors');
-const path = require('path'); // Necessário para gerenciar caminhos
-const multer = require('multer'); // Biblioteca para upload de arquivos
+const path = require('path');
+const multer = require('multer');
 
 // Importação dos roteadores
 const produtosRouter = require("./routes/produtos");
@@ -13,14 +13,12 @@ const autenticarApiKey = require("./autorizar");
 
 const app = express();
 
-// --- CONFIGURAÇÃO DO MULTER (Upload de Imagens) ---
+// --- CONFIGURAÇÃO DO MULTER ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        // Define a pasta onde as fotos serão salvas no seu projeto
         cb(null, path.join(__dirname, "../front/assets/")); 
     },
     filename: (req, file, cb) => {
-        // Gera um nome único: timestamp-nomeoriginal.jpg
         cb(null, Date.now() + "-" + file.originalname);
     }
 });
@@ -30,34 +28,30 @@ const upload = multer({ storage });
 app.use(cors());
 app.use(express.json());
 
-// Permite que o navegador acesse a pasta assets por URL (ex: http://localhost:3000/assets/bike.jpg)
+// Acesso a arquivos estáticos
 app.use("/assets", express.static(path.join(__dirname, "../front/assets")));
 
 // ==========================================
-// 1. ROTAS PÚBLICAS
+// 1. ROTAS PÚBLICAS (NÃO precisam de API Key)
 // ==========================================
 app.get("/", (req, res) => {
   res.send("🌎 API de Produtos rodando!");
 });
 
-app.use("/auth", usuariosRouter);
+// Rota de login/cadastro deve ser pública
+app.use("/usuarios", usuariosRouter); 
 
 // ==========================================
-// 2. MIDDLEWARE DE SEGURANÇA
+// 2. MIDDLEWARE DE SEGURANÇA (Abaixo daqui, tudo é protegido)
 // ==========================================
 app.use(autenticarApiKey);
 
 // ==========================================
 // 3. ROTAS PRIVADAS
 // ==========================================
-
-// Ajuste na rota de produtos para aceitar o upload de imagem
-// 'imagem' deve ser o nome (id/name) do campo no HTML
 app.use("/produtos", upload.single('imagem'), produtosRouter); 
-
 app.use("/clientes", clientesRouter);
 app.use("/vendas", vendasRouter);
-app.use("/usuarios", usuariosRouter);
 
 // Inicialização
 const PORT = process.env.PORT || 3000;

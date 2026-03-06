@@ -13,6 +13,59 @@ function atualizarInterfaceCarrinho() {
     }
 }
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+    // Verifica se o usuário está logado E se o perfil é válido
+    const ehAdm = user && user.perfil === 'adm';
+    const ehCliente = user && user.perfil === 'cliente';
+
+    // Se NÃO for nem adm e nem cliente, bloqueia o acesso
+    if (!ehAdm && !ehCliente) {
+        alert("Acesso restrito a usuários logados.");
+        window.location.href = "../index/index.html";
+    }
+});
+
+document.addEventListener('submit', async (e) => {
+    if (e.target.id === 'form-login') {
+        e.preventDefault();
+
+        // trim() remove espaços acidentais antes ou depois da digitação
+        const emailInput = document.getElementById('login-email').value.trim();
+        const senhaInput = document.getElementById('login-senha').value.trim();
+
+        try {
+            const res = await fetch(API_LOGIN, { headers: { 'minha-chave': CLIENT_API_KEY } });
+            const usuarios = await res.json();
+
+            // Log para verificar se os dados chegaram do banco
+            console.log("Usuários carregados:", usuarios);
+
+            // Tenta encontrar o usuário
+            const user = usuarios.find(u =>
+                u.email.trim() === emailInput &&
+                u.senha.trim() === senhaInput
+            );
+
+            if (user) {
+                localStorage.setItem('usuarioLogado', JSON.stringify(user));
+                alert(`Login realizado com sucesso! Bem-vindo ${user.nome}`);
+                // Redireciona ou atualiza o menu
+                window.location.reload();
+            } else {
+                console.log("Tentativa falha para:", emailInput);
+                alert("Usuário ou senha inválidos!");
+            }
+        } catch (err) {
+            console.error("Erro na conexão:", err);
+            alert("Erro ao conectar ao servidor.");
+        }
+    }
+});
+
+
 function atualizarMenu() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const menuNavegacao = document.getElementById('menu-navegacao');
@@ -94,14 +147,14 @@ function renderizarProdutos(lista) {
     grid.innerHTML = lista.map(item => {
         const imgPath = item.imagem ? (item.imagem.startsWith('http') ? item.imagem : URL_ASSETS + item.imagem) : '../assets/sem-foto.png';
         const precoNum = parseFloat(item.preco || 0);
-        
+
         return `
             <div class="card-produto">
                 <div class="img-container"><img src="${imgPath}" onerror="this.src='../assets/sem-foto.png'"></div>
                 <div class="info-produto">
                     <h3>${item.nomeproduto}</h3>
                     <p>${item.marcaproduto} | ${item.tamanhoproduto}</p>
-                    <span class="preco-tag">R$ ${precoNum.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <span class="preco-tag">R$ ${precoNum.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
                 <button class="btn-acao-comprar" onclick="adicionarAoCarrinho('${item.nomeproduto}', ${precoNum}, '${item.imagem}')">Comprar</button>
             </div>
@@ -117,7 +170,7 @@ async function salvarNovoProduto(e) {
     const camposNumericos = ['preco', 'codigoproduto', 'estoque'];
     for (let campo of camposNumericos) {
         let valorOriginal = formData.get(campo);
-        let valorLimpo = valorOriginal.replace(',', '.').trim(); 
+        let valorLimpo = valorOriginal.replace(',', '.').trim();
 
         if (valorLimpo === "" || isNaN(valorLimpo)) {
             alert(`O campo ${campo} precisa de um número válido.`);
@@ -150,22 +203,93 @@ async function salvarNovoProduto(e) {
 }
 
 // --- 4. CARRINHO E FILTROS ---
-function adicionarAoCarrinho(nome, preco, imagem) {
-    const item = carrinho.find(i => i.nome === nome);
-    if (item) item.quantidade++;
-    else carrinho.push({ nome, preco: parseFloat(preco), imagem, quantidade: 1 });
 
-    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinho));
-    atualizarInterfaceCarrinho();
-    alert("🚲 Adicionado ao carrinho!");
+function atualizarInterfaceCarrinho() {
+    const contador = document.getElementById('contagem-carrinho');
+    if (contador) {
+        const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+        const total = carrinhoAtual.reduce((sum, item) => sum + item.quantidade, 0);
+        contador.innerText = `(${total})`;
+    }
 }
 
+function adicionarAoCarrinho(nome, preco, imagem) {
+    let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+    
+    const item = carrinhoAtual.find(i => i.nome === nome);
+    if (item) {
+        item.quantidade++;
+    } else {
+        carrinhoAtual.push({ nome, preco: parseFloat(preco), imagem, quantidade: 1 });
+    }
+
+    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoAtual));
+    atualizarInterfaceCarrinho();
+    alert("🚲 " + nome + " adicionado ao carrinho!");
+}
+
+function renderizarItensCarrinho() {
+    const container = document.getElementById('itens-carrinho');
+    const totalElemento = document.getElementById('total-carrinho');
+    const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+    
+    if (!container) return;
+
+    if (carrinhoAtual.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>Seu carrinho está vazio.</p>";
+        if (totalElemento) totalElemento.innerText = "Total: R$ 0,00";
+        return;
+    }
+
+    let totalGeral = 0;
+    container.innerHTML = carrinhoAtual.map((item, index) => {
+        const preco = parseFloat(item.preco) || 0;
+        const subtotal = preco * item.quantidade;
+        totalGeral += subtotal;
+        
+        return `
+            <div class="item-carrinho" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #ccc; padding:5px;">
+                <div>
+                    <strong>${item.nome}</strong><br>
+                    Qtd: ${item.quantidade} - R$ ${preco.toFixed(2)}
+                </div>
+                <button onclick="removerDoCarrinho(${index})" style="background:red; color:white; border:none; cursor:pointer;">Remover</button>
+            </div>
+        `;
+    }).join('');
+
+    if (totalElemento) {
+        totalElemento.innerText = `Total: R$ ${totalGeral.toFixed(2)}`;
+    }
+}
+
+function removerDoCarrinho(index) {
+    let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+    carrinhoAtual.splice(index, 1);
+    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoAtual));
+    atualizarInterfaceCarrinho();
+    renderizarItensCarrinho(); 
+}
+
+// Modal Carrinho
+function abrirModalCarrinho() { 
+    const modal = document.getElementById('modal-carrinho');
+    if(modal) {
+        modal.style.display = 'block'; 
+        renderizarItensCarrinho();
+    }
+}
+
+function fecharModalCarrinho() { 
+    const modal = document.getElementById('modal-carrinho');
+    if(modal) modal.style.display = 'none'; 
+}
+
+// Modal Cadastro
 function abrirModalCadastro() { document.getElementById('modal-novo-produto').style.display = 'block'; }
 function fecharModalCadastro() { document.getElementById('modal-novo-produto').style.display = 'none'; }
 
-function abrirModalCarrinho() { document.getElementById('modal-carrinho').style.display = 'block'; }
-function fecharModalCarrinho() { document.getElementById('modal-carrinho').style.display = 'none'; }
-
+// Filtros
 function aplicarFiltros() {
     const busca = document.getElementById('input-busca')?.value.toLowerCase() || "";
     const precoMax = parseFloat(document.getElementById('input-preco')?.value) || Infinity;
@@ -173,7 +297,7 @@ function aplicarFiltros() {
 
     const filtrados = todosProdutos.filter(p => {
         const matchesBusca = p.nomeproduto.toLowerCase().includes(busca) || p.marcaproduto.toLowerCase().includes(busca);
-        const matchesPreco = parseFloat(p.preco) <= precoMax;   
+        const matchesPreco = parseFloat(p.preco) <= precoMax;
         const matchesTipo = tipo === "" || p.tipoproduto === tipo;
         return matchesBusca && matchesPreco && matchesTipo;
     });
@@ -184,6 +308,6 @@ function popularFiltroCategorias(produtos) {
     const select = document.getElementById('select-tipo');
     if (!select) return;
     const tipos = [...new Set(produtos.map(p => p.tipoproduto))].filter(t => t);
-    select.innerHTML = '<option value="">Todas</option>' + 
+    select.innerHTML = '<option value="">Todas</option>' +
         tipos.map(t => `<option value="${t}">${t}</option>`).join('');
 }

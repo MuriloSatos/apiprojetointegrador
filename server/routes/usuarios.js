@@ -6,35 +6,27 @@ const router = express.Router();
 // ROTAS DE AUTENTICAÇÃO (PÚBLICAS)
 // ==========================================
 
-// LOGIN: POST /usuarios/login
-router.post("/login", async (req, res) => {
+router.get("/", async (req, res) => {
     try {
-        const { email, senha } = req.body;
-
-        const query = `
-            SELECT id, nome, email, perfil 
-            FROM sistema.usuarios 
-            WHERE email = $1 AND senha = $2
-        `;
-        const result = await pool.query(query, [email, senha]);
-
-        if (result.rows.length > 0) {
-            // Retorna o objeto usuario para o frontend salvar no localStorage
-            return res.json({ usuario: result.rows[0] });
-        } else {
-            return res.status(401).json({ error: "E-mail ou senha incorretos" });
-        }
+        const sql = "SELECT id, nome, email, senha, perfil FROM sistema.usuarios";
+        const result = await pool.query(sql);
+        
+        // --- TESTE ---
+        // Se este log no terminal mostrar a senha, mas o navegador não, 
+        // seu servidor tem outro middleware filtrando o JSON.
+        console.log("Dados no Servidor (antes de enviar):", result.rows[0]); 
+        
+        res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ error: "Erro interno no servidor" });
+        res.status(500).json({ error: err.message });
     }
 });
 
-// CADASTRO DE CLIENTE: POST /usuarios/cadastro
-// Rota pública para quando o cliente se registra sozinho
+// CADASTRO DE CLIENTE
 router.post("/cadastro", async (req, res) => {
     try {
         const { nome, email, senha } = req.body;
-        const perfil = 'cliente'; // Todo cadastro via site nasce como cliente
+        const perfil = 'cliente'; 
 
         const result = await pool.query(
             `INSERT INTO sistema.usuarios (nome, senha, email, perfil)
@@ -44,7 +36,7 @@ router.post("/cadastro", async (req, res) => {
 
         res.status(201).json(result.rows[0]);
     } catch (err) {
-        if (err.code === '23505') { // Erro de e-mail duplicado no banco
+        if (err.code === '23505') { 
             return res.status(400).json({ error: "Este e-mail já está cadastrado" });
         }
         res.status(500).json({ error: err.message });
@@ -52,18 +44,8 @@ router.post("/cadastro", async (req, res) => {
 });
 
 // ==========================================
-// ROTAS DE GESTÃO (PROTEGIDAS PELA API KEY NO SERVER.JS)
+// ROTAS DE GESTÃO (PROTEGIDAS)
 // ==========================================
-
-// LISTAR TODOS (Usado na tabela de gestão)
-router.get("/", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT id, nome, email, perfil FROM sistema.usuarios ORDER BY id ASC");
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao buscar usuários" });
-    }
-});
 
 // BUSCAR POR ID
 router.get("/:id", async (req, res) => {

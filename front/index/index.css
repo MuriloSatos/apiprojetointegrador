@@ -219,31 +219,44 @@
         box-shadow: var(--shadow);
     }
 
-    /* MODAL DO CARRINHO (Barra Lateral) */
-    /* --- CARRINHO SIDEBAR PROFISSIONAL --- */
-    #modal-carrinho .modal-content {
-        position: fixed;
-        right: -100%; /* Escondido */
-        top: 0;
-        width: 100%;
-        max-width: 450px;
-        height: 100vh;
-        background-color: var(--branco);
-        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
-        transition: all 0.5s cubic-bezier(0.77, 0, 0.175, 1);
-        display: flex;
-        flex-direction: column;
-        z-index: 3001;
-    }
+/* --- SISTEMA DE MODAIS (GERAL) --- */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
 
-  /* Adicione isso se não tiver */
 .modal.aberto {
-    display: block !important;
-}
-.modal.aberto #modal-carrinho-content {
-    right: 0 !important;
+    display: flex !important;
+    opacity: 1;
 }
 
+/* Painel Lateral */
+#modal-carrinho .modal-content {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 100%;
+    max-width: 450px;
+    height: 100vh;
+    background-color: var(--branco);
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal.aberto .modal-content {
+    transform: translateX(0);
+}
     /* Cabeçalho do Carrinho */
     .cart-header {
         padding: 20px;
