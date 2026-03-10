@@ -1,297 +1,335 @@
-/* --- VARIÁVEIS --- */
+/* --- Variáveis e Reset --- */
 :root {
+    --primaria: #ff6600;
     --escura: #1a1a1a;
+    --cinza-claro: #f4f4f4;
     --branco: #ffffff;
-    --cinza-bg: #f4f4f4;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --transition: 0.3s ease;
+    --borda: #ddd;
+    --sombra: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: var(--cinza-bg);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--cinza-claro);
+    color: #333;
+    line-height: 1.6;
 }
 
-/* --- HEADER --- */
+/* --- Cabeçalho e Navegação --- */
 header {
-    background: #000;
-    padding: 15px 0;
-    border-bottom: 3px solid var(--primaria);
+    background-color: var(--escura);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .nav-principal {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 0 20px;
 }
 
-.logo {
+.logo a {
     color: var(--branco);
-    font-weight: 800;
-    font-size: 1.5rem;
     text-decoration: none;
-    letter-spacing: -1px;
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
-.logo span { color: var(--primaria); }
+.logo span {
+    color: var(--primaria);
+}
 
 .menu-central, .menu-direita {
     list-style: none;
     display: flex;
     gap: 20px;
-    margin: 0;
-    padding: 0;
     align-items: center;
 }
 
 .menu-central a, .menu-direita a {
-    text-decoration: none;
     color: var(--branco);
-    font-size: 0.9rem;
-    transition: var(--transition);
+    text-decoration: none;
+    transition: color 0.3s;
 }
 
-.menu-central a:hover { color: var(--primaria); }
+.menu-central a:hover {
+    color: var(--primaria);
+}
 
 .btn-login-top {
-    background: var(--primaria);
-    color: rgb(255, 255, 255);
+    background-color: var(--primaria);
+    color: white;
     border: none;
     padding: 8px 18px;
-    border-radius: 6px;
-    font-weight: bold;
+    border-radius: 4px;
     cursor: pointer;
-    transition: var(--transition);
+    font-weight: bold;
 }
 
-/* --- BARRA DE PESQUISA --- */
+/* --- Barra de Ações (Filtros) --- */
 .barra-acoes {
-    background: white;
+    max-width: 1200px;
+    margin: 2rem auto;
     padding: 20px;
-    border-radius: 12px;
-    margin: 20px auto;
-    max-width: 1100px;
+    background: var(--branco);
+    border-radius: 8px;
+    box-shadow: var(--sombra);
     display: flex;
+    justify-content: space-between;
     align-items: flex-end;
-    gap: 15px;
-    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .filtros-container {
     display: flex;
-    flex: 1;
-    gap: 15px;
+    gap: 20px;
+    flex-grow: 1;
+    flex-wrap: wrap;
 }
 
-.campo-filtro { display: flex; flex-direction: column; gap: 5px; }
-.campo-filtro.pesquisa { flex: 2; }
+.campo-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 200px;
+}
 
 .campo-filtro label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #888;
-    text-transform: uppercase;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #666;
 }
 
 .campo-filtro input, .campo-filtro select {
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #f9f9f9;
+    border: 1px solid var(--borda);
+    border-radius: 5px;
+    outline: none;
 }
 
-/* --- GRID DE PRODUTOS --- */
-/* Grade de Produtos */
+#btn-abrir-cadastro {
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+#btn-abrir-cadastro:hover {
+    background-color: #218838;
+}
+
+/* Container que segura os cards */
 .grid {
     display: grid;
-    /* Força 4 colunas por padrão */
-    grid-template-columns: repeat(4, 1fr); 
-    gap: 25px;
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 20px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
+    padding: 20px;
 }
 
-
-
-/* --- CARD DO PRODUTO (ALINHAMENTO TOTAL) --- */
+/* O Card do Produto */
 .card-produto {
-    background: var(--branco);
+    background: #fff;
+    border-radius: 15px;
     padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    height: 450px; /* Altura fixa garantida */
-    justify-content: space-between;
-    overflow: hidden; 
-    transition: var(--transition);
-    box-sizing: border-box;
+    justify-content: space-between; /* Empurra o botão para o final */
+    min-height: 420px; /* Garante que todos tenham o mesmo tamanho */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
 }
 
 .card-produto:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
 }
 
-/* CONTAINER DA IMAGEM - Garante que o link não apareça como texto */
+/* ÁREA DA IMAGEM - O mais importante */
 .img-container {
     width: 100%;
-    height: 180px;
+    height: 180px; /* Altura fixa para a imagem */
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
     margin-bottom: 15px;
-    overflow: hidden; /* Força o sumiço de qualquer texto de link quebrado */
-}
-
-.card-produto img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* Não distorce a bike */
-    display: block;
-}
-
-/* TÍTULO - Proteção contra nomes ou links gigantes */
-.card-produto h3 {
-    font-size: 0.95rem;
-    color: var(--escura);
-    margin: 10px 0;
-    height: 42px; /* Espaço para 2 linhas */
-    line-height: 1.2;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical;
-    word-break: break-word; 
-}
-
-.card-produto p {
-    font-size: 0.8rem;
-    color: #888;
-    margin: 5px 0;
-}
-
-.preco-tag {
-    display: block;
-    color: var(--primaria);
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin: 10px 0;
-}
-
-.btn-acao-comprar {
-    background: var(--primaria);
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    width: 100%;
-    transition: var(--transition);
-}
-
-.btn-acao-comprar:hover { background: #e65c00; }
-
-/* --- MODAIS --- */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(3px);
-}
-
-/* Garante que o modal ocupe a tela toda e escureça o fundo */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 5000; /* Z-index alto para ficar acima de tudo */
-    display: none; /* O padrão é escondido */
-}
-
-/* Estilo do conteúdo do modal */
-.modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 20px;
-    width: 90%;
-    max-width: 500px;
-    border-radius: 10px;
-    position: relative;
-}
-
-/* Para o estilo dos itens dentro do carrinho */
-.item-carrinho {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.close {
-    position: absolute;
-    right: 20px; top: 15px;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-/* --- FORMULÁRIO DE CADASTRO --- */
-#form-cadastro-produto {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.campo-filtro-modal { display: flex; flex-direction: column; gap: 4px; }
-.campo-filtro-modal label { font-size: 0.7rem; font-weight: 700; color: #666; }
-.campo-filtro-modal input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-
-.previa-box {
-    width: 100%;
-    height: 140px;
-    border: 2px dashed #ddd;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.img-container {
-    width: 100%;
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: #f9f9f9;
 }
 
 .img-container img {
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain; /* Mantém a proporção da bike */
+    object-fit: contain; /* Faz a imagem caber sem cortar e sem esticar */
 }
-.previa-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
+/* Textos do Produto */
+.nome-produto {
+    font-size: 1.1rem;
+    color: #333;
+    margin: 10px 0 5px 0;
+    height: 2.4em; /* Reserva espaço para 2 linhas de nome */
+    overflow: hidden;
+}
 
-/* Ajuste para telas menores (Tablets e Celulares) */
-@media (max-width: 900px) {
-    .grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+.detalhes-produto {
+    font-size: 0.85rem;
+    color: #777;
+    margin-bottom: 15px;
+}
+
+.preco-tag {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ff6600;
+}
+
+/* Botão de Compra */
+.btn-acao-comprar {
+    background: #ff6600;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background 0.3s;
+}
+
+.btn-acao-comprar:hover {
+    background: #e65c00;
+}
+/* --- Modais --- */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    background-color: var(--branco);
+    margin: 5vh auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--borda);
+    padding-bottom: 10px;
+}
+
+.close {
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #999;
+}
+
+.close:hover { color: #333; }
+
+/* --- Formulário do Modal --- */
+#form-cadastro-produto {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.campo, .campo-full {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.campo label, .campo-full label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.campo input, .campo-full input {
+    padding: 10px;
+    border: 1px solid var(--borda);
+    border-radius: 5px;
+}
+
+.previa-box {
+    margin-top: 10px;
+    width: 100%;
+    height: 150px;
+    border: 2px dashed var(--borda);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+#previa-img {
+    max-height: 100%;
+    max-width: 100%;
+    display: none; /* JS deve alterar para 'block' ao carregar */
+}
+
+.btn-acao-salvar {
+    background-color: var(--primaria);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* --- Responsividade --- */
+@media (max-width: 768px) {
+    .barra-acoes {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-principal {
+        flex-direction: column;
+        gap: 15px;
     }
 }

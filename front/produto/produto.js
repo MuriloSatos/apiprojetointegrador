@@ -3,6 +3,8 @@ const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
 let todosProdutos = [];
 let carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+let paginaAtual = 1;
+const itensPorPagina = 8;
 
 // --- 1. FUNÇÕES DE INTERFACE ---
 function atualizarInterfaceCarrinho() {
@@ -138,13 +140,19 @@ async function carregarCatalogo() {
     }
 }
 
-function renderizarProdutos(lista) {
+function renderizarProdutos(lista, resetar = false) {
+    if (resetar) paginaAtual = 1;
     const grid = document.getElementById('catalogo-home');
     if (!grid) return;
 
+    // Lógica de paginação
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    const itensPagina = lista.slice(inicio, fim);
+
     const URL_ASSETS = "http://127.0.0.1:3000/assets/";
 
-    grid.innerHTML = lista.map(item => {
+    grid.innerHTML = itensPagina.map(item => {
         const imgPath = item.imagem ? (item.imagem.startsWith('http') ? item.imagem : URL_ASSETS + item.imagem) : '../assets/sem-foto.png';
         const precoNum = parseFloat(item.preco || 0);
 
@@ -160,6 +168,8 @@ function renderizarProdutos(lista) {
             </div>
         `;
     }).join('');
+
+    renderizarControlesPaginacao(lista.length);
 }
 
 async function salvarNovoProduto(e) {
@@ -215,7 +225,7 @@ function atualizarInterfaceCarrinho() {
 
 function adicionarAoCarrinho(nome, preco, imagem) {
     let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-    
+
     const item = carrinhoAtual.find(i => i.nome === nome);
     if (item) {
         item.quantidade++;
@@ -232,7 +242,7 @@ function renderizarItensCarrinho() {
     const container = document.getElementById('itens-carrinho');
     const totalElemento = document.getElementById('total-carrinho');
     const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-    
+
     if (!container) return;
 
     if (carrinhoAtual.length === 0) {
@@ -246,7 +256,7 @@ function renderizarItensCarrinho() {
         const preco = parseFloat(item.preco) || 0;
         const subtotal = preco * item.quantidade;
         totalGeral += subtotal;
-        
+
         return `
             <div class="item-carrinho" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #ccc; padding:5px;">
                 <div>
@@ -268,21 +278,21 @@ function removerDoCarrinho(index) {
     carrinhoAtual.splice(index, 1);
     localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoAtual));
     atualizarInterfaceCarrinho();
-    renderizarItensCarrinho(); 
+    renderizarItensCarrinho();
 }
 
 // Modal Carrinho
-function abrirModalCarrinho() { 
+function abrirModalCarrinho() {
     const modal = document.getElementById('modal-carrinho');
-    if(modal) {
-        modal.style.display = 'block'; 
+    if (modal) {
+        modal.style.display = 'block';
         renderizarItensCarrinho();
     }
 }
 
-function fecharModalCarrinho() { 
+function fecharModalCarrinho() {
     const modal = document.getElementById('modal-carrinho');
-    if(modal) modal.style.display = 'none'; 
+    if (modal) modal.style.display = 'none';
 }
 
 // Modal Cadastro
@@ -311,3 +321,54 @@ function popularFiltroCategorias(produtos) {
     select.innerHTML = '<option value="">Todas</option>' +
         tipos.map(t => `<option value="${t}">${t}</option>`).join('');
 }
+
+
+function aplicarFiltros() {
+    const busca = document.getElementById('input-busca')?.value.toLowerCase() || "";
+    const precoMax = parseFloat(document.getElementById('input-preco')?.value) || Infinity;
+    const tipo = document.getElementById('select-tipo')?.value || "";
+
+    const filtrados = todosProdutos.filter(p => {
+        const matchesBusca = p.nomeproduto.toLowerCase().includes(busca) || p.marcaproduto.toLowerCase().includes(busca);
+        const matchesPreco = parseFloat(p.preco) <= precoMax;
+        const matchesTipo = tipo === "" || p.tipoproduto === tipo;
+        return matchesBusca && matchesPreco && matchesTipo;
+    });
+    // Dentro da função aplicarFiltros, substitua o final por:
+    renderizarProdutos(filtrados, true);
+}
+
+function renderizarControlesPaginacao(totalItens) {
+    let container = document.getElementById('paginacao-container');
+    
+    // Se o container não existir, vamos criá-lo
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'paginacao-container';
+        container.className = 'paginacao-container';
+        
+        // Em vez de buscar o 'main', vamos anexar ao final da página ou após o grid
+        const grid = document.getElementById('catalogo-home');
+        if (grid && grid.parentNode) {
+            grid.parentNode.insertBefore(container, grid.nextSibling);
+        } else {
+            document.body.appendChild(container);
+        }
+    }
+    
+    container.innerHTML = '';
+    const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+
+    for (let i = 1; i <= totalPaginas; i++) {
+        const btn = document.createElement('button');
+        btn.innerText = i;
+        btn.className = `btn-pag ${i === paginaAtual ? 'ativo' : ''}`;
+        btn.onclick = () => { 
+            paginaAtual = i; 
+            renderizarProdutos(todosProdutos); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        container.appendChild(btn);
+    }
+}
+
