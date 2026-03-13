@@ -172,4 +172,35 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+router.post('/finalizar', async (req, res) => {
+    const { idcliente, formaPagamento } = req.body;
+
+    try {
+        // 1. Busca todos os itens do carrinho para este cliente
+        const itensCarrinho = await db.query(
+            "SELECT c.*, p.preco FROM carrinho c JOIN produto p ON c.codigoproduto = p.codigoproduto WHERE c.idcliente = ?", 
+            [idcliente]
+        );
+
+        if (itensCarrinho.length === 0) return res.status(400).send("Carrinho vazio");
+
+        // 2. Calcula o valor total
+        let total = itensCarrinho.reduce((acc, item) => acc + (item.preco * item.pecaquantidade), 0);
+
+        // 3. Insere a venda para cada item (conforme a estrutura da sua tabela 'venda')
+        for (let item of itensCarrinho) {
+            await db.query(
+                "INSERT INTO venda (idcliente, codigoproduto, pecaquantidade, valortotal, datavenda) VALUES (?, ?, ?, ?, NOW())",
+                [idcliente, item.codigoproduto, item.pecaquantidade, total]
+            );
+        }
+
+        // 4. Limpa o carrinho do cliente
+        await db.query("DELETE FROM carrinho WHERE idcliente = ?", [idcliente]);
+
+        res.status(201).json({ mensagem: "Compra finalizada com sucesso!" });
+    } catch (erro) {
+        res.status(500).send("Erro ao processar venda: " + erro.message);
+    }
+});
 module.exports = router;

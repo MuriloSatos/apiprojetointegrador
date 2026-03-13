@@ -164,8 +164,7 @@ function renderizarProdutos(lista, resetar = false) {
                     <p>${item.marcaproduto} | ${item.tamanhoproduto}</p>
                     <span class="preco-tag">R$ ${precoNum.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
-                <button class="btn-acao-comprar" onclick="adicionarAoCarrinho('${item.nomeproduto}', ${precoNum}, '${item.imagem}')">Comprar</button>
-            </div>
+                        <button class="btn-acao-comprar" onclick="adicionarAoCarrinho('${item.codigoproduto}', '${item.nomeproduto}', ${precoNum})">Comprar</button>            </div>
         `;
     }).join('');
 
@@ -223,19 +222,34 @@ function atualizarInterfaceCarrinho() {
     }
 }
 
-function adicionarAoCarrinho(nome, preco, imagem) {
-    let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+async function adicionarAoCarrinho(codigoproduto, nome, preco) { // Recebe o código corretamente
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!user) return alert("Você precisa estar logado para comprar!");
 
-    const item = carrinhoAtual.find(i => i.nome === nome);
-    if (item) {
-        item.quantidade++;
-    } else {
-        carrinhoAtual.push({ nome, preco: parseFloat(preco), imagem, quantidade: 1 });
+    try {
+        const response = await fetch("http://127.0.0.1:3000/carrinho", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'minha-chave': CLIENT_API_KEY
+            },
+            body: JSON.stringify({
+                idcliente: user.id,
+                codigoproduto: String(codigoproduto), // Garante que seja enviado como string/código
+                pecaquantidade: 1
+            })
+        });
+
+        if (response.ok) {
+            alert(`🚲 ${nome} adicionado ao carrinho!`);
+            atualizarInterfaceCarrinho();
+        } else {
+            const data = await response.json();
+            alert("Erro do servidor: " + (data.error || "Verifique o código do produto."));
+        }
+    } catch (err) {
+        console.error("Erro na requisição POST carrinho:", err);
     }
-
-    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoAtual));
-    atualizarInterfaceCarrinho();
-    alert("🚲 " + nome + " adicionado ao carrinho!");
 }
 
 function renderizarItensCarrinho() {
@@ -340,13 +354,13 @@ function aplicarFiltros() {
 
 function renderizarControlesPaginacao(totalItens) {
     let container = document.getElementById('paginacao-container');
-    
+
     // Se o container não existir, vamos criá-lo
     if (!container) {
         container = document.createElement('div');
         container.id = 'paginacao-container';
         container.className = 'paginacao-container';
-        
+
         // Em vez de buscar o 'main', vamos anexar ao final da página ou após o grid
         const grid = document.getElementById('catalogo-home');
         if (grid && grid.parentNode) {
@@ -355,7 +369,7 @@ function renderizarControlesPaginacao(totalItens) {
             document.body.appendChild(container);
         }
     }
-    
+
     container.innerHTML = '';
     const totalPaginas = Math.ceil(totalItens / itensPorPagina);
 
@@ -363,12 +377,168 @@ function renderizarControlesPaginacao(totalItens) {
         const btn = document.createElement('button');
         btn.innerText = i;
         btn.className = `btn-pag ${i === paginaAtual ? 'ativo' : ''}`;
-        btn.onclick = () => { 
-            paginaAtual = i; 
-            renderizarProdutos(todosProdutos); 
+        btn.onclick = () => {
+            paginaAtual = i;
+            renderizarProdutos(todosProdutos);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         container.appendChild(btn);
     }
 }
 
+async function finalizarCompra() {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    // Você pode pegar isso de um <select> no seu HTML
+    const formaPagamento = document.getElementById('select-pagamento')?.value || "Crédito";
+
+    if (!user) return alert("Sessão expirada. Faça login novamente.");
+
+    try {
+        const response = await fetch("http://127.0.0.1:3000/vendas/finalizar", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'minha-chave': CLIENT_API_KEY
+            },
+            body: JSON.stringify({
+                idcliente: user.id,
+                formaPagamento: formaPagamento
+            })
+        });
+
+        if (response.ok) {
+            alert("✅ Compra realizada! Os itens foram movidos para sua lista de vendas.");
+            fecharModalCarrinho();
+            // Atualiza a interface (agora vinda do banco, aparecerá vazio)
+            atualizarInterfaceCarrinho();
+            if (typeof carregarVendas === "function") carregarVendas(); // Se tiver lista de vendas na tela
+        } else {
+            const erro = await response.json();
+            alert("Erro: " + erro.detalhes);
+        }
+    } catch (err) {
+        console.error("Erro ao finalizar:", err);
+    }
+}
+
+// --- 4. CARRINHO (INTEGRADO AO BANCO) ---
+
+// Função para buscar o total de itens no banco e atualizar o ícone
+async function atualizarInterfaceCarrinho() {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    const contador = document.getElementById('contagem-carrinho');
+    if (!user || !contador) return;
+
+    try {
+        const response = await fetch(`http://127.0.0.1:3000/carrinho/${user.id}`, {
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+        const itens = await response.json();
+        const total = itens.reduce((sum, item) => sum + item.pecaquantidade, 0);
+        contador.innerText = `(${total})`;
+    } catch (err) {
+        console.error("Erro ao atualizar contador:", err);
+    }
+}
+
+async function adicionarAoCarrinho(codigoproduto, nome, preco) {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!user) return alert("Você precisa estar logado para comprar!");
+
+    // IMPORTANTE: Tente converter o codigoproduto para número se o banco pedir isso
+    const codigoFormatado = Number(codigoproduto);
+
+    try {
+        const response = await fetch("http://127.0.0.1:3000/carrinho", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'minha-chave': CLIENT_API_KEY
+            },
+            body: JSON.stringify({
+                idcliente: user.id,
+                codigoproduto: codigoFormatado, // Enviando como número
+                pecaquantidade: 1
+            })
+        });
+
+        // Captura o erro do servidor para saber exatamente o que está faltando
+        if (!response.ok) {
+            const erroData = await response.json();
+            console.error("Detalhes do erro do servidor:", erroData);
+            alert("Erro do servidor: " + (erroData.error || "Verifique o console (F12)"));
+            return;
+        }
+
+        alert(`🚲 ${nome} adicionado ao carrinho!`);
+        atualizarInterfaceCarrinho();
+
+    } catch (err) {
+        console.error("Erro na requisição:", err);
+    }
+}
+
+// Renderizar o modal buscando os dados reais do banco
+async function renderizarItensCarrinho() {
+    const container = document.getElementById('itens-carrinho');
+    const totalElemento = document.getElementById('total-carrinho');
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+    if (!container || !user) return;
+
+    try {
+        const response = await fetch(`http://127.0.0.1:3000/carrinho/${user.id}`, {
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+        const carrinhoBD = await response.json();
+
+        if (carrinhoBD.length === 0) {
+            container.innerHTML = "<p style='text-align:center;'>Seu carrinho está vazio.</p>";
+            if (totalElemento) totalElemento.innerText = "Total: R$ 0,00";
+            return;
+        }
+
+        let totalGeral = 0;
+        container.innerHTML = carrinhoBD.map((item) => {
+            const preco = parseFloat(item.preco) || 0;
+            const subtotal = preco * item.pecaquantidade;
+            totalGeral += subtotal;
+
+            return `
+                <div class="item-carrinho" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #ccc; padding:5px;">
+                    <div>
+                        <strong>${item.nomeproduto}</strong><br>
+                        Qtd: ${item.pecaquantidade} - R$ ${preco.toFixed(2)}
+                    </div>
+                    <button onclick="removerDoCarrinho(${item.id_carrinho})" style="background:red; color:white; border:none; cursor:pointer; padding: 5px 10px;">Remover</button>
+                </div>
+            `;
+        }).join('');
+
+        if (totalElemento) {
+            totalElemento.innerText = `Total: R$ ${totalGeral.toFixed(2)}`;
+        }
+    } catch (err) {
+        console.error("Erro ao carregar itens do carrinho:", err);
+        container.innerHTML = "<p>Erro ao carregar carrinho.</p>";
+    }
+}
+
+// Remover item do banco via ID da linha do carrinho
+async function removerDoCarrinho(id_carrinho) {
+    if (!confirm("Remover este item?")) return;
+
+    try {
+        const response = await fetch(`http://127.0.0.1:3000/carrinho/${id_carrinho}`, {
+            method: 'DELETE',
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+
+        if (response.ok) {
+            renderizarItensCarrinho(); // Recarrega a lista
+            atualizarInterfaceCarrinho(); // Atualiza o contador
+        }
+    } catch (err) {
+        console.error("Erro ao remover item:", err);
+    }
+}

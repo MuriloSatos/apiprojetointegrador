@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detalhesCartao.style.display = this.value === 'cartao' ? 'block' : 'none';
     });
 
-    // 4. Finalizar Venda
+    // 4. Finalizar Vendaa
     document.getElementById('form-finalizar').addEventListener('submit', function(e) {
         e.preventDefault();
 

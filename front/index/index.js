@@ -91,59 +91,84 @@ function alternarTela(tela) {
     if (sEsq) sEsq.style.display = tela === 'esqueci' ? 'block' : 'none';
 }
 
-document.addEventListener('submit', async (e) => {
-    if (e.target.id === 'form-login') {
+// 1. Lógica de Login
+const formLogin = document.getElementById('form-login');
+if (formLogin) {
+    formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        const emailInput = document.getElementById('login-email').value.trim().toLowerCase();
-        const senhaInput = document.getElementById('login-senha').value.trim();
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const senha = document.getElementById('login-senha').value.trim();
 
         try {
-            const res = await fetch(API_LOGIN, {
-                method: 'GET',
-                headers: { 'minha-chave': CLIENT_API_KEY }
+            const res = await fetch("http://127.0.0.1:3000/login", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
+                body: JSON.stringify({ email, senha })
             });
 
-            const usuarios = await res.json();
-
-            // --- DIAGNÓSTICO ---
-            console.log("Dados brutos do servidor:", usuarios);
-
-            // Verifica se a senha existe em algum dos objetos
-            const temSenha = usuarios.length > 0 && usuarios[0].hasOwnProperty('senha');
-            console.log("O campo 'senha' foi recebido?", temSenha);
-
-            if (!temSenha) {
-                alert("Erro: O servidor não está enviando a senha. Verifique o arquivo server/routes/usuarios.js");
-                return;
-            }
-
-            const user = usuarios.find(u => {
-                const emailBanco = String(u.email || "").trim().toLowerCase();
-                const senhaBanco = String(u.senha || "").trim();
-                return emailBanco === emailInput && senhaBanco === senhaInput;
-            });
-
-            if (user) {
-                localStorage.setItem('usuarioLogado', JSON.stringify(user));
-                alert(`Bem-vindo(a), ${user.nome}!`);
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('usuarioLogado', JSON.stringify(data));
+                alert(`Bem-vindo(a), ${data.nome}!`);
                 window.location.reload();
             } else {
-                alert("E-mail ou senha incorretos.");
+                alert("Erro: " + (data.message || "E-mail ou senha incorretos."));
             }
         } catch (err) {
-            console.error("Erro no login:", err);
-            alert("Erro de conexão.");
+            alert("Erro de conexão com o servidor.");
         }
-    }
-});
+    });
+}
 
+// 2. Nova Lógica de Cadastro (Cria no banco e loga automaticamente)
+const formCadastro = document.getElementById('form-cadastro');
+if (formCadastro) {
+    formCadastro.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('cad-nome').value.trim();
+        const email = document.getElementById('cad-email').value.trim().toLowerCase();
+        const senha = document.getElementById('cad-senha').value.trim();
+
+        try {
+            // Altere esta linha no seu index.js
+            const res = await fetch("http://127.0.0.1:3000/usuarios/cadastro", {
+                method: 'POST',
+                // ... restante do códig
+            
+                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
+                body: JSON.stringify({ nome, email, senha, perfil: 'cliente' }) // Define como cliente por padrão
+            });
+
+            if (res.ok) {
+                const novoUsuario = await res.json();
+                alert("Conta criada com sucesso! Você será logado agora.");
+
+                // Loga o usuário automaticamente salvando no localStorage
+                localStorage.setItem('usuarioLogado', JSON.stringify(novoUsuario));
+                window.location.reload();
+            } else {
+                alert("Erro ao criar conta. O e-mail já pode estar em uso.");
+            }
+        } catch (err) {
+            alert("Erro de conexão ao tentar cadastrar.");
+        }
+    });
+}
+
+// --- 4. FUNÇÕES GERAIS (Corrigido o erro de digitação) ---
+function abrirModal() {
+    const modal = document.getElementById('modal-carrinho');
+    if (modal) {
+        modal.classList.add('aberto'); // Corrigido de 'Faberto' para 'aberto'
+        renderizarCarrinhoNoModal();
+    }
+}
 
 
 
 
 // --- 4. FUNÇÕES GERAIS ---
-function abrirModal() { document.getElementById('modal-carrinho').classList.add('aberto'); }
+function abrirModal() { document.getElementById('modal-carrinho').classList.add('Faberto'); }
 function fecharModal() { document.getElementById('modal-carrinho').classList.remove('aberto'); }
 function abrirModalLogin() { document.getElementById('modal-login').style.display = 'block'; }
 function fecharModalLogin() { document.getElementById('modal-login').style.display = 'none'; }
@@ -163,9 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function adicionarAoCarrinho(nome, preco, imagem) {
     carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-    
+
     const itemExistente = carrinho.find(item => item.nome === nome);
-    
+
     if (itemExistente) {
         itemExistente.quantidade++;
     } else {
@@ -178,23 +203,23 @@ function adicionarAoCarrinho(nome, preco, imagem) {
     alert(`"${nome}" adicionado ao carrinho!`);
 }
 
-function abrirModal() { 
-    document.getElementById('modal-carrinho').classList.add('aberto'); 
+function abrirModal() {
+    document.getElementById('modal-carrinho').classList.add('aberto');
     renderizarCarrinhoNoModal(); // <--- IMPORTANTE: Chama a renderização ao abrir
 }
 
-function fecharModal() { 
-    document.getElementById('modal-carrinho').classList.remove('aberto'); 
+function fecharModal() {
+    document.getElementById('modal-carrinho').classList.remove('aberto');
 }
 
 function renderizarCarrinhoNoModal() {
     const listaModal = document.getElementById('itens-carrinho');
     const totalElemento = document.getElementById('total-carrinho');
-    
+
     if (!listaModal) return;
 
     carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-    listaModal.innerHTML = ""; 
+    listaModal.innerHTML = "";
 
     if (carrinho.length === 0) {
         listaModal.innerHTML = "<p style='text-align:center; padding:20px;'>Carrinho vazio.</p>";
@@ -216,7 +241,7 @@ function renderizarCarrinhoNoModal() {
             </div>
         `;
     });
-    
+
     listaModal.innerHTML = htmlCarrinho;
 
     const total = carrinho.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);

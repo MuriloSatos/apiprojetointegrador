@@ -1,35 +1,35 @@
-    <!DOCTYPE html>
-    <html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-br">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>BIKE PROMAX | Catálogo</title>
-        <link rel="stylesheet" href="produto.css">
-        <script src="produto.js" defer></script>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIKE PROMAX | Catálogo</title>
+    <link rel="stylesheet" href="produto.css">
+    <script src="produto.js" defer></script>
+</head>
 
-    <body>
-        <header>
-            <nav class="container nav-principal">
-                <div class="logo">
-                    <a href="../index/index.html">
-                        BIKE<span>PROMAX</span> 
-                    </a>
-                </div>
-                <ul class="menu-central" id="menu-navegacao">
-                    <li><a href="../index/index.html">Início</a></li>
-                    <li><a href="../produto/produto.html">Catálogo</a></li>
-                </ul>
+<body>
+    <header>
+        <nav class="container nav-principal">
+            <div class="logo">
+                <a href="../index/index.html">
+                    BIKE<span>PROMAX</span>
+                </a>
+            </div>
+            <ul class="menu-central" id="menu-navegacao">
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="../produto/produto.html">Catálogo</a></li>
+            </ul>
 
-                <ul class="menu-direita" id="menu-direita">
-                    <li><a href="javascript:void(0)" onclick="abrirModalCarrinho()">🛒 Carrinho <span
-                                id="contagem-carrinho">(0)</span></a></li>
-                    <li><button class="btn-login-top" onclick="window.location.href='../login/login.html'">Login</button>
-                    </li>
-                </ul>
-            </nav>
-        </header>
+            <ul class="menu-direita" id="menu-direita">
+                <li><a href="javascript:void(0)" onclick="abrirModalCarrinho()">🛒 Carrinho <span
+                            id="contagem-carrinho">(0)</span></a></li>
+                <li><button class="btn-login-top" onclick="window.location.href='../login/login.html'">Login</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
 
     <section class="barra-acoes">
         <div class="filtros-container">
@@ -54,8 +54,8 @@
         </button>
     </section>
 
-            <div class="grid" id="catalogo-home"></div>
-        </main>
+    <div class="grid" id="catalogo-home"></div>
+    </main>
 
     <div id="modal-novo-produto" class="modal">
         <div class="modal-content">
@@ -63,7 +63,7 @@
                 <h2>📦 Novo Produto</h2>
                 <span class="close" onclick="fecharModalCadastro()">&times;</span>
             </div>
-            
+
             <form id="form-cadastro-produto">
                 <div class="campo-full">
                     <label>Nome do Produto</label>
@@ -116,21 +116,29 @@
         </div>
     </div>
 
-        <div id="modal-carrinho" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span onclick="fecharModalCarrinho()" style="cursor:pointer; float:right; font-size:24px;">&times;</span>
-                <h2 style="text-align:center;">🛒 Seu Carrinho</h2>
+    <div id="modal-carrinho" class="modal"
+        style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+        <div class="modal-conteudo"
+            style="background:#fff; width:90%; max-width:500px; margin:5% auto; padding:20px; border-radius:8px;">
+            <h2>🛒 Carrinho de Compras</h2>
+            <div id="itens-carrinho"></div>
+            <hr>
+            <div id="total-carrinho" style="font-size: 1.2em; font-weight: bold; margin: 10px 0;"></div>
 
-                <div id="itens-carrinho" style="max-height: 300px; overflow-y: auto;"></div>
+            <label><strong>Forma de Pagamento:</strong></label>
+            <select id="forma-pagamento" style="width:100%; padding:10px; margin-bottom:15px;">
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Pix">Pix</option>
+                <option value="Boleto">Boleto</option>
+            </select>
 
-                <h3 id="total-carrinho" style="text-align:center; margin-top:20px;">Total: R$ 0,00</h3>
-
-                <button onclick="finalizarCompra()"
-                    style="width:100%; padding:15px; background:#ff6600; color:white; border:none; cursor:pointer;">
-                    Finalizar Compra
-                </button>
-            </div>
+            <button onclick="finalizarCompra()"
+                style="width:100%; padding:15px; background:#28a745; color:white; border:none; cursor:pointer;">Finalizar
+                Compra</button>
+            <button onclick="fecharModalCarrinho()"
+                style="width:100%; padding:10px; margin-top:5px; background:#dc3545; color:white; border:none; cursor:pointer;">Fechar</button>
         </div>
-    </body>
-
-    </html>
+    </div>
+</body>
+    <div id="toast-erro">Você só pode comprar um item por vez!</div>
+</html>

@@ -317,6 +317,107 @@ header {
     margin-top: 10px;
 }
 
+
+/* Estilo para o container de pagamento */
+.secao-pagamento {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.select-pagamento {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Ajuste dos botões no rodapé do modal */
+.botoes-modal {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.btn-finalizar {
+    flex: 2;
+    padding: 12px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-fechar {
+    flex: 1;
+    padding: 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal-conteudo {
+    background: white;
+    width: 90%;
+    max-width: 600px;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.menu-modal {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.lista-itens {
+    flex-grow: 1;
+    overflow-y: auto; /* Permite scroll se tiver muitos produtos */
+    margin: 15px 0;
+}
+
+.secao-checkout {
+    border-top: 2px solid #eee;
+    padding-top: 15px;
+}
+
+.btn-finalizar {
+    width: 100%;
+    padding: 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#toast-erro {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #ff4d4d;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
 /* --- Responsividade --- */
 @media (max-width: 768px) {
     .barra-acoes {
