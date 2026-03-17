@@ -1,7 +1,7 @@
-const API = "http://127.0.0.1:3000/produtos";
-const API_LOGIN = "http://127.0.0.1:3000/usuarios";
+const API = "https://apiprojetointegrador.onrender.com/produtos";
+const API_LOGIN = "https://apiprojetointegrador.onrender.com/auth/login";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
-const URL_BASE_BACKEND = "http://127.0.0.1:3000/uploads/"; // Ajuste conforme seu backend
+const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; // Ajuste conforme seu backend
 
 let carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
 
@@ -91,9 +91,7 @@ function alternarTela(tela) {
     if (sEsq) sEsq.style.display = tela === 'esqueci' ? 'block' : 'none';
 }
 
-// --- 3. SISTEMA DE LOGIN ---
-
-// 1. Lógica de Login (Alterado para GET conforme solicitado)
+// 1. Lógica de Login
 const formLogin = document.getElementById('form-login');
 if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
@@ -102,32 +100,27 @@ if (formLogin) {
         const senha = document.getElementById('login-senha').value.trim();
 
         try {
-            // Agora faz um GET enviando os dados na URL
-            const res = await fetch(`${API_LOGIN}/login?email=${email}&senha=${senha}`, {
-                method: 'GET',
-                headers: { 
-                    'minha-chave': CLIENT_API_KEY 
-                }
+            const res = await fetch("https://apiprojetointegrador.onrender.com/login", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
+                body: JSON.stringify({ email, senha })
             });
 
             const data = await res.json();
-            
             if (res.ok) {
-                // Se o backend retornar o usuário, salvamos
-                localStorage.setItem('usuarioLogado', JSON.stringify(data.user || data));
-                alert(`Bem-vindo(a), ${(data.user ? data.user.nome : data.nome)}!`);
+                localStorage.setItem('usuarioLogado', JSON.stringify(data));
+                alert(`Bem-vindo(a), ${data.nome}!`);
                 window.location.reload();
             } else {
-                alert("Erro: " + (data.error || "E-mail ou senha incorretos."));
+                alert("Erro: " + (data.message || "E-mail ou senha incorretos."));
             }
         } catch (err) {
-            console.error(err);
             alert("Erro de conexão com o servidor.");
         }
     });
 }
 
-// 2. Lógica de Cadastro (POST para criar na tabela de usuários)
+// 2. Nova Lógica de Cadastro (Cria no banco e loga automaticamente)
 const formCadastro = document.getElementById('form-cadastro');
 if (formCadastro) {
     formCadastro.addEventListener('submit', async (e) => {
@@ -137,31 +130,26 @@ if (formCadastro) {
         const senha = document.getElementById('cad-senha').value.trim();
 
         try {
-            // Mantém POST para criação de registro novo
-            const res = await fetch(`${API_LOGIN}/cadastro`, {
+            // Altere esta linha no seu index.js
+            const res = await fetch("http://127.0.0.1:3000/usuarios/cadastro", {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'minha-chave': CLIENT_API_KEY 
-                },
-                body: JSON.stringify({ 
-                    nome, 
-                    email, 
-                    senha, 
-                    perfil: 'cliente' // Valor padrão para novos registros
-                })
+                // ... restante do códig
+            
+                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
+                body: JSON.stringify({ nome, email, senha, perfil: 'cliente' }) // Define como cliente por padrão
             });
 
-            const data = await res.json();
-
             if (res.ok) {
-                alert("Conta criada com sucesso! Realize o login.");
-                alternarTela('login'); // Leva o usuário para a tela de login
+                const novoUsuario = await res.json();
+                alert("Conta criada com sucesso! Você será logado agora.");
+
+                // Loga o usuário automaticamente salvando no localStorage
+                localStorage.setItem('usuarioLogado', JSON.stringify(novoUsuario));
+                window.location.reload();
             } else {
-                alert("Erro ao criar conta: " + (data.error || "Verifique os dados."));
+                alert("Erro ao criar conta. O e-mail já pode estar em uso.");
             }
         } catch (err) {
-            console.error(err);
             alert("Erro de conexão ao tentar cadastrar.");
         }
     });
