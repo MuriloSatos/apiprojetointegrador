@@ -1,32 +1,28 @@
 const API = "https://apiprojetointegrador.onrender.com/produtos";
-const API_LOGIN = "https://apiprojetointegrador.onrender.com/auth/login";
+const API_LOGIN = "https://apiprojetointegrador.onrender.com/usuarios";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
-const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; // Ajuste conforme seu backend
+
+
+//const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
 
 let carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
 
-// --- 1. MENU E LOGIN ---
 function atualizarMenu() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const menuCentral = document.getElementById('menu-navegacao');
     const menuDireita = document.querySelector('.menu-direita');
 
-    // Sempre exibimos o Início e Catálogo
     let linksPrincipais = `<li><a href="../index/index.html">Início</a></li><li><a href="../produto/produto.html">Catálogo</a></li>`;
 
     if (!user) {
-        // Menu para Visitante
         if (menuCentral) menuCentral.innerHTML = linksPrincipais;
         if (menuDireita) menuDireita.innerHTML = `<li><a href="javascript:void(0)" onclick="abrirModal()">🛒 Carrinho <span id="contagem-carrinho">(0)</span></a></li><li><a href="javascript:void(0)" onclick="abrirModalLogin()">Login</a></li>`;
     } else {
-        // Lógica baseada no Perfil que você mostrou na imagem
         let linksExtras = "";
 
         if (user.perfil === "adm") {
-            // Se for Administrador, adiciona as abas administrativas
             linksExtras = `<li><a href="../vendas/vendas.html">Venda</a></li><li><a href="../cliente/cliente.html">Cliente</a></li><li><a href="../usuario/usuario.html">Usuários</a></li>`;
         } else {
-            // Se for cliente, ele vê apenas os Meus Pedidos (além do principal)
             linksExtras = `<li><a href="../meus-pedidos/pedidos.html">Meus Pedidos</a></li>`;
         }
 
@@ -46,8 +42,7 @@ async function carregarDestaques() {
         const dados = await res.json();
         grid.innerHTML = "";
 
-        // 1. Ordena os produtos pelo ID (garante que os primeiros inseridos fiquem no início)
-        // Se o seu ID for um número:
+
         const produtosOrdenados = dados.sort((a, b) => a.id - b.id);
 
         // 2. Pega apenas os 4 primeiros (os produtos mais antigos do seu banco)
@@ -91,78 +86,86 @@ function alternarTela(tela) {
     if (sEsq) sEsq.style.display = tela === 'esqueci' ? 'block' : 'none';
 }
 
-// 1. Lógica de Login
+// --- 3. SISTEMA DE LOGIN E CADASTRO ---
+
 const formLogin = document.getElementById('form-login');
 if (formLogin) {
-    formLogin.addEventListener('submit', async (e) => {
+    // Removemos qualquer listener antigo para evitar duplicidade
+    formLogin.onsubmit = async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim().toLowerCase();
         const senha = document.getElementById('login-senha').value.trim();
 
         try {
-            const res = await fetch("https://apiprojetointegrador.onrender.com/login", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
-                body: JSON.stringify({ email, senha })
+            // Sintaxe Supabase para GET: ?email=eq.valor&senha=eq.valor
+            const url = `${API_LOGIN}?email=eq.${encodeURIComponent(email)}&senha=eq.${encodeURIComponent(senha)}`;
+
+            const res = await fetch(url, {
+                method: 'GET', // Explicitamente GET
+                headers: {
+                    'minha-chave': CLIENT_API_KEY,
+                    'Accept': 'application/json'
+                }
             });
 
-            const data = await res.json();
-            if (res.ok) {
-                localStorage.setItem('usuarioLogado', JSON.stringify(data));
-                alert(`Bem-vindo(a), ${data.nome}!`);
+            const usuarios = await res.json();
+
+            // O Supabase retorna um Array no GET. Se encontrar, o login é válido.
+            if (res.ok && usuarios.length > 0) {
+                const usuario = usuarios[0];
+                localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+                alert(`Bem-vindo(a), ${usuario.nome}!`);
                 window.location.reload();
             } else {
-                alert("Erro: " + (data.message || "E-mail ou senha incorretos."));
+                alert("Usuário ou senha incorretos.");
             }
         } catch (err) {
-            alert("Erro de conexão com o servidor.");
+            console.error("Erro no login:", err);
+            alert("Erro de conexão com o banco de dados.");
         }
-    });
+    };
 }
 
-// 2. Nova Lógica de Cadastro (Cria no banco e loga automaticamente)
+// --- 2. LÓGICA DE CADASTRO (POST) ---
 const formCadastro = document.getElementById('form-cadastro');
 if (formCadastro) {
-    formCadastro.addEventListener('submit', async (e) => {
+    formCadastro.onsubmit = async (e) => {
         e.preventDefault();
         const nome = document.getElementById('cad-nome').value.trim();
         const email = document.getElementById('cad-email').value.trim().toLowerCase();
         const senha = document.getElementById('cad-senha').value.trim();
 
         try {
-            // Altere esta linha no seu index.js
-            const res = await fetch("http://127.0.0.1:3000/usuarios/cadastro", {
+            // Cadastro continua sendo POST para inserir na tabela
+            const res = await fetch(API_LOGIN, {
                 method: 'POST',
-                // ... restante do códig
-            
-                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
-                body: JSON.stringify({ nome, email, senha, perfil: 'cliente' }) // Define como cliente por padrão
+                headers: {
+                    'Content-Type': 'application/json',
+                    'minha-chave': CLIENT_API_KEY,
+                    'Prefer': 'return=representation' // Instrução do Supabase para retornar o objeto criado
+                },
+                body: JSON.stringify({
+                    nome,
+                    email,
+                    senha,
+                    perfil: 'cliente'
+                })
             });
 
             if (res.ok) {
-                const novoUsuario = await res.json();
-                alert("Conta criada com sucesso! Você será logado agora.");
-
-                // Loga o usuário automaticamente salvando no localStorage
-                localStorage.setItem('usuarioLogado', JSON.stringify(novoUsuario));
-                window.location.reload();
+                alert("Conta criada com sucesso! Agora faça seu login.");
+                alternarTela('login');
             } else {
-                alert("Erro ao criar conta. O e-mail já pode estar em uso.");
+                const data = await res.json();
+                alert("Erro ao criar conta: " + (data.message || "E-mail já cadastrado."));
             }
         } catch (err) {
+            console.error("Erro no cadastro:", err);
             alert("Erro de conexão ao tentar cadastrar.");
         }
-    });
+    };
 }
 
-// --- 4. FUNÇÕES GERAIS (Corrigido o erro de digitação) ---
-function abrirModal() {
-    const modal = document.getElementById('modal-carrinho');
-    if (modal) {
-        modal.classList.add('aberto'); // Corrigido de 'Faberto' para 'aberto'
-        renderizarCarrinhoNoModal();
-    }
-}
 
 
 

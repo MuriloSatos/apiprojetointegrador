@@ -3,7 +3,7 @@ const CHAVE_API_CLIENTE = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 const URL_API_CLIENTE = "https://apiprojetointegrador.onrender.com/clientes";
 
 // Use nomes únicos para evitar conflitos com o index.js
-const URL_BASE_CLIENTES = "http://127.0.0.1:3000/clientes";
+const URL_BASE_CLIENTES = "https://apiprojetointegrador.onrender.com/clientes";
 const CHAVE_ACESSO = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
 async function carregarClientes() {

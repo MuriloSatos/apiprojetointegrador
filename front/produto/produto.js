@@ -1,4 +1,4 @@
-const API = "http://127.0.0.1:3000/produtos";
+const API = "https://apiprojetointegrador.onrender.com/produtos";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
 let todosProdutos = [];
@@ -227,7 +227,7 @@ async function adicionarAoCarrinho(codigoproduto, nome, preco) { // Recebe o có
     if (!user) return alert("Você precisa estar logado para comprar!");
 
     try {
-        const response = await fetch("http://127.0.0.1:3000/carrinho", {
+        const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -394,7 +394,7 @@ async function finalizarCompra() {
     if (!user) return alert("Sessão expirada. Faça login novamente.");
 
     try {
-        const response = await fetch("http://127.0.0.1:3000/vendas/finalizar", {
+        const response = await fetch("https://apiprojetointegrador.onrender.com/vendas", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -430,7 +430,7 @@ async function atualizarInterfaceCarrinho() {
     if (!user || !contador) return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:3000/carrinho/${user.id}`, {
+        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
         const itens = await response.json();
@@ -449,7 +449,7 @@ async function adicionarAoCarrinho(codigoproduto, nome, preco) {
     const codigoFormatado = Number(codigoproduto);
 
     try {
-        const response = await fetch("http://127.0.0.1:3000/carrinho", {
+        const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -487,7 +487,7 @@ async function renderizarItensCarrinho() {
     if (!container || !user) return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:3000/carrinho/${user.id}`, {
+        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
         const carrinhoBD = await response.json();
@@ -529,7 +529,7 @@ async function removerDoCarrinho(id_carrinho) {
     if (!confirm("Remover este item?")) return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:3000/carrinho/${id_carrinho}`, {
+        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${id_carrinho}`, {
             method: 'DELETE',
             headers: { 'minha-chave': CLIENT_API_KEY }
         });

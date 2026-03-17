@@ -1,5 +1,5 @@
 // --- CONFIGURAÇÕES TÉCNICAS ---
-const API_BASE = "https://apiprojetointegrador.onrender.com";
+const API_BASE = "https://apiprojetointegrador.onrender.com/usuarios";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456"; // Alinhado com seu .env
 
 // Inicialização do Carrinho (Recupera do localStorage ou cria vazio)

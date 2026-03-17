@@ -1,4 +1,4 @@
-const API = "http://127.0.0.1:3000/vendas";
+const API = "https://apiprojetointegrador.onrender.com/vendas";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
 const listagem = document.getElementById("listagem");
