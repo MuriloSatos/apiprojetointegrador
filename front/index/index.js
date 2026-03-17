@@ -91,7 +91,9 @@ function alternarTela(tela) {
     if (sEsq) sEsq.style.display = tela === 'esqueci' ? 'block' : 'none';
 }
 
-// 1. Lógica de Login
+// --- 3. SISTEMA DE LOGIN ---
+
+// 1. Lógica de Login (Alterado para GET conforme solicitado)
 const formLogin = document.getElementById('form-login');
 if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
@@ -100,27 +102,32 @@ if (formLogin) {
         const senha = document.getElementById('login-senha').value.trim();
 
         try {
-            const res = await fetch("http://127.0.0.1:3000/login", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
-                body: JSON.stringify({ email, senha })
+            // Agora faz um GET enviando os dados na URL
+            const res = await fetch(`${API_LOGIN}/login?email=${email}&senha=${senha}`, {
+                method: 'GET',
+                headers: { 
+                    'minha-chave': CLIENT_API_KEY 
+                }
             });
 
             const data = await res.json();
+            
             if (res.ok) {
-                localStorage.setItem('usuarioLogado', JSON.stringify(data));
-                alert(`Bem-vindo(a), ${data.nome}!`);
+                // Se o backend retornar o usuário, salvamos
+                localStorage.setItem('usuarioLogado', JSON.stringify(data.user || data));
+                alert(`Bem-vindo(a), ${(data.user ? data.user.nome : data.nome)}!`);
                 window.location.reload();
             } else {
-                alert("Erro: " + (data.message || "E-mail ou senha incorretos."));
+                alert("Erro: " + (data.error || "E-mail ou senha incorretos."));
             }
         } catch (err) {
+            console.error(err);
             alert("Erro de conexão com o servidor.");
         }
     });
 }
 
-// 2. Nova Lógica de Cadastro (Cria no banco e loga automaticamente)
+// 2. Lógica de Cadastro (POST para criar na tabela de usuários)
 const formCadastro = document.getElementById('form-cadastro');
 if (formCadastro) {
     formCadastro.addEventListener('submit', async (e) => {
@@ -130,26 +137,31 @@ if (formCadastro) {
         const senha = document.getElementById('cad-senha').value.trim();
 
         try {
-            // Altere esta linha no seu index.js
-            const res = await fetch("http://127.0.0.1:3000/usuarios/cadastro", {
+            // Mantém POST para criação de registro novo
+            const res = await fetch(`${API_LOGIN}/cadastro`, {
                 method: 'POST',
-                // ... restante do códig
-            
-                headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
-                body: JSON.stringify({ nome, email, senha, perfil: 'cliente' }) // Define como cliente por padrão
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'minha-chave': CLIENT_API_KEY 
+                },
+                body: JSON.stringify({ 
+                    nome, 
+                    email, 
+                    senha, 
+                    perfil: 'cliente' // Valor padrão para novos registros
+                })
             });
 
-            if (res.ok) {
-                const novoUsuario = await res.json();
-                alert("Conta criada com sucesso! Você será logado agora.");
+            const data = await res.json();
 
-                // Loga o usuário automaticamente salvando no localStorage
-                localStorage.setItem('usuarioLogado', JSON.stringify(novoUsuario));
-                window.location.reload();
+            if (res.ok) {
+                alert("Conta criada com sucesso! Realize o login.");
+                alternarTela('login'); // Leva o usuário para a tela de login
             } else {
-                alert("Erro ao criar conta. O e-mail já pode estar em uso.");
+                alert("Erro ao criar conta: " + (data.error || "Verifique os dados."));
             }
         } catch (err) {
+            console.error(err);
             alert("Erro de conexão ao tentar cadastrar.");
         }
     });
