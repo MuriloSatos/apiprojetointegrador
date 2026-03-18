@@ -89,43 +89,53 @@ function alternarTela(tela) {
 // --- 3. SISTEMA DE LOGIN E CADASTRO ---
 
 const formLogin = document.getElementById('form-login');
+
 if (formLogin) {
-    // Removemos qualquer listener antigo para evitar duplicidade
     formLogin.onsubmit = async (e) => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value.trim().toLowerCase();
-        const senha = document.getElementById('login-senha').value.trim();
+        
+        // FORÇA A EXPULSÃO do administrador antigo antes de qualquer coisa
+        localStorage.removeItem('usuarioLogado');
+
+        const emailInput = document.getElementById('login-email').value.trim();
+        const senhaInput = document.getElementById('login-senha').value.trim();
 
         try {
-            // Sintaxe Supabase para GET: ?email=eq.valor&senha=eq.valor
-            const url = `${API_LOGIN}?email=eq.${encodeURIComponent(email)}&senha=eq.${encodeURIComponent(senha)}`;
-
+            // Sintaxe correta para busca no Supabase
+            const url = `${API_LOGIN}?email=eq.${encodeURIComponent(emailInput.toLowerCase())}&senha=eq.${encodeURIComponent(senhaInput)}`;
+            
             const res = await fetch(url, {
-                method: 'GET', // Explicitamente GET
+                method: 'GET',
                 headers: {
-                    'minha-chave': CLIENT_API_KEY,
+                    'apikey': CLIENT_API_KEY,
+                    'Authorization': `Bearer ${CLIENT_API_KEY}`,
                     'Accept': 'application/json'
                 }
             });
 
+            if (!res.ok) throw new Error("Erro na rede ou chave API");
+
             const usuarios = await res.json();
 
-            // O Supabase retorna um Array no GET. Se encontrar, o login é válido.
-            if (res.ok && usuarios.length > 0) {
-                const usuario = usuarios[0];
-                localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
-                alert(`Bem-vindo(a), ${usuario.nome}!`);
-                window.location.reload();
+            if (usuarios.length > 0) {
+                const usuarioEncontrado = usuarios[0];
+                
+                // Salva o novo usuário (ex: Felipe)
+                localStorage.setItem('usuarioLogado', JSON.stringify(usuarioEncontrado));
+                
+                alert(`Sucesso! Entrou como: ${usuarioEncontrado.perfil}`);
+                window.location.reload(); 
             } else {
-                alert("Usuário ou senha incorretos.");
+                alert("Usuário ou senha não encontrados no Supabase.");
+                atualizarMenu(); // Volta o menu para "Login"
             }
         } catch (err) {
             console.error("Erro no login:", err);
-            alert("Erro de conexão com o banco de dados.");
+            alert("Erro de conexão com o Supabase. Verifique sua chave API.");
+            atualizarMenu();
         }
     };
 }
-
 // --- 2. LÓGICA DE CADASTRO (POST) ---
 const formCadastro = document.getElementById('form-cadastro');
 if (formCadastro) {
@@ -261,3 +271,4 @@ function removerDoCarrinho(index) {
 function finalizarCompra() {
     alert("Redirecionando para o pagamento...");
 }
+
