@@ -8,8 +8,14 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
     try {
-        const sql = "SELECT id, nome, email, senha, perfil FROM sistema.usuarios";
-        const result = await pool.query(sql);
+
+        let { email, senha } = req.query;
+
+        email = email ? email : '%';
+        senha = senha ? senha : '%';
+
+        const sql = "SELECT id, nome, email, senha, perfil FROM sistema.usuarios where email  like $1 and senha like $2";
+        const result = await pool.query(sql, [email, senha]);
 
         // --- TESTE ---
         // Se este log no terminal mostrar a senha, mas o navegador não, 

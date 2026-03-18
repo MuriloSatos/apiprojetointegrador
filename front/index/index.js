@@ -102,8 +102,8 @@ if (formLogin) {
 
         try {
             // Sintaxe correta para busca no Supabase
-            const url = `${API_LOGIN}?email=eq.${encodeURIComponent(emailInput.toLowerCase())}&senha=eq.${encodeURIComponent(senhaInput)}`;
-            
+            const url = `${API_LOGIN}?email=${(emailInput.toLowerCase())}&senha=${(senhaInput)}`;
+            console.log(emailInput, senhaInput, url);
             const res = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -116,7 +116,7 @@ if (formLogin) {
             if (!res.ok) throw new Error("Erro na rede ou chave API");
 
             const usuarios = await res.json();
-
+            console.table(usuarios);
             if (usuarios.length > 0) {
                 const usuarioEncontrado = usuarios[0];
                 
