@@ -443,40 +443,52 @@ async function atualizarInterfaceCarrinho() {
 
 async function adicionarAoCarrinho(codigoproduto, nome, preco) {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!user) return alert("Você precisa estar logado para comprar!");
 
-    // IMPORTANTE: Tente converter o codigoproduto para número se o banco pedir isso
-    const codigoFormatado = Number(codigoproduto);
+    if (!user || !user.id) {
+        return alert("Você precisa estar logado para comprar!");
+    }
 
+    // LOG DE DEBUG - Verifique se isso aparece no console
+    console.log("Tentando enviar:", {
+        idcliente: user.id,
+        codigoproduto: codigoproduto,
+        chave: typeof CLIENT_API_KEY !== 'undefined' ? "OK" : "ERRO: CHAVE SUMIU"
+    });
+
+    const idClienteFormatado = Number(user.id);
+    const codigoProdutoFormatado = Number(codigoproduto);
     try {
         const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'minha-chave': CLIENT_API_KEY
+                'minha-chave': typeof CLIENT_API_KEY !== 'undefined' ? CLIENT_API_KEY : ''
             },
             body: JSON.stringify({
-                idcliente: user.id,
-                codigoproduto: codigoFormatado, // Enviando como número
+                idcliente: idClienteFormatado,
+                codigoproduto: codigoProdutoFormatado,
                 pecaquantidade: 1
             })
         });
 
-        // Captura o erro do servidor para saber exatamente o que está faltando
         if (!response.ok) {
             const erroData = await response.json();
-            console.error("Detalhes do erro do servidor:", erroData);
-            alert("Erro do servidor: " + (erroData.error || "Verifique o console (F12)"));
+            console.error("Erro do Banco:", erroData);
+            alert("Erro no banco: " + (erroData.detalhes || "Verifique o console"));
             return;
         }
 
-        alert(`🚲 ${nome} adicionado ao carrinho!`);
-        atualizarInterfaceCarrinho();
+        alert(`🚲 ${nome} adicionado com sucesso!`);
+
+        // Tenta atualizar a lista se a função existir
+        if (typeof renderizarItensCarrinho === 'function') renderizarItensCarrinho();
 
     } catch (err) {
-        console.error("Erro na requisição:", err);
+        console.error("Erro fatal na requisição:", err);
+        alert("Erro de conexão. Verifique se a CLIENT_API_KEY está definida no topo do arquivo.");
     }
 }
+
 
 // Renderizar o modal buscando os dados reais do banco
 async function renderizarItensCarrinho() {
@@ -487,6 +499,7 @@ async function renderizarItensCarrinho() {
     if (!container || !user) return;
 
     try {
+
         const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
@@ -541,4 +554,19 @@ async function removerDoCarrinho(id_carrinho) {
     } catch (err) {
         console.error("Erro ao remover item:", err);
     }
+}
+
+
+// Exemplo de como deve ser a criação do card no seu produto.js
+function criarCardProduto(produto) {
+    return `
+        <div class="card">
+            <img src="${produto.imagem}" alt="${produto.nomeproduto}">
+            <h3>${produto.nomeproduto}</h3>
+            <p>R$ ${produto.preco.toFixed(2)}</p>
+            <button onclick="adicionarAoCarrinho('${produto.codigoproduto}', '${produto.nomeproduto}', ${produto.preco})">
+                Comprar
+            </button>
+        </div>
+    `;
 }
