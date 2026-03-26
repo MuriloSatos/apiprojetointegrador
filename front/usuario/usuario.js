@@ -108,7 +108,7 @@ async function carregarTabelaUsuarios() {
     if (!corpoTabela) return;
 
     try {
-        const res = await fetch(`${API_BASE}/usuarios`, {
+        const res = await fetch(API_BASE, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
         const usuarios = await res.json();
@@ -120,7 +120,11 @@ async function carregarTabelaUsuarios() {
                 <td>${u.email}</td>
                 <td><span class="badge ${u.perfil}">${u.perfil}</span></td>
                 <td>
-                    <button onclick="excluirUsuario(${u.id})" class="btn-tabela">🗑️</button>
+                    ${u.perfil !== 'adm' ? 
+                        `<button onclick="tornarAdm(${u.id})" class="btn-tabela" title="Tornar ADM">⭐</button>` : 
+                        `<button class="btn-tabela" style="opacity:0.3; cursor:default;">✅</button>`
+                    }
+                    <button onclick="excluirUsuario(${u.id})" class="btn-tabela" title="Excluir">🗑️</button>
                 </td>
             </tr>
         `).join('');
@@ -138,6 +142,41 @@ function atualizarContador() {
         contador.innerText = `(${totalItens})`;
     }
 }
+
+async function tornarAdm(id) {
+    if (!confirm("Deseja realmente dar privilégios de Administrador a este usuário?")) return;
+
+    try {
+        // 1. Primeiro buscamos os dados atuais do usuário para não perder o nome/email
+        const busca = await fetch(`${API_BASE}/${id}`, {
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+        const usuarioAtual = await busca.json();
+
+        // 2. Agora enviamos o objeto completo, alterando apenas o perfil
+        const resposta = await fetch(`${API_BASE}/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'minha-chave': CLIENT_API_KEY 
+            },
+            body: JSON.stringify({ 
+                ...usuarioAtual, // Isso mantém nome, email, senha, etc.
+                perfil: 'adm'    // Isso altera só o perfil
+            })
+        });
+
+        if (resposta.ok) {
+            alert("Usuário promovido com sucesso!");
+            carregarTabelaUsuarios();
+        } else {
+            alert("Erro ao promover usuário.");
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 
 function logout() {
     localStorage.removeItem('usuarioLogado');

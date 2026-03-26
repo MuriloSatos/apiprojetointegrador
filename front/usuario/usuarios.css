@@ -60,6 +60,18 @@ th {
     animation: fadeIn 0.5s ease;
 }
 
+.badge.adm { 
+    background: #ff5722; /* Laranja forte */
+    color: white; 
+    padding: 5px 12px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(255, 87, 34, 0.3);
+}
+
+.btn-tabela[title="Tornar ADM"]:hover {
+    filter: drop-shadow(0 0 5px gold);
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }

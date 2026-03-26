@@ -30,6 +30,69 @@ header {
     z-index: 100;
 }
 
+/* 1. Forçar 4 produtos por linha */
+#catalogo-home {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* Cria 4 colunas iguais */
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 2. Container da Paginação */
+.paginacao-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 40px 0;
+    width: 100%;
+}
+
+/* 3. Estilo dos botões 1, 2... */
+.pag-btn {
+    background-color: white;
+    border: 2px solid #ff6600; /* Laranja da sua logo */
+    color: #ff6600;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pag-btn:hover {
+    background-color: #ff6600;
+    color: white;
+}
+
+.pag-btn.active {
+    background-color: #ff6600;
+    color: white;
+}
+
+/* Estilo dos botões numéricos */
+.pag-btn {
+    background-color: white;
+    border: 2px solid #ff6600;
+    color: #ff6600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.pag-btn:hover, .pag-btn.active {
+    background-color: #ff6600;
+    color: white;
+}
+
+
+
 .nav-principal {
     max-width: 1200px;
     margin: 0 auto;
@@ -227,25 +290,107 @@ header {
     backdrop-filter: blur(3px);
 }
 
-.modal-content {
-    background-color: var(--branco);
-    margin: 5vh auto;
-    padding: 30px;
-    border-radius: 12px;
+/* Estilização Profissional do Modal */
+.modal-content-carrinho {
+    background-color: #fff;
+    margin: 5% auto;
     width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
+    max-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.modal-header h2 { margin: 0; font-size: 1.2rem; color: #333; }
+
+.carrinho-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* Item do Carrinho Estilizado */
+.item-carrinho-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.item-info h4 { margin: 0 0 5px 0; color: #222; }
+.item-info p { margin: 0; color: #666; font-size: 0.9rem; }
+
+.btn-remover {
+    background: #fff;
+    color: #ff4444;
+    border: 1px solid #ff4444;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-remover:hover {
+    background: #ff4444;
+    color: #fff;
+}
+
+/* Footer e Botões */
+.modal-footer { padding: 20px; background: #f8f9fa; }
+
+.total-container {
+    display: flex;
+    justify-content: space-between;
     margin-bottom: 20px;
-    border-bottom: 1px solid var(--borda);
-    padding-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.total-container strong { color: #ff6600; font-size: 1.4rem; }
+
+.metodo-pagamento select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0 20px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.btn-finalizar {
+    width: 100%;
+    padding: 15px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.btn-continuar {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 .close {
@@ -417,6 +562,8 @@ header {
     z-index: 9999;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
+
 
 /* --- Responsividade --- */
 @media (max-width: 768px) {

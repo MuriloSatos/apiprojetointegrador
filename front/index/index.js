@@ -23,7 +23,7 @@ function atualizarMenu() {
         if (user.perfil === "adm") {
             linksExtras = `<li><a href="../vendas/vendas.html">Venda</a></li><li><a href="../cliente/cliente.html">Cliente</a></li><li><a href="../usuario/usuario.html">Usuários</a></li>`;
         } else {
-            linksExtras = `<li><a href="../meus-pedidos/pedidos.html">Meus Pedidos</a></li>`;
+            linksExtras = `<li><a href="../pedidos/pedidos.html">Meus Pedidos</a></li>`;
         }
 
         if (menuCentral) menuCentral.innerHTML = linksPrincipais + linksExtras;
@@ -96,6 +96,8 @@ if (formLogin) {
         
         // FORÇA A EXPULSÃO do administrador antigo antes de qualquer coisa
         localStorage.removeItem('usuarioLogado');
+
+
 
         const emailInput = document.getElementById('login-email').value.trim();
         const senhaInput = document.getElementById('login-senha').value.trim();

@@ -66,7 +66,39 @@ document.addEventListener('submit', async (e) => {
         }
     }
 });
+// Localize o evento de submit do seu formulário de login
+document.addEventListener('submit', async (e) => {
+    if (e.target.id === 'form-login') {
+        e.preventDefault();
+        // ... lógica de captura de inputs ...
 
+        try {
+            const res = await fetch(API_LOGIN, { headers: { 'minha-chave': CLIENT_API_KEY } });
+            const usuarios = await res.json();
+
+            // Tenta encontrar o usuário pelo email e senha
+            const user = usuarios.find(u =>
+                u.email.trim() === emailInput &&
+                u.senha.trim() === senhaInput
+            );
+
+            if (user) {
+                // SALVAMENTO CRÍTICO: Use o ID que veio da sua tabela do banco
+                localStorage.setItem('usuarioLogado', JSON.stringify({
+                    id: user.id, // Certifique-se que o campo no seu banco chama 'id'
+                    nome: user.nome,
+                    perfil: user.perfil
+                }));
+                alert(`Login realizado com sucesso! Bem-vindo ${user.nome}`);
+                window.location.reload();
+            } else {
+                alert("Usuário ou senha inválidos!");
+            }
+        } catch (err) {
+            console.error("Erro na conexão:", err);
+        }
+    }
+});
 
 function atualizarMenu() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
@@ -138,6 +170,38 @@ async function carregarCatalogo() {
     } catch (erro) {
         console.error("Erro ao carregar catálogo:", erro);
     }
+}
+const ITENS_POR_PAGINA = 4; // Define o limite de 4 produtos
+
+function renderizarPaginacao(totalItens, paginaAtual) {
+    const totalPaginas = Math.ceil(totalItens / ITENS_POR_PAGINA);
+    
+    // Remove paginação antiga para não acumular
+    const containerAntigo = document.querySelector('.paginacao-container');
+    if (containerAntigo) containerAntigo.remove();
+
+    // Cria o container que o CSS vai estilizar
+    const container = document.createElement('div');
+    container.className = 'paginacao-container';
+
+    for (let i = 1; i <= totalPaginas; i++) {
+        const botao = document.createElement('button');
+        botao.innerText = i;
+        
+        // Aplica a classe que criamos no CSS
+        botao.className = `pag-btn ${i === paginaAtual ? 'active' : ''}`;
+        
+        botao.onclick = () => {
+            // Aqui você deve chamar sua função de carregar produtos passando a página 'i'
+            carregarProdutos(i); 
+            window.scrollTo(0, 0);
+        };
+        
+        container.appendChild(botao);
+    }
+
+    // Insere o container de paginação logo após o grid de produtos
+    document.getElementById('catalogo-home').after(container);
 }
 
 function renderizarProdutos(lista, resetar = false) {
@@ -222,9 +286,18 @@ function atualizarInterfaceCarrinho() {
     }
 }
 
-async function adicionarAoCarrinho(codigoproduto, nome, preco) { // Recebe o código corretamente
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!user) return alert("Você precisa estar logado para comprar!");
+async function adicionarAoCarrinho(codigoproduto, nome, preco) {
+    // Captura o usuário atualizado do localStorage no momento do clique
+    const userData = localStorage.getItem('usuarioLogado');
+
+    if (!userData) {
+        return alert("Você precisa estar logado para comprar!");
+    }
+
+    const user = JSON.parse(userData);
+
+    // LOG DE CONFERÊNCIA: Verifique se este ID existe na sua tabela 'cliente' do banco
+    console.log("Tentando enviar ID Cliente:", user.id, "para o Produto:", codigoproduto);
 
     try {
         const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho", {
@@ -234,24 +307,26 @@ async function adicionarAoCarrinho(codigoproduto, nome, preco) { // Recebe o có
                 'minha-chave': CLIENT_API_KEY
             },
             body: JSON.stringify({
-                idcliente: user.id,
-                codigoproduto: String(codigoproduto), // Garante que seja enviado como string/código
+                idcliente: Number(user.id),      // ID do seu banco (ex: 1, 2, 3...)
+                codigoproduto: Number(codigoproduto),
                 pecaquantidade: 1
             })
         });
 
         if (response.ok) {
-            alert(`🚲 ${nome} adicionado ao carrinho!`);
-            atualizarInterfaceCarrinho();
+            alert(`🚲 ${nome} adicionado com sucesso!`);
+            if (typeof atualizarInterfaceCarrinho === 'function') atualizarInterfaceCarrinho();
         } else {
-            const data = await response.json();
-            alert("Erro do servidor: " + (data.error || "Verifique o código do produto."));
+            const erroData = await response.json();
+            // Se cair aqui, o ID enviado (user.id) ainda não consta na tabela 'cliente' do banco
+            console.error("Erro do Banco:", erroData);
+            alert("Erro no banco: " + (erroData.detalhes || "ID de usuário inválido."));
         }
     } catch (err) {
-        console.error("Erro na requisição POST carrinho:", err);
+        console.error("Erro fatal na requisição:", err);
+        alert("Erro de conexão com o servidor.");
     }
 }
-
 function renderizarItensCarrinho() {
     const container = document.getElementById('itens-carrinho');
     const totalElemento = document.getElementById('total-carrinho');
@@ -388,12 +463,20 @@ function renderizarControlesPaginacao(totalItens) {
 
 async function finalizarCompra() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    // Você pode pegar isso de um <select> no seu HTML
-    const formaPagamento = document.getElementById('select-pagamento')?.value || "Crédito";
+    const selectPagamento = document.getElementById('select-pagamento');
+    const formaPagamento = selectPagamento ? selectPagamento.value : "Crédito";
 
     if (!user) return alert("Sessão expirada. Faça login novamente.");
 
+    // Verifica se o carrinho está vazio antes de tentar finalizar
     try {
+        const checkRes = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+        const itens = await checkRes.json();
+        
+        if (itens.length === 0) return alert("Seu carrinho está vazio!");
+
         const response = await fetch("https://apiprojetointegrador.onrender.com/vendas", {
             method: 'POST',
             headers: {
@@ -401,23 +484,23 @@ async function finalizarCompra() {
                 'minha-chave': CLIENT_API_KEY
             },
             body: JSON.stringify({
-                idcliente: user.id,
-                formaPagamento: formaPagamento
+                idcliente: Number(user.id),
+                forma_pagamento: formaPagamento // Nome exato da coluna no seu banco
             })
         });
 
         if (response.ok) {
-            alert("✅ Compra realizada! Os itens foram movidos para sua lista de vendas.");
+            alert("✅ Compra realizada com sucesso!");
             fecharModalCarrinho();
-            // Atualiza a interface (agora vinda do banco, aparecerá vazio)
-            atualizarInterfaceCarrinho();
-            if (typeof carregarVendas === "function") carregarVendas(); // Se tiver lista de vendas na tela
+            // Redireciona para a página de pedidos para o cliente ver a compra
+            window.location.href = "../pedidos/pedidos.html";
         } else {
             const erro = await response.json();
-            alert("Erro: " + erro.detalhes);
+            alert("Erro ao finalizar: " + (erro.detalhes || "Verifique o estoque."));
         }
     } catch (err) {
         console.error("Erro ao finalizar:", err);
+        alert("Erro de conexão com o servidor.");
     }
 }
 
@@ -442,53 +525,53 @@ async function atualizarInterfaceCarrinho() {
 }
 
 async function adicionarAoCarrinho(codigoproduto, nome, preco) {
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    const userData = localStorage.getItem('usuarioLogado');
 
-    if (!user || !user.id) {
-        return alert("Você precisa estar logado para comprar!");
+    if (!userData) {
+        alert("Você precisa estar logado para comprar!");
+        return;
     }
 
-    // LOG DE DEBUG - Verifique se isso aparece no console
-    console.log("Tentando enviar:", {
-        idcliente: user.id,
-        codigoproduto: codigoproduto,
-        chave: typeof CLIENT_API_KEY !== 'undefined' ? "OK" : "ERRO: CHAVE SUMIU"
-    });
+    const user = JSON.parse(userData);
 
-    const idClienteFormatado = Number(user.id);
-    const codigoProdutoFormatado = Number(codigoproduto);
+    // VERIFICAÇÃO: Só permite se for cliente
+    if (user.perfil !== 'cliente') {
+        alert(`Acesso negado: Seu perfil é '${user.perfil}'. Mude para um perfil de cliente para comprar.`);
+        return;
+    }
+
+    console.log("Enviando ID do Usuário:", user.id);
+
     try {
         const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'minha-chave': typeof CLIENT_API_KEY !== 'undefined' ? CLIENT_API_KEY : ''
+                'minha-chave': CLIENT_API_KEY
             },
             body: JSON.stringify({
-                idcliente: idClienteFormatado,
-                codigoproduto: codigoProdutoFormatado,
+                idcliente: Number(user.id),        // Garante que o ID é número
+                codigoproduto: Number(codigoproduto), // Resolve o erro de enviar string
                 pecaquantidade: 1
             })
         });
 
-        if (!response.ok) {
+        if (response.ok) {
+            alert(`🚲 ${nome} adicionado com sucesso!`);
+            // Atualiza o ícone do carrinho se a função existir
+            if (typeof atualizarInterfaceCarrinho === 'function') {
+                atualizarInterfaceCarrinho();
+            }
+        } else {
             const erroData = await response.json();
             console.error("Erro do Banco:", erroData);
-            alert("Erro no banco: " + (erroData.detalhes || "Verifique o console"));
-            return;
+            alert("Erro: O banco não reconheceu este usuário. Verifique se o ID existe na tabela 'Usuarios'.");
         }
-
-        alert(`🚲 ${nome} adicionado com sucesso!`);
-
-        // Tenta atualizar a lista se a função existir
-        if (typeof renderizarItensCarrinho === 'function') renderizarItensCarrinho();
-
     } catch (err) {
-        console.error("Erro fatal na requisição:", err);
-        alert("Erro de conexão. Verifique se a CLIENT_API_KEY está definida no topo do arquivo.");
+        console.error("Erro fatal:", err);
+        alert("Erro de conexão com o servidor.");
     }
 }
-
 
 // Renderizar o modal buscando os dados reais do banco
 async function renderizarItensCarrinho() {
@@ -499,15 +582,17 @@ async function renderizarItensCarrinho() {
     if (!container || !user) return;
 
     try {
-
         const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
         const carrinhoBD = await response.json();
 
-        if (carrinhoBD.length === 0) {
-            container.innerHTML = "<p style='text-align:center;'>Seu carrinho está vazio.</p>";
-            if (totalElemento) totalElemento.innerText = "Total: R$ 0,00";
+        if (!carrinhoBD || carrinhoBD.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding: 40px 0;">
+                    <p style="color:#999;">Seu carrinho está vazio.</p>
+                </div>`;
+            if (totalElemento) totalElemento.innerText = "R$ 0,00";
             return;
         }
 
@@ -518,22 +603,23 @@ async function renderizarItensCarrinho() {
             totalGeral += subtotal;
 
             return `
-                <div class="item-carrinho" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #ccc; padding:5px;">
-                    <div>
-                        <strong>${item.nomeproduto}</strong><br>
-                        Qtd: ${item.pecaquantidade} - R$ ${preco.toFixed(2)}
+                <div class="item-carrinho-card">
+                    <div class="item-info">
+                        <h4>${item.nomeproduto}</h4>
+                        <p>Qtd: ${item.pecaquantidade} × R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
                     </div>
-                    <button onclick="removerDoCarrinho(${item.id_carrinho})" style="background:red; color:white; border:none; cursor:pointer; padding: 5px 10px;">Remover</button>
+                    <button class="btn-remover" onclick="removerDoCarrinho(${item.id_carrinho})">
+                        Remover
+                    </button>
                 </div>
             `;
         }).join('');
 
-        if (totalElemento) {
-            totalElemento.innerText = `Total: R$ ${totalGeral.toFixed(2)}`;
-        }
+        totalElemento.innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
     } catch (err) {
-        console.error("Erro ao carregar itens do carrinho:", err);
-        container.innerHTML = "<p>Erro ao carregar carrinho.</p>";
+        console.error("Erro ao carregar itens:", err);
+        container.innerHTML = "<p>Erro ao carregar os itens.</p>";
     }
 }
 

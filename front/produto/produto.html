@@ -115,30 +115,41 @@
             </form>
         </div>
     </div>
+    <div id="modal-carrinho" class="modal">
+        <div class="modal-content-carrinho">
+            <div class="modal-header">
+                <h2><i class="fas fa-shopping-cart"></i> Seu Carrinho</h2>
+                <span class="close-modal" onclick="fecharModalCarrinho()">&times;</span>
+            </div>
 
-    <div id="modal-carrinho" class="modal"
-        style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
-        <div class="modal-conteudo"
-            style="background:#fff; width:90%; max-width:500px; margin:5% auto; padding:20px; border-radius:8px;">
-            <h2>🛒 Carrinho de Compras</h2>
-            <div id="itens-carrinho"></div>
-            <hr>
-            <div id="total-carrinho" style="font-size: 1.2em; font-weight: bold; margin: 10px 0;"></div>
+            <div id="itens-carrinho" class="carrinho-scroll">
+            </div>
 
-            <label><strong>Forma de Pagamento:</strong></label>
-            <select id="forma-pagamento" style="width:100%; padding:10px; margin-bottom:15px;">
-                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                <option value="Pix">Pix</option>
-                <option value="Boleto">Boleto</option>
-            </select>
+            <div class="modal-footer">
+                <div class="total-container">
+                    <span>Total do pedido</span>
+                    <strong id="total-carrinho">R$ 0,00</strong>
+                </div>
 
-            <button onclick="finalizarCompra()"
-                style="width:100%; padding:15px; background:#28a745; color:white; border:none; cursor:pointer;">Finalizar
-                Compra</button>
-            <button onclick="fecharModalCarrinho()"
-                style="width:100%; padding:10px; margin-top:5px; background:#dc3545; color:white; border:none; cursor:pointer;">Fechar</button>
+                <div class="metodo-pagamento">
+                    <label for="select-pagamento">Forma de Pagamento</label>
+                    <select id="select-pagamento">
+                        <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                        <option value="Pix">📱 Pix (5% OFF)</option>
+                        <option value="Boleto">📄 Boleto Bancário</option>
+                    </select>
+                </div>
+
+                <button class="btn-finalizar" onclick="finalizarCompra()">
+                    Finalizar Compra
+                </button>
+                <button class="btn-continuar" onclick="fecharModalCarrinho()">
+                    Continuar Comprando
+                </button>
+            </div>
         </div>
     </div>
 </body>
-    <div id="toast-erro">Você só pode comprar um item por vez!</div>
+<div id="toast-erro">Você só pode comprar um item por vez!</div>
+
 </html>
