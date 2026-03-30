@@ -6,14 +6,6 @@ let carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
 let paginaAtual = 1;
 const itensPorPagina = 8;
 
-// --- 1. FUNÇÕES DE INTERFACE ---
-function atualizarInterfaceCarrinho() {
-    const contador = document.getElementById('contagem-carrinho');
-    if (contador) {
-        const total = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
-        contador.innerText = `(${total})`;
-    }
-}
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -277,56 +269,11 @@ async function salvarNovoProduto(e) {
 
 // --- 4. CARRINHO E FILTROS ---
 
-function atualizarInterfaceCarrinho() {
-    const contador = document.getElementById('contagem-carrinho');
-    if (contador) {
-        const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-        const total = carrinhoAtual.reduce((sum, item) => sum + item.quantidade, 0);
-        contador.innerText = `(${total})`;
-    }
-}
 
-async function adicionarAoCarrinho(codigoproduto, nome, preco) {
-    // Captura o usuário atualizado do localStorage no momento do clique
-    const userData = localStorage.getItem('usuarioLogado');
 
-    if (!userData) {
-        return alert("Você precisa estar logado para comprar!");
-    }
 
-    const user = JSON.parse(userData);
 
-    // LOG DE CONFERÊNCIA: Verifique se este ID existe na sua tabela 'cliente' do banco
-    console.log("Tentando enviar ID Cliente:", user.id, "para o Produto:", codigoproduto);
 
-    try {
-        const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'minha-chave': CLIENT_API_KEY
-            },
-            body: JSON.stringify({
-                idcliente: Number(user.id),      // ID do seu banco (ex: 1, 2, 3...)
-                codigoproduto: Number(codigoproduto),
-                pecaquantidade: 1
-            })
-        });
-
-        if (response.ok) {
-            alert(`🚲 ${nome} adicionado com sucesso!`);
-            if (typeof atualizarInterfaceCarrinho === 'function') atualizarInterfaceCarrinho();
-        } else {
-            const erroData = await response.json();
-            // Se cair aqui, o ID enviado (user.id) ainda não consta na tabela 'cliente' do banco
-            console.error("Erro do Banco:", erroData);
-            alert("Erro no banco: " + (erroData.detalhes || "ID de usuário inválido."));
-        }
-    } catch (err) {
-        console.error("Erro fatal na requisição:", err);
-        alert("Erro de conexão com o servidor.");
-    }
-}
 function renderizarItensCarrinho() {
     const container = document.getElementById('itens-carrinho');
     const totalElemento = document.getElementById('total-carrinho');
@@ -461,115 +408,113 @@ function renderizarControlesPaginacao(totalItens) {
     }
 }
 
-async function finalizarCompra() {
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    const selectPagamento = document.getElementById('select-pagamento');
-    const formaPagamento = selectPagamento ? selectPagamento.value : "Crédito";
+   async function finalizarCompra() {
+    const userData = localStorage.getItem('usuarioLogado');
+    if (!userData) return;
+    const user = JSON.parse(userData);
 
-    if (!user) return alert("Sessão expirada. Faça login novamente.");
+    // Bloqueia ADM
+    if (user.perfil !== 'cliente') return alert("Apenas clientes!");
 
-    // Verifica se o carrinho está vazio antes de tentar finalizar
+    const formaPagamento = document.getElementById('select-pagamento')?.value || "Crédito";
+
     try {
-        const checkRes = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
-            headers: { 'minha-chave': CLIENT_API_KEY }
-        });
-        const itens = await checkRes.json();
-        
-        if (itens.length === 0) return alert("Seu carrinho está vazio!");
-
-        const response = await fetch("https://apiprojetointegrador.onrender.com/vendas", {
+        const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho/finalizar", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'minha-chave': CLIENT_API_KEY
             },
             body: JSON.stringify({
-                idcliente: Number(user.id),
-                forma_pagamento: formaPagamento // Nome exato da coluna no seu banco
+                id_usuario: Number(user.id),
+                formaPagamento: formaPagamento
             })
         });
 
         if (response.ok) {
-            alert("✅ Compra realizada com sucesso!");
-            fecharModalCarrinho();
-            // Redireciona para a página de pedidos para o cliente ver a compra
+            alert("✅ Compra finalizada!");
             window.location.href = "../pedidos/pedidos.html";
         } else {
             const erro = await response.json();
-            alert("Erro ao finalizar: " + (erro.detalhes || "Verifique o estoque."));
+            alert("Erro ao finalizar: " + (erro.erro || "Verifique o estoque."));
         }
     } catch (err) {
-        console.error("Erro ao finalizar:", err);
-        alert("Erro de conexão com o servidor.");
+        console.error(err);
     }
 }
 
 // --- 4. CARRINHO (INTEGRADO AO BANCO) ---
 
-// Função para buscar o total de itens no banco e atualizar o ícone
+// --- 4. CARRINHO (BANCO DE DADOS - AJUSTADO) ---
+
+// 1. ISSO DEVE ESTAR NO TOPO DO SEU ARQUIVO (FORA DE QUALQUER FUNÇÃO)
+// Verifique se o valor é EXATAMENTE igual ao que está no seu backend/Render
+
 async function atualizarInterfaceCarrinho() {
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    const userData = localStorage.getItem('usuarioLogado');
     const contador = document.getElementById('contagem-carrinho');
-    if (!user || !contador) return;
+    
+    if (!userData || !contador) return;
 
     try {
-        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
+        const user = JSON.parse(userData);
+        // O log abaixo vai te mostrar qual ID está sendo enviado (ex: 16 ou 3)
+        console.log("Buscando carrinho para o usuário ID:", user.id);
+
+        const res = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
-        const itens = await response.json();
-        const total = itens.reduce((sum, item) => sum + item.pecaquantidade, 0);
+        
+        if (!res.ok) {
+            const erroCorpo = await res.json();
+            throw new Error(erroCorpo.mensagem || "Erro no Servidor");
+        }
+
+        const itens = await res.json();
+        const total = Array.isArray(itens) 
+            ? itens.reduce((sum, item) => sum + (Number(item.pecaquantidade) || 0), 0)
+            : 0;
+
         contador.innerText = `(${total})`;
     } catch (err) {
-        console.error("Erro ao atualizar contador:", err);
+        console.error("ERRO CRÍTICO NO CONTADOR:", err.message);
     }
 }
 
-async function adicionarAoCarrinho(codigoproduto, nome, preco) {
-    const userData = localStorage.getItem('usuarioLogado');
-
-    if (!userData) {
-        alert("Você precisa estar logado para comprar!");
+async function adicionarAoCarrinho(codigoproduto) {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    
+    if (!user || !user.id) {
+        alert("Faça login novamente!");
         return;
     }
 
-    const user = JSON.parse(userData);
-
-    // VERIFICAÇÃO: Só permite se for cliente
-    if (user.perfil !== 'cliente') {
-        alert(`Acesso negado: Seu perfil é '${user.perfil}'. Mude para um perfil de cliente para comprar.`);
-        return;
-    }
-
-    console.log("Enviando ID do Usuário:", user.id);
+    const dados = {
+        id_usuario: parseInt(user.id),
+        codigoproduto: parseInt(codigoproduto),
+        pecaquantidade: 1
+    };
 
     try {
-        const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho", {
+        const response = await fetch('https://apiprojetointegrador.onrender.com/carrinho', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'minha-chave': CLIENT_API_KEY
             },
-            body: JSON.stringify({
-                idcliente: Number(user.id),        // Garante que o ID é número
-                codigoproduto: Number(codigoproduto), // Resolve o erro de enviar string
-                pecaquantidade: 1
-            })
+            body: JSON.stringify(dados)
         });
 
         if (response.ok) {
-            alert(`🚲 ${nome} adicionado com sucesso!`);
-            // Atualiza o ícone do carrinho se a função existir
-            if (typeof atualizarInterfaceCarrinho === 'function') {
-                atualizarInterfaceCarrinho();
-            }
+            alert("Produto Adicionado!");
+            atualizarInterfaceCarrinho();
         } else {
-            const erroData = await response.json();
-            console.error("Erro do Banco:", erroData);
-            alert("Erro: O banco não reconheceu este usuário. Verifique se o ID existe na tabela 'Usuarios'.");
+            const erro = await response.json();
+            console.error("O servidor rejeitou:", erro);
+            alert("Erro do servidor: " + erro.mensagem);
         }
-    } catch (err) {
-        console.error("Erro fatal:", err);
-        alert("Erro de conexão com o servidor.");
+    } catch (erro) {
+        console.error("Erro de rede:", erro);
     }
 }
 
@@ -583,46 +528,31 @@ async function renderizarItensCarrinho() {
 
     try {
         const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
-            headers: { 'minha-chave': CLIENT_API_KEY }
+            headers: { 'minha-chave': CLIENT_API_KEY}
         });
         const carrinhoBD = await response.json();
 
         if (!carrinhoBD || carrinhoBD.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center; padding: 40px 0;">
-                    <p style="color:#999;">Seu carrinho está vazio.</p>
-                </div>`;
-            if (totalElemento) totalElemento.innerText = "R$ 0,00";
+            container.innerHTML = "<p>Carrinho vazio.</p>";
+            totalElemento.innerText = "R$ 0,00";
             return;
         }
 
         let totalGeral = 0;
-        container.innerHTML = carrinhoBD.map((item) => {
-            const preco = parseFloat(item.preco) || 0;
-            const subtotal = preco * item.pecaquantidade;
+        container.innerHTML = carrinhoBD.map(item => {
+            const subtotal = (item.preco || 0) * item.pecaquantidade;
             totalGeral += subtotal;
-
             return `
                 <div class="item-carrinho-card">
-                    <div class="item-info">
-                        <h4>${item.nomeproduto}</h4>
-                        <p>Qtd: ${item.pecaquantidade} × R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
-                    </div>
-                    <button class="btn-remover" onclick="removerDoCarrinho(${item.id_carrinho})">
-                        Remover
-                    </button>
-                </div>
-            `;
+                    <p>${item.nomeproduto} (x${item.pecaquantidade})</p>
+                    <button onclick="removerDoCarrinho(${item.id_carrinho})">Remover</button>
+                </div>`;
         }).join('');
-
-        totalElemento.innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-
+        totalElemento.innerText = `R$ ${totalGeral.toFixed(2)}`;
     } catch (err) {
-        console.error("Erro ao carregar itens:", err);
-        container.innerHTML = "<p>Erro ao carregar os itens.</p>";
+        console.error(err);
     }
 }
-
 // Remover item do banco via ID da linha do carrinho
 async function removerDoCarrinho(id_carrinho) {
     if (!confirm("Remover este item?")) return;

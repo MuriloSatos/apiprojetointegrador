@@ -3,14 +3,13 @@ const pool = require("../db");
 
 const router = express.Router();
 
-
 router.get("/", async (req, res) => {
     try {
         let {
             codigoproduto,
             codigovendas,
             statusvenda,
-            idcliente,
+            id_usuarios, // Ajustado
             datavenda,
             ordem,
             offset,
@@ -18,7 +17,7 @@ router.get("/", async (req, res) => {
         } = req.query;
 
         codigoproduto = codigoproduto ? parseInt(codigoproduto) : null;
-        idcliente = idcliente ? parseInt(idcliente) : null;
+        id_usuarios = id_usuarios ? parseInt(id_usuarios) : null; // Ajustado
         codigovendas = codigovendas ? `%${codigovendas}%` : `%`;
         statusvenda = statusvenda ? `%${statusvenda}%` : `%`;
         datavenda = datavenda || null;
@@ -33,11 +32,14 @@ router.get("/", async (req, res) => {
       ORDER BY datavenda ${ordem}
     `;
 
+        // Nota: Embora os valores abaixo estejam definidos, 
+        // a sua query SQL acima não está usando filtros WHERE. 
+        // Se precisar filtrar, lembre-se de adicionar WHERE id_usuarios = $1 etc.
         const values = [
             codigovendas,
             statusvenda,
             codigoproduto,
-            idcliente,
+            id_usuarios, // Ajustado
             datavenda,
             limit,
             offset
@@ -50,11 +52,10 @@ router.get("/", async (req, res) => {
         console.error(err);
         res.status(500).json({
             error: "Erro ao listar vendas",
-            detalhes: err.message
+            details: err.message
         });
     }
 });
-
 
 router.get("/:id", async (req, res) => {
     try {
@@ -74,7 +75,6 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-
 router.post("/", async (req, res) => {
     try {
         const {
@@ -84,24 +84,24 @@ router.post("/", async (req, res) => {
             pecaquantidade,
             valortotal,
             statusvenda,
-            idcliente
+            id_usuarios // Ajustado
         } = req.body;
 
         if (
             codigoproduto == null ||
             pecaquantidade == null ||
             valortotal == null ||
-            idcliente == null
+            id_usuarios == null // Ajustado
         ) {
             return res.status(400).json({
-                error: "Campos obrigatórios: codigoproduto, pecaquantidade, valortotal, idcliente"
+                error: "Campos obrigatórios: codigoproduto, pecaquantidade, valortotal, id_usuarios"
             });
         }
 
         const result = await pool.query(
             `
       INSERT INTO sistema.venda
-      (codigoproduto, datavenda, codigovendas, pecaquantidade, valortotal, statusvenda, idcliente)
+      (codigoproduto, datavenda, codigovendas, pecaquantidade, valortotal, statusvenda, id_usuarios)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
       `,
@@ -112,7 +112,7 @@ router.post("/", async (req, res) => {
                 Number(pecaquantidade),
                 Number(valortotal),
                 statusvenda || "finalizada",
-                Number(idcliente)
+                Number(id_usuarios) // Ajustado
             ]
         );
 
@@ -123,24 +123,23 @@ router.post("/", async (req, res) => {
     }
 });
 
-
 router.put("/:id", async (req, res) => {
     try {
         const id = parseInt(req.params.id);
 
         const {
-            codigoproduto, datavenda, pecaquantidade, valortotal, statusvenda, idcliente
+            codigoproduto, datavenda, pecaquantidade, valortotal, statusvenda, id_usuarios // Ajustado
         } = req.body;
 
         const result = await pool.query(
             `
       UPDATE sistema.venda
-    	SET codigoproduto=$1, datavenda=$2, pecaquantidade=$3, valortotal=$4, statusvenda=$5, idcliente=$6
+        SET codigoproduto=$1, datavenda=$2, pecaquantidade=$3, valortotal=$4, statusvenda=$5, id_usuarios=$6
       WHERE codigovendas = $7
       RETURNING *
       `,
             [
-                codigoproduto, datavenda, pecaquantidade, valortotal, statusvenda, idcliente,id
+                codigoproduto, datavenda, pecaquantidade, valortotal, statusvenda, id_usuarios, id
             ]
         );
 
@@ -152,7 +151,6 @@ router.put("/:id", async (req, res) => {
         res.status(500).json({ error: "Erro ao atualizar venda", err: err.message });
     }
 });
-
 
 router.delete("/:id", async (req, res) => {
     try {
@@ -173,34 +171,39 @@ router.delete("/:id", async (req, res) => {
 });
 
 router.post('/finalizar', async (req, res) => {
-    const { idcliente, formaPagamento } = req.body;
+    const { id_usuarios, formaPagamento } = req.body; // Ajustado
 
     try {
         // 1. Busca todos os itens do carrinho para este cliente
-        const itensCarrinho = await db.query(
-            "SELECT c.*, p.preco FROM carrinho c JOIN produto p ON c.codigoproduto = p.codigoproduto WHERE c.idcliente = ?", 
-            [idcliente]
+        // Ajustado c.id_usuarios e WHERE c.id_usuarios
+        const resultCarrinho = await pool.query(
+            "SELECT c.*, p.preco FROM carrinho c JOIN produto p ON c.codigoproduto = p.codigoproduto WHERE c.id_usuarios = $1", 
+            [id_usuarios]
         );
+
+        const itensCarrinho = resultCarrinho.rows;
 
         if (itensCarrinho.length === 0) return res.status(400).send("Carrinho vazio");
 
         // 2. Calcula o valor total
         let total = itensCarrinho.reduce((acc, item) => acc + (item.preco * item.pecaquantidade), 0);
 
-        // 3. Insere a venda para cada item (conforme a estrutura da sua tabela 'venda')
+        // 3. Insere a venda para cada item
         for (let item of itensCarrinho) {
-            await db.query(
-                "INSERT INTO venda (idcliente, codigoproduto, pecaquantidade, valortotal, datavenda) VALUES (?, ?, ?, ?, NOW())",
-                [idcliente, item.codigoproduto, item.pecaquantidade, total]
+            await pool.query(
+                "INSERT INTO sistema.venda (id_usuarios, codigoproduto, pecaquantidade, valortotal, datavenda, statusvenda) VALUES ($1, $2, $3, $4, NOW(), $5)",
+                [id_usuarios, item.codigoproduto, item.pecaquantidade, total, "finalizada"]
             );
         }
 
         // 4. Limpa o carrinho do cliente
-        await db.query("DELETE FROM carrinho WHERE idcliente = ?", [idcliente]);
+        await pool.query("DELETE FROM carrinho WHERE id_usuarios = $1", [id_usuarios]);
 
         res.status(201).json({ mensagem: "Compra finalizada com sucesso!" });
     } catch (erro) {
+        console.error(erro);
         res.status(500).send("Erro ao processar venda: " + erro.message);
     }
 });
+
 module.exports = router;

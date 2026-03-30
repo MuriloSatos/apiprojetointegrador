@@ -20,7 +20,7 @@ async function carregarMeusPedidos() {
         const todasVendas = await res.json();
 
         // FILTRO: Só mostra vendas deste cliente específico
-        const meusPedidos = todasVendas.filter(venda => venda.idcliente === user.id);
+        const meusPedidos = todasVendas.filter(venda => venda.id_usuarios === user.id);
 
         if (meusPedidos.length === 0) {
             corpoTabela.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum pedido encontrado.</td></tr>";

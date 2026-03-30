@@ -40,7 +40,7 @@ function criarCard(v) {
     card.innerHTML = `
     <h3>Venda #${v.codigovendas}</h3>
     <p><b>Produto:</b> ${v.codigoproduto}</p>
-    <p><b>Cliente:</b> ${v.idcliente}</p>
+    <p><b>Cliente:</b> ${v.id_usuarios}</p>
     <p><b>Quantidade:</b> ${v.pecaquantidade}</p>
     <p><b>Valor:</b> R$ ${v.valortotal}</p>
     <p><b>Status:</b> ${v.statusvenda}</p>
@@ -50,7 +50,7 @@ function criarCard(v) {
     <button class="btn-atualizar" onclick="abrirEdicao(
       ${v.codigovendas},
       ${v.codigoproduto},
-      ${v.idcliente},
+      ${v.id_usuarios},
       ${v.pecaquantidade},
       ${v.valortotal},
       '${v.statusvenda}',
@@ -64,7 +64,7 @@ function criarCard(v) {
 async function inserirVenda() {
     const venda = {
         codigoproduto: campoCodigoProduto.value,
-        idcliente: campoCliente.value,
+        id_usuarios: campoCliente.value,
         pecaquantidade: campoQuantidade.value,
         valortotal: campoValorTotal.value,
         statusvenda: campoStatus.value,
@@ -103,7 +103,7 @@ async function salvarAtualizacao() {
 
     const venda = {
         codigoproduto: campoCodigoProduto.value,
-        idcliente: campoCliente.value,
+        id_usuarios: campoCliente.value,
         pecaquantidade: campoQuantidade.value,
         valortotal: campoValorTotal.value,
         statusvenda: campoStatus.value,
