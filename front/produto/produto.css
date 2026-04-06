@@ -550,6 +550,64 @@ header {
     font-size: 16px;
 }
 
+
+/* Container dos itens */
+#itens-carrinho {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* Linha de cada produto */
+.item-carrinho-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-nome {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+}
+
+.item-detalhes {
+    font-size: 12px;
+    color: #777;
+}
+
+.item-acoes {
+    text-align: right;
+}
+
+.item-subtotal {
+    display: block;
+    font-weight: bold;
+    color: #e67e22; /* Cor de destaque para o preço */
+    margin-bottom: 5px;
+}
+
+.btn-remover {
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: underline;
+}
+
+.btn-remover:hover {
+    color: #cc0000;
+}
+
+
 #toast-erro {
     position: fixed;
     top: 20px;
@@ -563,6 +621,39 @@ header {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
+/* Estilo da mensagem no canto da tela */
+.toast-notificacao {
+    position: fixed;
+    top: 20px;          /* Mudamos de bottom para top */
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 10000;     /* Aumentamos para garantir que fique sobre o menu */
+    font-weight: bold;
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-notificacao.esconder {
+    animation: slideOut 0.5s ease-in forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
 
 
 /* --- Responsividade --- */

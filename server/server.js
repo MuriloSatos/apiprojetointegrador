@@ -13,11 +13,12 @@ const carrinhoRouter = require("./routes/carrinho");
 const app = express();
 
 // 1. CONFIGURAÇÃO DE CORS CORRIGIDA
+// 1. CONFIGURAÇÃO DE CORS CORRIGIDA
 app.use(cors({
-    origin: '*', 
-    allowedHeaders: ['Content-Type', 'minha-chave'] // Permite sua chave personalizada
+    origin: '*', // Permite qualquer site acessar (bom para desenvolvimento)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'minha-chave', 'apikey','prefer'] 
 }));
-
 app.use(express.json());
 
 // Assets estáticos

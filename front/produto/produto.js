@@ -167,7 +167,7 @@ const ITENS_POR_PAGINA = 4; // Define o limite de 4 produtos
 
 function renderizarPaginacao(totalItens, paginaAtual) {
     const totalPaginas = Math.ceil(totalItens / ITENS_POR_PAGINA);
-    
+
     // Remove paginação antiga para não acumular
     const containerAntigo = document.querySelector('.paginacao-container');
     if (containerAntigo) containerAntigo.remove();
@@ -179,16 +179,16 @@ function renderizarPaginacao(totalItens, paginaAtual) {
     for (let i = 1; i <= totalPaginas; i++) {
         const botao = document.createElement('button');
         botao.innerText = i;
-        
+
         // Aplica a classe que criamos no CSS
         botao.className = `pag-btn ${i === paginaAtual ? 'active' : ''}`;
-        
+
         botao.onclick = () => {
             // Aqui você deve chamar sua função de carregar produtos passando a página 'i'
-            carregarProdutos(i); 
+            carregarProdutos(i);
             window.scrollTo(0, 0);
         };
-        
+
         container.appendChild(botao);
     }
 
@@ -274,38 +274,39 @@ async function salvarNovoProduto(e) {
 
 
 
-function renderizarItensCarrinho() {
-    const container = document.getElementById('itens-carrinho');
+async function renderizarItensCarrinho() {
+    const listaCarrinho = document.getElementById('itens-carrinho');
     const totalElemento = document.getElementById('total-carrinho');
-    const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
 
-    if (!container) return;
+    if (!listaCarrinho || !user) return;
 
-    if (carrinhoAtual.length === 0) {
-        container.innerHTML = "<p style='text-align:center;'>Seu carrinho está vazio.</p>";
-        if (totalElemento) totalElemento.innerText = "Total: R$ 0,00";
-        return;
-    }
+    try {
+        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+        const dados = await response.json();
 
-    let totalGeral = 0;
-    container.innerHTML = carrinhoAtual.map((item, index) => {
-        const preco = parseFloat(item.preco) || 0;
-        const subtotal = preco * item.quantidade;
-        totalGeral += subtotal;
+        let totalGeral = 0;
+        listaCarrinho.innerHTML = dados.map(item => {
+            // Garante que o nome venha da coluna certa do seu novo routes/carrinho.js
+            const nome = item.nomeproduto || "Produto Desconhecido";
+            const preco = parseFloat(item.preco) || 0;
+            const subtotal = preco * item.pecaquantidade;
+            totalGeral += subtotal;
 
-        return `
-            <div class="item-carrinho" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #ccc; padding:5px;">
-                <div>
-                    <strong>${item.nome}</strong><br>
-                    Qtd: ${item.quantidade} - R$ ${preco.toFixed(2)}
+            return `
+                <div class="item-carrinho">
+                    <strong>${nome}</strong>
+                    <span>Qtd: ${item.pecaquantidade} - R$ ${preco.toFixed(2)}</span>
+                    <button onclick="removerDoCarrinho(${item.id_carrinho})">Remover</button>
                 </div>
-                <button onclick="removerDoCarrinho(${index})" style="background:red; color:white; border:none; cursor:pointer;">Remover</button>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    if (totalElemento) {
-        totalElemento.innerText = `Total: R$ ${totalGeral.toFixed(2)}`;
+        if (totalElemento) totalElemento.innerText = `R$ ${totalGeral.toFixed(2)}`;
+    } catch (err) {
+        console.error("Erro ao renderizar carrinho:", err);
     }
 }
 
@@ -408,7 +409,7 @@ function renderizarControlesPaginacao(totalItens) {
     }
 }
 
-   async function finalizarCompra() {
+async function finalizarCompra() {
     const userData = localStorage.getItem('usuarioLogado');
     if (!userData) return;
     const user = JSON.parse(userData);
@@ -453,7 +454,7 @@ function renderizarControlesPaginacao(totalItens) {
 async function atualizarInterfaceCarrinho() {
     const userData = localStorage.getItem('usuarioLogado');
     const contador = document.getElementById('contagem-carrinho');
-    
+
     if (!userData || !contador) return;
 
     try {
@@ -464,14 +465,14 @@ async function atualizarInterfaceCarrinho() {
         const res = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
-        
+
         if (!res.ok) {
             const erroCorpo = await res.json();
             throw new Error(erroCorpo.mensagem || "Erro no Servidor");
         }
 
         const itens = await res.json();
-        const total = Array.isArray(itens) 
+        const total = Array.isArray(itens)
             ? itens.reduce((sum, item) => sum + (Number(item.pecaquantidade) || 0), 0)
             : 0;
 
@@ -481,15 +482,36 @@ async function atualizarInterfaceCarrinho() {
     }
 }
 
-async function adicionarAoCarrinho(codigoproduto) {
+// --- NOTIFICAÇÃO NO CANTO DA TELA (TOAST) ---
+function mostrarNotificacao(mensagem) {
+    // Remove notificações antigas para não acumular
+    const antiga = document.querySelector('.toast-notificacao');
+    if (antiga) antiga.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-notificacao';
+    toast.innerText = mensagem;
+    document.body.appendChild(toast);
+
+    // Remove após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('esconder');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+// --- ADICIONAR AO CARRINHO (COM NOTIFICAÇÃO) ---
+async function adicionarAoCarrinho(codigoproduto, nomeproduto, preco, imagem) {
+    console.log("Adicionando:", nomeproduto, codigoproduto, preco);
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    
+
     if (!user || !user.id) {
         alert("Faça login novamente!");
         return;
     }
 
-    const dados = {
+    // 1. DADOS PARA O BANCO (O que o seu Thunder Client mostrou)
+    const dadosApi = {
         id_usuario: parseInt(user.id),
         codigoproduto: parseInt(codigoproduto),
         pecaquantidade: 1
@@ -502,23 +524,50 @@ async function adicionarAoCarrinho(codigoproduto) {
                 'Content-Type': 'application/json',
                 'minha-chave': CLIENT_API_KEY
             },
-            body: JSON.stringify(dados)
+            body: JSON.stringify(dadosApi)
         });
 
         if (response.ok) {
-            alert("Produto Adicionado!");
-            atualizarInterfaceCarrinho();
+            // 2. DADOS PARA A TELA (Salva no localStorage para o modal ler nome e preco)
+            let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+
+            // Verifica se já existe no local para somar quantidade
+            const itemExistente = carrinhoLocal.find(item => item.nome === nomeproduto);
+
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                carrinhoLocal.push({
+                    nome: nomeproduto, // Chave 'nome' para bater com seu modal
+                    preco: parseFloat(preco),
+                    imagem: imagem || '../assets/sem-foto.png',
+                    quantidade: 1
+                });
+            }
+
+            localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoLocal));
+
+            // 3. ATUALIZA A INTERFACE
+            if (typeof showToast === 'function') {
+                showToast(`✅ ${nomeproduto} adicionado!`, "success");
+            } else {
+                alert(`${nomeproduto} adicionado!`);
+            }
+
+            atualizarContador(); // Atualiza o número no ícone do carrinho
+            if (document.getElementById('modal-carrinho')?.classList.contains('aberto')) {
+                renderizarCarrinhoNoModal();
+            }
         } else {
             const erro = await response.json();
-            console.error("O servidor rejeitou:", erro);
-            alert("Erro do servidor: " + erro.mensagem);
+            alert("Erro: " + (erro.mensagem || "Erro ao adicionar"));
         }
     } catch (erro) {
         console.error("Erro de rede:", erro);
     }
 }
 
-// Renderizar o modal buscando os dados reais do banco
+// --- RENDERIZAR ITENS (CORREÇÃO DO UNDEFINED) ---
 async function renderizarItensCarrinho() {
     const container = document.getElementById('itens-carrinho');
     const totalElemento = document.getElementById('total-carrinho');
@@ -528,31 +577,55 @@ async function renderizarItensCarrinho() {
 
     try {
         const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
-            headers: { 'minha-chave': CLIENT_API_KEY}
+            headers: { 'minha-chave': 'SUA_CHAVE_SECRETA_MUITO_FORTE_123456' }
         });
-        const carrinhoBD = await response.json();
 
-        if (!carrinhoBD || carrinhoBD.length === 0) {
-            container.innerHTML = "<p>Carrinho vazio.</p>";
-            totalElemento.innerText = "R$ 0,00";
+        const dados = await response.json();
+        console.log("DADOS QUE CHEGARAM NO FRONT:", dados); //
+
+        container.innerHTML = "";
+        let totalGeral = 0;
+
+        if (!dados || dados.length === 0) {
+            container.innerHTML = "<p style='padding:20px; text-align:center;'>Seu carrinho está vazio.</p>";
+            if (totalElemento) totalElemento.innerText = "R$ 0,00";
             return;
         }
 
-        let totalGeral = 0;
-        container.innerHTML = carrinhoBD.map(item => {
-            const subtotal = (item.preco || 0) * item.pecaquantidade;
+        // front/produto/produto.js
+        dados.forEach(item => {
+            // Agora usamos os nomes simplificados do SQL acima
+            const nome = item.nomeproduto || "Produto sem nome";
+            const precoUnitario = parseFloat(item.preco) || 0;
+            const quantidade = parseInt(item.qtd) || 0;
+            const subtotal = precoUnitario * quantidade;
+
             totalGeral += subtotal;
-            return `
-                <div class="item-carrinho-card">
-                    <p>${item.nomeproduto} (x${item.pecaquantidade})</p>
-                    <button onclick="removerDoCarrinho(${item.id_carrinho})">Remover</button>
-                </div>`;
-        }).join('');
-        totalElemento.innerText = `R$ ${totalGeral.toFixed(2)}`;
+
+            container.innerHTML += `
+        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;">
+            <div>
+                <strong>${nome}</strong><br>
+                <span>${quantidade}x de R$ ${precoUnitario.toFixed(2)}</span>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-weight: bold;">R$ ${subtotal.toFixed(2)}</span><br>
+                <button onclick="removerDoCarrinho(${item.id_carrinho})" style="color: red; border: none; background: none; cursor: pointer;">Remover</button>
+            </div>
+        </div>
+    `;
+        });
+
+        if (totalElemento) {
+            totalElemento.innerText = `R$ ${totalGeral.toFixed(2)}`;
+        }
+
     } catch (err) {
-        console.error(err);
+        console.error("Erro ao carregar modal:", err);
     }
 }
+
+
 // Remover item do banco via ID da linha do carrinho
 async function removerDoCarrinho(id_carrinho) {
     if (!confirm("Remover este item?")) return;
@@ -572,6 +645,21 @@ async function removerDoCarrinho(id_carrinho) {
     }
 }
 
+
+function atualizarContador() {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!user) return;
+
+    fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
+        headers: { 'minha-chave': CLIENT_API_KEY }
+    })
+        .then(res => res.json())
+        .then(dados => {
+            const spanContador = document.querySelector('.carrinho-count');
+            if (spanContador) spanContador.innerText = dados.length || 0;
+        })
+        .catch(err => console.error("Erro no contador:", err));
+}
 
 // Exemplo de como deve ser a criação do card no seu produto.js
 function criarCardProduto(produto) {

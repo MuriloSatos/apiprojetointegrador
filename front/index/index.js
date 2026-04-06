@@ -93,7 +93,7 @@ const formLogin = document.getElementById('form-login');
 if (formLogin) {
     formLogin.onsubmit = async (e) => {
         e.preventDefault();
-        
+
         // FORÇA A EXPULSÃO do administrador antigo antes de qualquer coisa
         localStorage.removeItem('usuarioLogado');
 
@@ -121,12 +121,12 @@ if (formLogin) {
             console.table(usuarios);
             if (usuarios.length > 0) {
                 const usuarioEncontrado = usuarios[0];
-                
+
                 // Salva o novo usuário (ex: Felipe)
                 localStorage.setItem('usuarioLogado', JSON.stringify(usuarioEncontrado));
-                
+
                 alert(`Sucesso! Entrou como: ${usuarioEncontrado.perfil}`);
-                window.location.reload(); 
+                window.location.reload();
             } else {
                 alert("Usuário ou senha não encontrados no Supabase.");
                 atualizarMenu(); // Volta o menu para "Login"
@@ -199,11 +199,102 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// --- FUNÇÕES DO CARRINHO ---
+// --- FUNÇÃO DE NOTIFICAÇÃO (TOAST) ---
+function showToast(mensagem, tipo = "info") {
+    // Cria o container se não existir
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
 
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `<span>${mensagem}</span>`;
+
+    container.appendChild(toast);
+
+    // Remove automaticamente após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+// --- ATUALIZAÇÃO NO FORMULÁRIO DE LOGIN ---
+if (formLogin) {
+    formLogin.onsubmit = async (e) => {
+        e.preventDefault();
+        localStorage.removeItem('usuarioLogado');
+
+        const emailInput = document.getElementById('login-email').value.trim();
+        const senhaInput = document.getElementById('login-senha').value.trim();
+
+        try {
+            const url = `${API_LOGIN}?email=${emailInput.toLowerCase()}&senha=${senhaInput}`;
+            const res = await fetch(url, {
+                method: 'GET', // Adicione o método explicitamente
+                headers: {
+                    'minha-chave': CLIENT_API_KEY, // Use o nome que o seu servidor espera
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const usuarios = await res.json();
+
+            if (usuarios.length > 0) {
+                const usuarioEncontrado = usuarios[0];
+                localStorage.setItem('usuarioLogado', JSON.stringify(usuarioEncontrado));
+
+                showToast(`Bem-vindo, ${usuarioEncontrado.nome}!`, "success");
+
+                // Pequeno delay para o usuário ver a mensagem antes do reload
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast("Usuário ou senha incorretos.", "error");
+                atualizarMenu();
+            }
+        } catch (err) {
+            showToast("Erro ao conectar com o servidor.", "error");
+        }
+    };
+}
+
+// --- ATUALIZAÇÃO NO FORMULÁRIO DE CADASTRO ---
+if (formCadastro) {
+    formCadastro.onsubmit = async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('cad-nome').value.trim();
+        const email = document.getElementById('cad-email').value.trim().toLowerCase();
+        const senha = document.getElementById('cad-senha').value.trim();
+
+        try {
+            const res = await fetch(API_LOGIN, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'minha-chave': CLIENT_API_KEY,
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify({ nome, email, senha, perfil: 'cliente' })
+            });
+
+            if (res.ok) {
+                showToast("Conta criada com sucesso! Redirecionando...", "success");
+                setTimeout(() => alternarTela('login'), 2000);
+            } else {
+                showToast("Erro: E-mail já cadastrado ou dados inválidos.", "error");
+            }
+        } catch (err) {
+            showToast("Erro de conexão ao cadastrar.", "error");
+        }
+    };
+}
+
+// --- ATUALIZAÇÃO NO ADICIONAR AO CARRINHO ---
 function adicionarAoCarrinho(nome, preco, imagem) {
     carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-
     const itemExistente = carrinho.find(item => item.nome === nome);
 
     if (itemExistente) {
@@ -215,9 +306,8 @@ function adicionarAoCarrinho(nome, preco, imagem) {
 
     localStorage.setItem('carrinho_bikes', JSON.stringify(carrinho));
     atualizarContador();
-    alert(`"${nome}" adicionado ao carrinho!`);
+    showToast(`${nome} adicionado ao carrinho!`, "info");
 }
-
 function abrirModal() {
     document.getElementById('modal-carrinho').classList.add('aberto');
     renderizarCarrinhoNoModal(); // <--- IMPORTANTE: Chama a renderização ao abrir
