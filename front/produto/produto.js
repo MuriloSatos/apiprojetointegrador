@@ -297,7 +297,7 @@ async function renderizarItensCarrinho() {
 
             return `
                 <div class="item-carrinho">
-                    <strong>${nome}</strong>
+                    <strong>${item.nome}</strong>
                     <span>Qtd: ${item.pecaquantidade} - R$ ${preco.toFixed(2)}</span>
                     <button onclick="removerDoCarrinho(${item.id_carrinho})">Remover</button>
                 </div>
@@ -410,37 +410,28 @@ function renderizarControlesPaginacao(totalItens) {
 }
 
 async function finalizarCompra() {
-    const userData = localStorage.getItem('usuarioLogado');
-    if (!userData) return;
-    const user = JSON.parse(userData);
-
-    // Bloqueia ADM
-    if (user.perfil !== 'cliente') return alert("Apenas clientes!");
-
-    const formaPagamento = document.getElementById('select-pagamento')?.value || "Crédito";
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!user) return alert("Faça login para finalizar!");
 
     try {
-        const response = await fetch("https://apiprojetointegrador.onrender.com/carrinho/finalizar", {
+        // 1. Envia o sinal para o backend criar a venda com base no carrinho
+        const response = await fetch(`https://apiprojetointegrador.onrender.com/vendas`, {
             method: 'POST',
-            headers: {
+            headers: { 
                 'Content-Type': 'application/json',
-                'minha-chave': CLIENT_API_KEY
+                'minha-chave': 'SUA_CHAVE_SECRETA_MUITO_FORTE_123456' 
             },
-            body: JSON.stringify({
-                id_usuario: Number(user.id),
-                formaPagamento: formaPagamento
-            })
+            body: JSON.stringify({ id_usuario: user.id })
         });
 
         if (response.ok) {
-            alert("✅ Compra finalizada!");
-            window.location.href = "../pedidos/pedidos.html";
+            alert("Pedido realizado com sucesso!");
+            window.location.href = "../pedidos/pedidos.html"; // Vai para a tela da sua foto
         } else {
-            const erro = await response.json();
-            alert("Erro ao finalizar: " + (erro.erro || "Verifique o estoque."));
+            alert("Erro ao processar venda.");
         }
     } catch (err) {
-        console.error(err);
+        console.error("Erro ao finalizar:", err);
     }
 }
 
