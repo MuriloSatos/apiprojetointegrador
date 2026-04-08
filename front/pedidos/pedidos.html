@@ -1,44 +1,55 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Bike Pro | Meus Pedidos</title>
-    <link rel="stylesheet" href="../index/index.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Pedido - Bike Pro Max</title>
+    
+    <!-- Ícones do FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Folhas de Estilo (CSS Separado) -->
     <link rel="stylesheet" href="pedidos.css">
 </head>
 <body>
+
+    <!-- CABEÇALHO PADRÃO -->
     <header>
-        <nav class="container nav-principal">
-            <div class="logo"><a href="../index/index.html">BIKE<span>PROMAX</span></a></div>
-            <ul class="menu-central" id="menu-navegacao">
-                <li><a href="../index/index.html">Início</a></li>
-                <li><a href="../produto/produto.html">Catálogo</a></li>
+        <div class="logo">
+            <h1>BIKE<span>PROMAX</span></h1>
+        </div>
+        <nav>
+            <ul id="menu-navegacao">
+                <!-- Preenchido automaticamente via JavaScript -->
             </ul>
         </nav>
+        <div class="header-actions">
+            <ul id="menu-direita">
+                <!-- Preenchido automaticamente via JavaScript -->
+            </ul>
+        </div>
     </header>
 
-    <main class="container">
-        <section class="sessao-pedidos">
-            <h2>📦 Meus <span>Pedidos</span></h2>
-            <div class="tabela-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Produto</th>
-                            <th>Qtd</th>
-                            <th>Total</th>
-                            <th>Pagamento</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-corpo-pedidos">
-                        </tbody>
-                </table>
+    <!-- ÁREA PRINCIPAL DO CHECKOUT -->
+    <main class="container-checkout">
+        <div class="header-checkout">
+            <h2>📦 Finalizar <span>Pedido</span></h2>
+            <p>Revise seus itens, escolha a forma de pagamento e finalize a compra com segurança.</p>
+        </div>
+
+        <div id="conteudo-pedidos">
+            <!-- Spinner de carregamento inicial -->
+            <div class="carregando">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Carregando seu carrinho...</p>
             </div>
-        </section>
+        </div>
     </main>
 
+    <!-- CONTAINER DE TOAST (Alertas visuais de Sucesso/Erro) -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Script de Lógica -->
     <script src="pedidos.js"></script>
 </body>
 </html>

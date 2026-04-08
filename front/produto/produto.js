@@ -1,400 +1,166 @@
+// --- CONFIGURAÇÕES DE API ---
 const API = "https://apiprojetointegrador.onrender.com/produtos";
+const API_CARRINHO = "https://apiprojetointegrador.onrender.com/carrinho";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
-let todosProdutos = [];
-let carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+// URL para imagens e Imagem Padrão
+const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
+const IMAGEM_PADRAO = "https://dummyimage.com/200x200/f4f6f8/ff6600.png&text=Sem+Foto";
+
+// VARIÁVEIS GLOBAIS
+let todosProdutos = []; // GUARDA TUDO QUE VEM DO BANCO AQUI!
+let produtosFiltrados = [];
+let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
 let paginaAtual = 1;
 const itensPorPagina = 8;
 
-
-
+// --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-
-    // Verifica se o usuário está logado E se o perfil é válido
-    const ehAdm = user && user.perfil === 'adm';
-    const ehCliente = user && user.perfil === 'cliente';
-
-    // Se NÃO for nem adm e nem cliente, bloqueia o acesso
-    if (!ehAdm && !ehCliente) {
-        alert("Acesso restrito a usuários logados.");
-        window.location.href = "../index/index.html";
-    }
-});
-
-document.addEventListener('submit', async (e) => {
-    if (e.target.id === 'form-login') {
-        e.preventDefault();
-
-        // trim() remove espaços acidentais antes ou depois da digitação
-        const emailInput = document.getElementById('login-email').value.trim();
-        const senhaInput = document.getElementById('login-senha').value.trim();
-
-        try {
-            const res = await fetch(API_LOGIN, { headers: { 'minha-chave': CLIENT_API_KEY } });
-            const usuarios = await res.json();
-
-            // Log para verificar se os dados chegaram do banco
-            console.log("Usuários carregados:", usuarios);
-
-            // Tenta encontrar o usuário
-            const user = usuarios.find(u =>
-                u.email.trim() === emailInput &&
-                u.senha.trim() === senhaInput
-            );
-
-            if (user) {
-                localStorage.setItem('usuarioLogado', JSON.stringify(user));
-                alert(`Login realizado com sucesso! Bem-vindo ${user.nome}`);
-                // Redireciona ou atualiza o menu
-                window.location.reload();
-            } else {
-                console.log("Tentativa falha para:", emailInput);
-                alert("Usuário ou senha inválidos!");
-            }
-        } catch (err) {
-            console.error("Erro na conexão:", err);
-            alert("Erro ao conectar ao servidor.");
-        }
-    }
-});
-// Localize o evento de submit do seu formulário de login
-document.addEventListener('submit', async (e) => {
-    if (e.target.id === 'form-login') {
-        e.preventDefault();
-        // ... lógica de captura de inputs ...
-
-        try {
-            const res = await fetch(API_LOGIN, { headers: { 'minha-chave': CLIENT_API_KEY } });
-            const usuarios = await res.json();
-
-            // Tenta encontrar o usuário pelo email e senha
-            const user = usuarios.find(u =>
-                u.email.trim() === emailInput &&
-                u.senha.trim() === senhaInput
-            );
-
-            if (user) {
-                // SALVAMENTO CRÍTICO: Use o ID que veio da sua tabela do banco
-                localStorage.setItem('usuarioLogado', JSON.stringify({
-                    id: user.id, // Certifique-se que o campo no seu banco chama 'id'
-                    nome: user.nome,
-                    perfil: user.perfil
-                }));
-                alert(`Login realizado com sucesso! Bem-vindo ${user.nome}`);
-                window.location.reload();
-            } else {
-                alert("Usuário ou senha inválidos!");
-            }
-        } catch (err) {
-            console.error("Erro na conexão:", err);
-        }
-    }
-});
-
-function atualizarMenu() {
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    const menuNavegacao = document.getElementById('menu-navegacao');
-    const menuDireita = document.getElementById('menu-direita');
-    const btnNovoProduto = document.getElementById('btn-abrir-cadastro');
-
-    if (user && menuDireita) {
-        if (user.perfil === "adm") {
-            if (menuNavegacao) {
-                menuNavegacao.innerHTML = `
-                    <li><a href="../index/index.html">Início</a></li>
-                    <li><a href="../produto/produto.html">Catálogo</a></li>
-                    <li><a href="../vendas/vendas.html">Vendas</a></li>
-                    <li><a href="../cliente/cliente.html">Clientes</a></li>
-                    <li><a href="../usuario/usuario.html">Usuários</a></li>
-                `;
-            }
-            if (btnNovoProduto) btnNovoProduto.style.display = 'block';
-        }
-
-        menuDireita.innerHTML = `
-            <li><a href="javascript:void(0)" onclick="abrirModalCarrinho()">🛒 Carrinho <span id="contagem-carrinho"></span></a></li>
-            <li><a href="javascript:void(0)" onclick="logout()" style="color: #ff4444; font-weight: bold; margin-left: 15px;">Sair (${user.nome.split(' ')[0]})</a></li>
-        `;
-        atualizarInterfaceCarrinho();
-    }
-}
-
-// --- 2. INICIALIZAÇÃO ---
-document.addEventListener('DOMContentLoaded', () => {
-    carregarCatalogo();
+    verificarAcesso();
     atualizarMenu();
-    atualizarInterfaceCarrinho();
-
-    // Listeners de busca e filtros
+    carregarCatalogo();
+    
     document.getElementById('input-busca')?.addEventListener('input', aplicarFiltros);
     document.getElementById('input-preco')?.addEventListener('input', aplicarFiltros);
     document.getElementById('select-tipo')?.addEventListener('change', aplicarFiltros);
     document.getElementById('form-cadastro-produto')?.addEventListener('submit', salvarNovoProduto);
-
-    // Pré-visualização da imagem no cadastro
-    const cadImagem = document.getElementById('cad-imagem');
-    if (cadImagem) {
-        cadImagem.addEventListener('change', function (e) {
-            const reader = new FileReader();
-            reader.onload = function () {
-                const imgPrevia = document.getElementById('previa-img');
-                if (imgPrevia) imgPrevia.src = reader.result;
+    
+    document.getElementById('cad-imagem-url')?.addEventListener('input', function(e) {
+        const img = document.getElementById('previa-img');
+        if(img) {
+            img.src = e.target.value;
+            img.onerror = function() { 
+                this.onerror = null; 
+                this.src = IMAGEM_PADRAO; 
             };
-            if (e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
-        });
-    }
+        }
+    });
 });
+
+// --- SEGURANÇA E ACESSO ---
+function verificarAcesso() {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!user) {
+        alert("⚠️ Por favor, faça login para acessar o catálogo e fazer compras.");
+        window.location.href = "../index/index.html";
+    }
+}
+
+// --- GESTÃO DO MENU E MEUS PEDIDOS ---
+function atualizarMenu() {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    const menuDireita = document.getElementById('menu-direita');
+    const menuCentral = document.getElementById('menu-navegacao');
+    const btnNovoProduto = document.getElementById('btn-abrir-cadastro');
+
+    if (!user) return;
+
+    if (user.perfil === "adm") {
+        if (menuCentral) {
+            menuCentral.innerHTML = `
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="produto.html" class="ativo">Catálogo</a></li>
+                <li><a href="../vendas/vendas.html">Vendas</a></li>
+                <li><a href="../cliente/cliente.html">Clientes</a></li>
+                <li><a href="../usuario/usuario.html">Usuários</a></li>
+            `;
+        }
+        if (btnNovoProduto) btnNovoProduto.style.display = 'block';
+    } else {
+        if (menuCentral) {
+            menuCentral.innerHTML = `
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="produto.html" class="ativo">Catálogo</a></li>
+                <li><a href="../pedidos/pedidos.html">Meus Pedidos</a></li>
+            `;
+        }
+        if (btnNovoProduto) btnNovoProduto.style.display = 'none';
+    }
+
+    if (menuDireita) {
+        menuDireita.innerHTML = `
+            <li><a href="javascript:void(0)" onclick="abrirModalCarrinho()"><i class="fas fa-shopping-cart"></i> <span id="contagem-carrinho" style="background:var(--primaria); color:white; border-radius:50%; padding:2px 6px; font-size:0.8rem;">0</span></a></li>
+            <li><a href="javascript:void(0)" onclick="logout()" style="color: #ff4444; font-weight:bold;"><i class="fas fa-sign-out-alt"></i> Sair (${user.nome.split(' ')[0]})</a></li>
+        `;
+    }
+    atualizarContadorCarrinho();
+}
 
 function logout() {
     localStorage.removeItem('usuarioLogado');
-    window.location.reload();
+    window.location.href = "../index/index.html";
 }
 
-// --- 3. PRODUTOS ---
+// --- CARREGAR CATÁLOGO ---
 async function carregarCatalogo() {
     try {
-        const resposta = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
-        const dados = await resposta.json();
-        todosProdutos = Array.isArray(dados) ? dados : [];
-        renderizarProdutos(todosProdutos);
-        popularFiltroCategorias(todosProdutos);
-    } catch (erro) {
-        console.error("Erro ao carregar catálogo:", erro);
+        const res = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
+        const dados = await res.json();
+        
+        todosProdutos = Array.isArray(dados) ? dados.sort((a,b) => b.id - a.id) : [];
+        produtosFiltrados = [...todosProdutos];
+        
+        popularFiltroCategorias();
+        renderizarProdutos();
+    } catch (err) {
+        document.getElementById('catalogo-home').innerHTML = "<div class='carregando'>Erro ao carregar produtos.</div>";
     }
 }
-const ITENS_POR_PAGINA = 4; // Define o limite de 4 produtos
 
-function renderizarPaginacao(totalItens, paginaAtual) {
-    const totalPaginas = Math.ceil(totalItens / ITENS_POR_PAGINA);
-
-    // Remove paginação antiga para não acumular
-    const containerAntigo = document.querySelector('.paginacao-container');
-    if (containerAntigo) containerAntigo.remove();
-
-    // Cria o container que o CSS vai estilizar
-    const container = document.createElement('div');
-    container.className = 'paginacao-container';
-
-    for (let i = 1; i <= totalPaginas; i++) {
-        const botao = document.createElement('button');
-        botao.innerText = i;
-
-        // Aplica a classe que criamos no CSS
-        botao.className = `pag-btn ${i === paginaAtual ? 'active' : ''}`;
-
-        botao.onclick = () => {
-            // Aqui você deve chamar sua função de carregar produtos passando a página 'i'
-            carregarProdutos(i);
-            window.scrollTo(0, 0);
-        };
-
-        container.appendChild(botao);
-    }
-
-    // Insere o container de paginação logo após o grid de produtos
-    document.getElementById('catalogo-home').after(container);
-}
-
-function renderizarProdutos(lista, resetar = false) {
-    if (resetar) paginaAtual = 1;
+// --- RENDERIZAR VITRINE E PAGINAÇÃO ---
+function renderizarProdutos(resetarPagina = false) {
+    if (resetarPagina) paginaAtual = 1;
     const grid = document.getElementById('catalogo-home');
     if (!grid) return;
 
-    // Lógica de paginação
+    if (produtosFiltrados.length === 0) {
+        grid.innerHTML = "<div class='carregando'>Nenhum produto encontrado com estes filtros.</div>";
+        document.getElementById('paginacao-container').innerHTML = '';
+        return;
+    }
+
     const inicio = (paginaAtual - 1) * itensPorPagina;
     const fim = inicio + itensPorPagina;
-    const itensPagina = lista.slice(inicio, fim);
-
-    const URL_ASSETS = "http://127.0.0.1:3000/assets/";
+    const itensPagina = produtosFiltrados.slice(inicio, fim);
 
     grid.innerHTML = itensPagina.map(item => {
-        const imgPath = item.imagem ? (item.imagem.startsWith('http') ? item.imagem : URL_ASSETS + item.imagem) : '../assets/sem-foto.png';
-        const precoNum = parseFloat(item.preco || 0);
+        const preco = parseFloat(item.preco || 0);
+        
+        let imgPath = IMAGEM_PADRAO;
+        if (item.imagem && item.imagem.trim() !== "" && item.imagem !== 'undefined') {
+            imgPath = item.imagem.startsWith('http') ? item.imagem : URL_BASE_BACKEND + item.imagem;
+        }
+
+        const nomeSeguro = item.nomeproduto ? item.nomeproduto.replace(/'/g, "\\'") : 'Produto';
 
         return `
             <div class="card-produto">
-                <div class="img-container"><img src="${imgPath}" onerror="this.src='../assets/sem-foto.png'"></div>
-                <div class="info-produto">
-                    <h3>${item.nomeproduto}</h3>
-                    <p>${item.marcaproduto} | ${item.tamanhoproduto}</p>
-                    <span class="preco-tag">R$ ${precoNum.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <div class="img-box">
+                    <img src="${imgPath}" onerror="this.onerror=null; this.src='${IMAGEM_PADRAO}'" alt="${item.nomeproduto}">
                 </div>
-                        <button class="btn-acao-comprar" onclick="adicionarAoCarrinho('${item.codigoproduto}', '${item.nomeproduto}', ${precoNum})">Comprar</button>            </div>
+                <div class="card-info">
+                    <h3>${item.nomeproduto}</h3>
+                    <p>${item.marcaproduto || '-'} | Tam: ${item.tamanhoproduto || '-'}</p>
+                    <span class="preco">R$ ${preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <button class="btn-comprar" onclick="adicionarAoCarrinhoBanco('${item.codigoproduto}', '${nomeSeguro}', ${preco}, '${imgPath}')">
+                    <i class="fas fa-cart-plus"></i> Comprar
+                </button>
+            </div>
         `;
     }).join('');
 
-    renderizarControlesPaginacao(lista.length);
+    renderizarControlesPaginacao();
 }
 
-async function salvarNovoProduto(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
+function renderizarControlesPaginacao() {
+    const container = document.getElementById('paginacao-container');
+    if (!container) return;
 
-    // Validação e limpeza de campos numéricos
-    const camposNumericos = ['preco', 'codigoproduto', 'estoque'];
-    for (let campo of camposNumericos) {
-        let valorOriginal = formData.get(campo);
-        let valorLimpo = valorOriginal.replace(',', '.').trim();
-
-        if (valorLimpo === "" || isNaN(valorLimpo)) {
-            alert(`O campo ${campo} precisa de um número válido.`);
-            return;
-        }
-
-        formData.set(campo, campo === 'preco' ? parseFloat(valorLimpo) : Math.floor(Number(valorLimpo)));
-    }
-
-    try {
-        const res = await fetch(API, {
-            method: 'POST',
-            headers: { 'minha-chave': CLIENT_API_KEY },
-            body: formData
-        });
-
-        const dados = await res.json();
-
-        if (res.ok) {
-            alert("✅ Produto cadastrado com sucesso!");
-            fecharModalCadastro();
-            carregarCatalogo(); // Recarrega a lista sem dar refresh na página toda
-        } else {
-            alert("❌ Erro: " + (dados.detalhes || "Erro ao salvar."));
-        }
-    } catch (err) {
-        console.error("Erro na requisição:", err);
-        alert("Erro ao conectar com o servidor.");
-    }
-}
-
-// --- 4. CARRINHO E FILTROS ---
-
-
-
-
-
-
-async function renderizarItensCarrinho() {
-    const listaCarrinho = document.getElementById('itens-carrinho');
-    const totalElemento = document.getElementById('total-carrinho');
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-
-    if (!listaCarrinho || !user) return;
-
-    try {
-        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
-            headers: { 'minha-chave': CLIENT_API_KEY }
-        });
-        const dados = await response.json();
-
-        let totalGeral = 0;
-        listaCarrinho.innerHTML = dados.map(item => {
-            // Garante que o nome venha da coluna certa do seu novo routes/carrinho.js
-            const nome = item.nomeproduto || "Produto Desconhecido";
-            const preco = parseFloat(item.preco) || 0;
-            const subtotal = preco * item.pecaquantidade;
-            totalGeral += subtotal;
-
-            return `
-                <div class="item-carrinho">
-                    <strong>${item.nome}</strong>
-                    <span>Qtd: ${item.pecaquantidade} - R$ ${preco.toFixed(2)}</span>
-                    <button onclick="removerDoCarrinho(${item.id_carrinho})">Remover</button>
-                </div>
-            `;
-        }).join('');
-
-        if (totalElemento) totalElemento.innerText = `R$ ${totalGeral.toFixed(2)}`;
-    } catch (err) {
-        console.error("Erro ao renderizar carrinho:", err);
-    }
-}
-
-function removerDoCarrinho(index) {
-    let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-    carrinhoAtual.splice(index, 1);
-    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoAtual));
-    atualizarInterfaceCarrinho();
-    renderizarItensCarrinho();
-}
-
-// Modal Carrinho
-function abrirModalCarrinho() {
-    const modal = document.getElementById('modal-carrinho');
-    if (modal) {
-        modal.style.display = 'block';
-        renderizarItensCarrinho();
-    }
-}
-
-function fecharModalCarrinho() {
-    const modal = document.getElementById('modal-carrinho');
-    if (modal) modal.style.display = 'none';
-}
-
-// Modal Cadastro
-function abrirModalCadastro() { document.getElementById('modal-novo-produto').style.display = 'block'; }
-function fecharModalCadastro() { document.getElementById('modal-novo-produto').style.display = 'none'; }
-
-// Filtros
-function aplicarFiltros() {
-    const busca = document.getElementById('input-busca')?.value.toLowerCase() || "";
-    const precoMax = parseFloat(document.getElementById('input-preco')?.value) || Infinity;
-    const tipo = document.getElementById('select-tipo')?.value || "";
-
-    const filtrados = todosProdutos.filter(p => {
-        const matchesBusca = p.nomeproduto.toLowerCase().includes(busca) || p.marcaproduto.toLowerCase().includes(busca);
-        const matchesPreco = parseFloat(p.preco) <= precoMax;
-        const matchesTipo = tipo === "" || p.tipoproduto === tipo;
-        return matchesBusca && matchesPreco && matchesTipo;
-    });
-    renderizarProdutos(filtrados);
-}
-
-function popularFiltroCategorias(produtos) {
-    const select = document.getElementById('select-tipo');
-    if (!select) return;
-    const tipos = [...new Set(produtos.map(p => p.tipoproduto))].filter(t => t);
-    select.innerHTML = '<option value="">Todas</option>' +
-        tipos.map(t => `<option value="${t}">${t}</option>`).join('');
-}
-
-
-function aplicarFiltros() {
-    const busca = document.getElementById('input-busca')?.value.toLowerCase() || "";
-    const precoMax = parseFloat(document.getElementById('input-preco')?.value) || Infinity;
-    const tipo = document.getElementById('select-tipo')?.value || "";
-
-    const filtrados = todosProdutos.filter(p => {
-        const matchesBusca = p.nomeproduto.toLowerCase().includes(busca) || p.marcaproduto.toLowerCase().includes(busca);
-        const matchesPreco = parseFloat(p.preco) <= precoMax;
-        const matchesTipo = tipo === "" || p.tipoproduto === tipo;
-        return matchesBusca && matchesPreco && matchesTipo;
-    });
-    // Dentro da função aplicarFiltros, substitua o final por:
-    renderizarProdutos(filtrados, true);
-}
-
-function renderizarControlesPaginacao(totalItens) {
-    let container = document.getElementById('paginacao-container');
-
-    // Se o container não existir, vamos criá-lo
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'paginacao-container';
-        container.className = 'paginacao-container';
-
-        // Em vez de buscar o 'main', vamos anexar ao final da página ou após o grid
-        const grid = document.getElementById('catalogo-home');
-        if (grid && grid.parentNode) {
-            grid.parentNode.insertBefore(container, grid.nextSibling);
-        } else {
-            document.body.appendChild(container);
-        }
-    }
-
+    const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina);
     container.innerHTML = '';
-    const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+
+    if (totalPaginas <= 1) return;
 
     for (let i = 1; i <= totalPaginas; i++) {
         const btn = document.createElement('button');
@@ -402,266 +168,242 @@ function renderizarControlesPaginacao(totalItens) {
         btn.className = `btn-pag ${i === paginaAtual ? 'ativo' : ''}`;
         btn.onclick = () => {
             paginaAtual = i;
-            renderizarProdutos(todosProdutos);
+            renderizarProdutos();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         container.appendChild(btn);
     }
 }
 
-async function finalizarCompra() {
+// --- FILTROS ---
+function aplicarFiltros() {
+    const busca = document.getElementById('input-busca')?.value.toLowerCase() || "";
+    const precoMax = parseFloat(document.getElementById('input-preco')?.value) || Infinity;
+    const tipo = document.getElementById('select-tipo')?.value || "";
+
+    produtosFiltrados = todosProdutos.filter(p => {
+        const nomeMatch = p.nomeproduto ? p.nomeproduto.toLowerCase().includes(busca) : false;
+        const marcaMatch = p.marcaproduto ? p.marcaproduto.toLowerCase().includes(busca) : false;
+        const matchesBusca = nomeMatch || marcaMatch;
+        const matchesPreco = parseFloat(p.preco || 0) <= (precoMax || Infinity);
+        const matchesTipo = tipo === "" || p.tipoproduto === tipo;
+        
+        return matchesBusca && matchesPreco && matchesTipo;
+    });
+
+    renderizarProdutos(true);
+}
+
+function popularFiltroCategorias() {
+    const select = document.getElementById('select-tipo');
+    if (!select) return;
+    const tipos = [...new Set(todosProdutos.map(p => p.tipoproduto))].filter(t => t);
+    
+    select.innerHTML = '<option value="">Todas as Categorias</option>' + 
+        tipos.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+// --- LÓGICA DO CARRINHO ---
+async function adicionarAoCarrinhoBanco(codigoProduto, nome, preco, imagem) {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!user) return alert("Faça login para finalizar!");
+    if (!user) return;
 
-    try {
-        // 1. Envia o sinal para o backend criar a venda com base no carrinho
-        const response = await fetch(`https://apiprojetointegrador.onrender.com/vendas`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'minha-chave': 'SUA_CHAVE_SECRETA_MUITO_FORTE_123456' 
-            },
-            body: JSON.stringify({ id_usuario: user.id })
-        });
-
-        if (response.ok) {
-            alert("Pedido realizado com sucesso!");
-            window.location.href = "../pedidos/pedidos.html"; // Vai para a tela da sua foto
-        } else {
-            alert("Erro ao processar venda.");
-        }
-    } catch (err) {
-        console.error("Erro ao finalizar:", err);
-    }
-}
-
-// --- 4. CARRINHO (INTEGRADO AO BANCO) ---
-
-// --- 4. CARRINHO (BANCO DE DADOS - AJUSTADO) ---
-
-// 1. ISSO DEVE ESTAR NO TOPO DO SEU ARQUIVO (FORA DE QUALQUER FUNÇÃO)
-// Verifique se o valor é EXATAMENTE igual ao que está no seu backend/Render
-
-async function atualizarInterfaceCarrinho() {
-    const userData = localStorage.getItem('usuarioLogado');
-    const contador = document.getElementById('contagem-carrinho');
-
-    if (!userData || !contador) return;
-
-    try {
-        const user = JSON.parse(userData);
-        // O log abaixo vai te mostrar qual ID está sendo enviado (ex: 16 ou 3)
-        console.log("Buscando carrinho para o usuário ID:", user.id);
-
-        const res = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
-            headers: { 'minha-chave': CLIENT_API_KEY }
-        });
-
-        if (!res.ok) {
-            const erroCorpo = await res.json();
-            throw new Error(erroCorpo.mensagem || "Erro no Servidor");
-        }
-
-        const itens = await res.json();
-        const total = Array.isArray(itens)
-            ? itens.reduce((sum, item) => sum + (Number(item.pecaquantidade) || 0), 0)
-            : 0;
-
-        contador.innerText = `(${total})`;
-    } catch (err) {
-        console.error("ERRO CRÍTICO NO CONTADOR:", err.message);
-    }
-}
-
-// --- NOTIFICAÇÃO NO CANTO DA TELA (TOAST) ---
-function mostrarNotificacao(mensagem) {
-    // Remove notificações antigas para não acumular
-    const antiga = document.querySelector('.toast-notificacao');
-    if (antiga) antiga.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'toast-notificacao';
-    toast.innerText = mensagem;
-    document.body.appendChild(toast);
-
-    // Remove após 3 segundos
-    setTimeout(() => {
-        toast.classList.add('esconder');
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
-}
-
-// --- ADICIONAR AO CARRINHO (COM NOTIFICAÇÃO) ---
-async function adicionarAoCarrinho(codigoproduto, nomeproduto, preco, imagem) {
-    console.log("Adicionando:", nomeproduto, codigoproduto, preco);
-    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-
-    if (!user || !user.id) {
-        alert("Faça login novamente!");
-        return;
-    }
-
-    // 1. DADOS PARA O BANCO (O que o seu Thunder Client mostrou)
     const dadosApi = {
         id_usuario: parseInt(user.id),
-        codigoproduto: parseInt(codigoproduto),
+        codigoproduto: parseInt(codigoProduto),
         pecaquantidade: 1
     };
 
     try {
-        const response = await fetch('https://apiprojetointegrador.onrender.com/carrinho', {
+        const response = await fetch(API_CARRINHO, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'minha-chave': CLIENT_API_KEY
-            },
+            headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
             body: JSON.stringify(dadosApi)
         });
 
         if (response.ok) {
-            // 2. DADOS PARA A TELA (Salva no localStorage para o modal ler nome e preco)
-            let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-
-            // Verifica se já existe no local para somar quantidade
-            const itemExistente = carrinhoLocal.find(item => item.nome === nomeproduto);
-
-            if (itemExistente) {
-                itemExistente.quantidade++;
-            } else {
-                carrinhoLocal.push({
-                    nome: nomeproduto, // Chave 'nome' para bater com seu modal
-                    preco: parseFloat(preco),
-                    imagem: imagem || '../assets/sem-foto.png',
-                    quantidade: 1
-                });
-            }
-
+            carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+            const existente = carrinhoLocal.find(i => i.nome === nome);
+            if (existente) existente.quantidade++;
+            else carrinhoLocal.push({ nome, preco: parseFloat(preco), imagem, quantidade: 1 });
+            
             localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoLocal));
-
-            // 3. ATUALIZA A INTERFACE
-            if (typeof showToast === 'function') {
-                showToast(`✅ ${nomeproduto} adicionado!`, "success");
-            } else {
-                alert(`${nomeproduto} adicionado!`);
-            }
-
-            atualizarContador(); // Atualiza o número no ícone do carrinho
-            if (document.getElementById('modal-carrinho')?.classList.contains('aberto')) {
-                renderizarCarrinhoNoModal();
+            
+            showToast(`✅ ${nome} adicionado!`, "success");
+            atualizarContadorCarrinho();
+            
+            if(document.getElementById('modal-carrinho').classList.contains('ativo')) {
+                carregarItensCarrinhoBanco();
             }
         } else {
             const erro = await response.json();
-            alert("Erro: " + (erro.mensagem || "Erro ao adicionar"));
+            showToast(erro.mensagem || "Erro ao adicionar", "error");
         }
-    } catch (erro) {
-        console.error("Erro de rede:", erro);
+    } catch (err) {
+        showToast("Erro de conexão", "error");
     }
 }
 
-// --- RENDERIZAR ITENS (CORREÇÃO DO UNDEFINED) ---
-async function renderizarItensCarrinho() {
-    const container = document.getElementById('itens-carrinho');
+async function carregarItensCarrinhoBanco() {
+    const listaModal = document.getElementById('itens-carrinho');
     const totalElemento = document.getElementById('total-carrinho');
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
 
-    if (!container || !user) return;
+    if (!listaModal || !user) return;
 
     try {
-        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
-            headers: { 'minha-chave': 'SUA_CHAVE_SECRETA_MUITO_FORTE_123456' }
-        });
-
-        const dados = await response.json();
-        console.log("DADOS QUE CHEGARAM NO FRONT:", dados); //
-
-        container.innerHTML = "";
-        let totalGeral = 0;
+        const res = await fetch(`${API_CARRINHO}/${user.id}`, { headers: { 'minha-chave': CLIENT_API_KEY } });
+        const dados = await res.json();
+        
+        listaModal.innerHTML = "";
+        let total = 0;
 
         if (!dados || dados.length === 0) {
-            container.innerHTML = "<p style='padding:20px; text-align:center;'>Seu carrinho está vazio.</p>";
+            listaModal.innerHTML = `<div class="carrinho-vazio"><i class="fas fa-box-open"></i><p>Seu carrinho está vazio.</p></div>`;
             if (totalElemento) totalElemento.innerText = "R$ 0,00";
             return;
         }
 
-        // front/produto/produto.js
         dados.forEach(item => {
-            // Agora usamos os nomes simplificados do SQL acima
-            const nome = item.nomeproduto || "Produto sem nome";
-            const precoUnitario = parseFloat(item.preco) || 0;
-            const quantidade = parseInt(item.qtd) || 0;
-            const subtotal = precoUnitario * quantidade;
+            const nome = item.nomeproduto || "Produto";
+            const preco = parseFloat(item.preco) || 0;
+            const qtd = parseInt(item.qtd || item.pecaquantidade) || 1;
+            const subtotal = preco * qtd;
+            
+            // 🔥 O SEGREDO AQUI: Busca a imagem do catálogo original!
+            // Procura na lista global de produtos um produto com o mesmo nome
+            const produtoCatalogo = todosProdutos.find(p => p.nomeproduto === nome);
+            
+            // Pega a imagem que veio no carrinho OU pega a imagem do Catálogo
+            let imagemCrua = (item.imagem && item.imagem !== 'undefined') ? item.imagem : (produtoCatalogo ? produtoCatalogo.imagem : null);
+            
+            let imgPath = IMAGEM_PADRAO;
+            if (imagemCrua && imagemCrua.trim() !== "" && imagemCrua !== 'undefined') {
+                imgPath = imagemCrua.startsWith('http') ? imagemCrua : URL_BASE_BACKEND + imagemCrua;
+            }
+            
+            total += subtotal;
 
-            totalGeral += subtotal;
-
-            container.innerHTML += `
-        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;">
-            <div>
-                <strong>${nome}</strong><br>
-                <span>${quantidade}x de R$ ${precoUnitario.toFixed(2)}</span>
-            </div>
-            <div style="text-align: right;">
-                <span style="font-weight: bold;">R$ ${subtotal.toFixed(2)}</span><br>
-                <button onclick="removerDoCarrinho(${item.id_carrinho})" style="color: red; border: none; background: none; cursor: pointer;">Remover</button>
-            </div>
-        </div>
-    `;
+            listaModal.innerHTML += `
+                <div class="item-cart">
+                    <img src="${imgPath}" onerror="this.onerror=null; this.src='${IMAGEM_PADRAO}'">
+                    <div>
+                        <h5>${nome}</h5>
+                        <small style="color:#888;">Qtd: ${qtd}x - R$ ${preco.toFixed(2)}</small><br>
+                        <span class="preco-cart">R$ ${subtotal.toFixed(2)}</span>
+                    </div>
+                    <button class="btn-del-cart" onclick="removerItemCarrinhoBanco(${item.id_carrinho})"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
         });
 
-        if (totalElemento) {
-            totalElemento.innerText = `R$ ${totalGeral.toFixed(2)}`;
-        }
-
+        if (totalElemento) totalElemento.innerText = `R$ ${total.toFixed(2)}`;
     } catch (err) {
-        console.error("Erro ao carregar modal:", err);
+        console.error("Erro ao carregar carrinho:", err);
     }
 }
 
-
-// Remover item do banco via ID da linha do carrinho
-async function removerDoCarrinho(id_carrinho) {
-    if (!confirm("Remover este item?")) return;
-
+async function removerItemCarrinhoBanco(id_carrinho) {
     try {
-        const response = await fetch(`https://apiprojetointegrador.onrender.com/carrinho/${id_carrinho}`, {
+        const res = await fetch(`${API_CARRINHO}/${id_carrinho}`, {
             method: 'DELETE',
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
-
-        if (response.ok) {
-            renderizarItensCarrinho(); // Recarrega a lista
-            atualizarInterfaceCarrinho(); // Atualiza o contador
+        if (res.ok) {
+            carregarItensCarrinhoBanco();
+            atualizarContadorCarrinho();
         }
     } catch (err) {
-        console.error("Erro ao remover item:", err);
+        console.error("Erro ao remover:", err);
     }
 }
 
-
-function atualizarContador() {
+async function atualizarContadorCarrinho() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!user) return;
+    const contador = document.getElementById('contagem-carrinho');
+    if (!user || !contador) return;
 
-    fetch(`https://apiprojetointegrador.onrender.com/carrinho/${user.id}`, {
-        headers: { 'minha-chave': CLIENT_API_KEY }
-    })
-        .then(res => res.json())
-        .then(dados => {
-            const spanContador = document.querySelector('.carrinho-count');
-            if (spanContador) spanContador.innerText = dados.length || 0;
-        })
-        .catch(err => console.error("Erro no contador:", err));
+    try {
+        const res = await fetch(`${API_CARRINHO}/${user.id}`, { headers: { 'minha-chave': CLIENT_API_KEY } });
+        const dados = await res.json();
+        
+        const totalItens = Array.isArray(dados) ? dados.reduce((sum, item) => sum + parseInt(item.qtd || item.pecaquantidade || 1), 0) : 0;
+        contador.innerText = totalItens;
+    } catch (err) {}
 }
 
-// Exemplo de como deve ser a criação do card no seu produto.js
-function criarCardProduto(produto) {
-    return `
-        <div class="card">
-            <img src="${produto.imagem}" alt="${produto.nomeproduto}">
-            <h3>${produto.nomeproduto}</h3>
-            <p>R$ ${produto.preco.toFixed(2)}</p>
-            <button onclick="adicionarAoCarrinho('${produto.codigoproduto}', '${produto.nomeproduto}', ${produto.preco})">
-                Comprar
-            </button>
-        </div>
-    `;
+// --- CONTROLE DE MODAIS ---
+function abrirModalCarrinho() {
+    document.getElementById('modal-carrinho').classList.add('ativo');
+    document.getElementById('overlay-carrinho').classList.add('ativo');
+    carregarItensCarrinhoBanco();
+}
+function fecharModalCarrinho() {
+    document.getElementById('modal-carrinho').classList.remove('ativo');
+    document.getElementById('overlay-carrinho').classList.remove('ativo');
+}
+
+function abrirModalCadastro() {
+    document.getElementById('modal-novo-produto').classList.add('ativo');
+    document.getElementById('overlay-cadastro').classList.add('ativo');
+}
+function fecharModalCadastro() {
+    document.getElementById('modal-novo-produto').classList.remove('ativo');
+    document.getElementById('overlay-cadastro').classList.remove('ativo');
+    document.getElementById('form-cadastro-produto').reset();
+    document.getElementById('previa-img').src = IMAGEM_PADRAO;
+}
+
+// --- LÓGICA DO ADMINISTRADOR (SALVAR PRODUTO) ---
+async function salvarNovoProduto(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    const dadosApi = {
+        nomeproduto: formData.get('nomeproduto'),
+        tipoproduto: formData.get('tipoproduto'),
+        preco: parseFloat(formData.get('preco').replace(',', '.')),
+        tamanhoproduto: formData.get('tamanhoproduto'),
+        marcaproduto: formData.get('marcaproduto'),
+        codigoproduto: parseInt(formData.get('codigoproduto')),
+        estoque: parseInt(formData.get('estoque')),
+        imagem: formData.get('imagem')
+    };
+
+    try {
+        const res = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
+            body: JSON.stringify(dadosApi)
+        });
+
+        if (res.ok) {
+            showToast("Produto cadastrado com sucesso!", "success");
+            fecharModalCadastro();
+            carregarCatalogo();
+        } else {
+            showToast("Erro ao cadastrar. Verifique o código SKU.", "error");
+        }
+    } catch (err) {
+        showToast("Erro de conexão com servidor.", "error");
+    }
+}
+
+// --- SISTEMA DE TOAST (NOTIFICAÇÕES) ---
+function showToast(mensagem, tipo = "success") {
+    let container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const icone = tipo === "success" ? "fa-check-circle" : "fa-exclamation-circle";
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `<i class="fas ${icone}"></i> <span>${mensagem}</span>`;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
 }
