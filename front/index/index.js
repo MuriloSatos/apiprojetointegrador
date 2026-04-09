@@ -1,6 +1,7 @@
 // --- CONFIGURAÇÕES DE API ---
 const API = "https://apiprojetointegrador.onrender.com/produtos";
 const API_LOGIN = "https://apiprojetointegrador.onrender.com/usuarios";
+const API_CARRINHO = "https://apiprojetointegrador.onrender.com/carrinho"; // ADICIONADO A API DO CARRINHO
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
 // URL para imagens que vêm apenas com o nome do arquivo do banco
@@ -9,7 +10,37 @@ const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/";
 // Imagem padrão caso o produto não tenha foto (ícone de caixinha)
 const IMAGEM_PADRAO = "https://cdn-icons-png.flaticon.com/512/1055/1055185.png";
 
-let carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+let todosProdutos = []; // Guardará os produtos para o carrinho achar a foto depois
+
+// 🚀 FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro perfeitamente (Copiada do produto.js)
+function extrairPrecoReal(valor) {
+    if (!valor) return 0;
+    if (typeof valor === 'number') return valor;
+    
+    let texto = String(valor);
+    let limpo = texto.replace(/[^0-9.,]/g, "");
+    
+    if (limpo.includes('.') && limpo.includes(',')) {
+        let ultimoPonto = limpo.lastIndexOf('.');
+        let ultimaVirgula = limpo.lastIndexOf(',');
+        
+        if (ultimaVirgula > ultimoPonto) {
+            limpo = limpo.replace(/\./g, "").replace(",", ".");
+        } else {
+            limpo = limpo.replace(/,/g, "");
+        }
+    } else if (limpo.includes(',')) {
+        limpo = limpo.replace(",", ".");
+    } else if (limpo.includes('.')) {
+        let partes = limpo.split('.');
+        if (partes[1] && partes[1].length === 3) {
+            limpo = limpo.replace(".", ""); 
+        }
+    }
+    
+    return parseFloat(limpo) || 0;
+}
 
 // --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +55,7 @@ function atualizarMenu() {
     const menuDireita = document.getElementById('menu-direita');
 
     let linksPrincipais = `
-        <li><a href="index.html">Início</a></li>
+        <li><a href="index.html" class="ativo">Início</a></li>
         <li><a href="../produto/produto.html">Catálogo</a></li>
     `;
 
@@ -56,7 +87,8 @@ function atualizarMenu() {
             `;
         }
     }
-    atualizarContador();
+    // Agora o index busca a contagem oficial do Banco de Dados
+    atualizarContadorCarrinho(); 
 }
 
 function logout() {
@@ -73,32 +105,37 @@ async function carregarDestaques() {
         grid.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>Carregando máquinas...</p>";
         const res = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
         const dados = await res.json();
+        
+        // Guardamos todos os produtos no index também para o carrinho achar as imagens
+        todosProdutos = Array.isArray(dados) ? dados : [];
         grid.innerHTML = "";
 
-        const produtosOrdenados = dados.sort((a, b) => a.id - b.id);
+        const produtosOrdenados = todosProdutos.sort((a, b) => a.id - b.id);
         const destaques = produtosOrdenados.slice(0, 4);
 
         destaques.forEach(bike => {
-            const preco = parseFloat(bike.preco || 0);
+            const preco = extrairPrecoReal(bike.preco); // Usa a função do catálogo
             
             // TRATAMENTO DA IMAGEM
             let imgPath = IMAGEM_PADRAO;
             if (bike.imagem && bike.imagem.trim() !== "" && bike.imagem !== 'undefined') {
-                // Se a imagem já for um link http, usa ele, senão junta com a URL do seu backend
                 imgPath = bike.imagem.startsWith('http') ? bike.imagem : URL_BASE_BACKEND + bike.imagem;
             }
+
+            const nomeSeguro = bike.nomeproduto ? bike.nomeproduto.replace(/'/g, "\\'") : 'Bicicleta Premium';
+            const codSeguro = bike.codigoproduto || 0; // Previne erros no código
 
             const card = document.createElement('div');
             card.className = 'card-produto';
             card.innerHTML = `
                 <div class="img-box">
-                    <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" alt="${bike.nomeproduto}">
+                    <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" alt="${nomeSeguro}">
                 </div>
                 <div class="card-info">
-                    <h3>${bike.nomeproduto || 'Bicicleta Premium'}</h3>
+                    <h3>${nomeSeguro}</h3>
                     <span class="preco">R$ ${preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
-                <button class="btn-comprar" onclick="adicionarAoCarrinho('${bike.nomeproduto.replace(/'/g, "\\'")}', ${preco}, '${imgPath}')">
+                <button class="btn-comprar" onclick="adicionarAoCarrinhoBanco('${codSeguro}', '${nomeSeguro}', ${preco}, '${imgPath}')">
                     <i class="fas fa-cart-plus"></i> Adicionar
                 </button>
             `;
@@ -110,36 +147,162 @@ async function carregarDestaques() {
     }
 }
 
-// --- CARRINHO DE COMPRAS LOCAL ---
-function adicionarAoCarrinho(nome, preco, imagem) {
-    carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-    const itemExistente = carrinho.find(item => item.nome === nome);
+// =========================================================
+// --- LÓGICA DO CARRINHO OFICIAL (IGUAL AO PRODUTO.JS) ---
+// =========================================================
 
-    if (itemExistente) {
-        itemExistente.quantidade++;
-    } else {
-        carrinho.push({ nome, preco: parseFloat(preco), imagem, quantidade: 1 });
+async function adicionarAoCarrinhoBanco(codigoProduto, nome, preco, imagem) {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    
+    // Proteção: Obriga o cliente a logar para adicionar produtos pela Home
+    if (!user) {
+        showToast("⚠️ Faça login para adicionar ao carrinho.", "error", "fa-user-lock");
+        setTimeout(() => abrirModalLogin(), 1500);
+        return;
     }
 
-    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinho));
-    atualizarContador();
-    showToast(`${nome} adicionado!`, "info", "fa-check-circle");
-    
-    if(document.getElementById('modal-carrinho').classList.contains('ativo')) {
-        renderizarCarrinhoNoModal();
+    const dadosApi = {
+        id_usuario: parseInt(user.id),
+        codigoproduto: parseInt(codigoProduto),
+        pecaquantidade: 1
+    };
+
+    try {
+        const response = await fetch(API_CARRINHO, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
+            body: JSON.stringify(dadosApi)
+        });
+
+        if (response.ok) {
+            carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
+            const existente = carrinhoLocal.find(i => i.nome === nome);
+            if (existente) existente.quantidade++;
+            else carrinhoLocal.push({ nome, preco: parseFloat(preco), imagem, quantidade: 1 });
+            
+            localStorage.setItem('carrinho_bikes', JSON.stringify(carrinhoLocal));
+            
+            showToast(`✅ ${nome} adicionado!`, "success", "fa-check-circle");
+            atualizarContadorCarrinho();
+            
+            if(document.getElementById('modal-carrinho').classList.contains('ativo')) {
+                carregarItensCarrinhoBanco();
+            }
+        } else {
+            const erro = await response.json();
+            showToast(erro.mensagem || "Erro ao adicionar", "error", "fa-exclamation-circle");
+        }
+    } catch (err) {
+        showToast("Erro de conexão", "error", "fa-wifi");
     }
 }
 
-function atualizarContador() {
-    const c = document.getElementById('contagem-carrinho');
-    if (c) c.innerText = carrinho.reduce((t, i) => t + i.quantidade, 0);
+async function carregarItensCarrinhoBanco() {
+    const listaModal = document.getElementById('itens-carrinho');
+    const totalElemento = document.getElementById('total-carrinho');
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+    if (!listaModal) return;
+
+    if (!user) {
+        listaModal.innerHTML = `<div class="carrinho-vazio"><i class="fas fa-user-lock"></i><p>Faça login para ver seu carrinho.</p></div>`;
+        if (totalElemento) totalElemento.innerText = "R$ 0,00";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_CARRINHO}/${user.id}`, { headers: { 'minha-chave': CLIENT_API_KEY } });
+        const dados = await res.json();
+        
+        listaModal.innerHTML = "";
+        let total = 0;
+
+        if (!dados || dados.length === 0 || dados.erro) {
+            listaModal.innerHTML = `<div class="carrinho-vazio"><i class="fas fa-box-open"></i><p>Seu carrinho está vazio.</p></div>`;
+            if (totalElemento) totalElemento.innerText = "R$ 0,00";
+            return;
+        }
+
+        dados.forEach(item => {
+            const nome = item.nomeproduto || "Produto";
+            const preco = extrairPrecoReal(item.preco);
+            const qtd = parseInt(item.qtd || item.pecaquantidade) || 1;
+            const subtotal = preco * qtd;
+            
+            const produtoCatalogo = todosProdutos.find(p => p.nomeproduto === nome);
+            let imagemCrua = (item.imagem && item.imagem !== 'undefined') ? item.imagem : (produtoCatalogo ? produtoCatalogo.imagem : null);
+            
+            let imgPath = IMAGEM_PADRAO;
+            if (imagemCrua && imagemCrua.trim() !== "" && imagemCrua !== 'undefined') {
+                imgPath = imagemCrua.startsWith('http') ? imagemCrua : URL_BASE_BACKEND + imagemCrua;
+            }
+            
+            total += subtotal;
+
+            listaModal.innerHTML += `
+                <div class="item-cart">
+                    <img src="${imgPath}" onerror="this.onerror=null; this.src='${IMAGEM_PADRAO}'">
+                    <div>
+                        <h5>${nome}</h5>
+                        <small style="color:#888;">Qtd: ${qtd}x - R$ ${preco.toFixed(2)}</small><br>
+                        <span class="preco-cart">R$ ${subtotal.toFixed(2)}</span>
+                    </div>
+                    <button class="btn-del-cart" onclick="removerItemCarrinhoBanco(${item.id_carrinho})"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+        });
+
+        if (totalElemento) totalElemento.innerText = `R$ ${total.toFixed(2)}`;
+    } catch (err) {
+        console.error("Erro ao carregar carrinho:", err);
+        listaModal.innerHTML = `<div class="carrinho-vazio"><p style="color:red">Erro ao carregar. Tente novamente.</p></div>`;
+    }
+}
+
+async function removerItemCarrinhoBanco(id_carrinho) {
+    try {
+        const res = await fetch(`${API_CARRINHO}/${id_carrinho}`, {
+            method: 'DELETE',
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+        if (res.ok) {
+            carregarItensCarrinhoBanco();
+            atualizarContadorCarrinho();
+        }
+    } catch (err) {
+        console.error("Erro ao remover:", err);
+    }
+}
+
+async function atualizarContadorCarrinho() {
+    const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+    const contador = document.getElementById('contagem-carrinho');
+    
+    if (!user || !contador) {
+        if(contador) contador.innerText = "0";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_CARRINHO}/${user.id}`, { headers: { 'minha-chave': CLIENT_API_KEY } });
+        const dados = await res.json();
+        
+        if(dados && !dados.erro && Array.isArray(dados)) {
+            const totalItens = dados.reduce((sum, item) => sum + parseInt(item.qtd || item.pecaquantidade || 1), 0);
+            contador.innerText = totalItens;
+        } else {
+            contador.innerText = "0";
+        }
+    } catch (err) {
+        contador.innerText = "0";
+    }
 }
 
 // --- CONTROLES DE MODAIS ---
 function abrirModalCarrinho() {
     document.getElementById('modal-carrinho').classList.add('ativo');
     document.getElementById('overlay-carrinho').classList.add('ativo');
-    renderizarCarrinhoNoModal();
+    carregarItensCarrinhoBanco(); // Carrega do Banco e não do localStorage!
 }
 
 function fecharModalCarrinho() {
@@ -162,55 +325,6 @@ function alternarTela(tela) {
     document.getElementById('secao-login').style.display = tela === 'login' ? 'block' : 'none';
     document.getElementById('secao-cadastro').style.display = tela === 'cadastro' ? 'block' : 'none';
     document.getElementById('secao-esqueci').style.display = tela === 'esqueci' ? 'block' : 'none';
-}
-
-// --- RENDERIZAR CARRINHO NO MODAL ---
-function renderizarCarrinhoNoModal() {
-    const listaModal = document.getElementById('itens-carrinho');
-    const totalElemento = document.getElementById('total-carrinho');
-    if (!listaModal) return;
-
-    carrinho = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-    listaModal.innerHTML = "";
-
-    if (carrinho.length === 0) {
-        listaModal.innerHTML = `<div class="carrinho-vazio"><i class="fas fa-box-open"></i><p>Seu carrinho está vazio.</p></div>`;
-        if (totalElemento) totalElemento.innerText = "R$ 0,00";
-        return;
-    }
-
-    let htmlCarrinho = "";
-    let total = 0;
-
-    carrinho.forEach((item, index) => {
-        const subtotal = item.preco * item.quantidade;
-        total += subtotal;
-        
-        // Garante a imagem no carrinho
-        const imgCarrinho = item.imagem && item.imagem.includes('http') ? item.imagem : IMAGEM_PADRAO;
-
-        htmlCarrinho += `
-            <div class="item-cart">
-                <img src="${imgCarrinho}" onerror="this.src='${IMAGEM_PADRAO}'">
-                <div>
-                    <h5>${item.nome}</h5>
-                    <small style="color:#888;">Qtd: ${item.quantidade}x - R$ ${item.preco.toFixed(2)}</small><br>
-                    <span class="preco-cart">R$ ${subtotal.toFixed(2)}</span>
-                </div>
-                <button class="btn-del-cart" onclick="removerDoCarrinho(${index})"><i class="fas fa-trash"></i></button>
-            </div>
-        `;
-    });
-
-    listaModal.innerHTML = htmlCarrinho;
-    if (totalElemento) totalElemento.innerText = `R$ ${total.toFixed(2)}`;
-}
-
-function removerDoCarrinho(index) {
-    carrinho.splice(index, 1);
-    localStorage.setItem('carrinho_bikes', JSON.stringify(carrinho));
-    atualizarContador();
-    renderizarCarrinhoNoModal();
 }
 
 // --- AUTENTICAÇÃO ---
