@@ -36,7 +36,7 @@ function atualizarMenu() {
         menuCentral.innerHTML = `
             <li><a href="../index/index.html">Início</a></li>
             <li><a href="../produto/produto.html">Catálogo</a></li>
-            <li><a href="meus-pedidos.html">Meus Pedidos</a></li>
+            <li><a href="pedidos.html">Meus Pedidos</a></li>
         `;
     }
 
@@ -242,7 +242,7 @@ async function finalizarCompraCompleta() {
         // 5. Redireciona para a tela de pedidos
         showToast("Compra Aprovada! Redirecionando...", "success");
         setTimeout(() => {
-            window.location.href = "meus-pedidos.html";
+            window.location.href = "pedidos.html";
         }, 2000);
 
     } catch (error) {

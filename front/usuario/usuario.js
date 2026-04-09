@@ -29,7 +29,7 @@ function atualizarMenu() {
                 <li><a href="../usuario/usuario.html">Usuários</a></li>
             `;
         } else if (user) {
-            links += `<li><a href="../meus-pedidos/pedidos.html">Meus Pedidos</a></li>`;
+            links += `<li><a href="../pedidos/pedidos.html">Meus Pedidos</a></li>`;
         }
         menuNavegacao.innerHTML = links;
     }

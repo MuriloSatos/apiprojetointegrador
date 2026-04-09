@@ -1,144 +1,88 @@
 const API = "https://apiprojetointegrador.onrender.com/vendas";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
+const ID_USUARIO_LOGADO = 25; // O ID do cliente de teste
 
-const listagem = document.getElementById("listagem");
-const btnCarregar = document.getElementById("btn");
-const btnSalvar = document.getElementById("btnSalvar");
-const btnAtualizar = document.getElementById("btnAtualizar");
-const btnCancelar = document.getElementById("btnCancelar");
-const campoBusca = document.getElementById("campoBusca");
+const listaPedidos = document.getElementById("lista-pedidos");
+const loading = document.getElementById("loading");
+const vazio = document.getElementById("vazio");
 
-let limit = 5;
-let offset = 0;
+// Inicia a busca assim que a tela abre
+document.addEventListener("DOMContentLoaded", carregarMeusPedidos);
 
-btnCarregar.onclick = carregarVendas;
-btnSalvar.onclick = inserirVenda;
-btnAtualizar.onclick = salvarAtualizacao;
-btnCancelar.onclick = cancelarEdicao;
-
-async function carregarVendas() {
+async function carregarMeusPedidos() {
     try {
-        const url = `${API}?codigovendas=${campoBusca.value || ""}&limit=${limit}&offset=${offset}`;
-
-        const res = await fetch(url, {
+        const res = await fetch(`${API}?limit=100&offset=0`, {
             headers: { "minha-chave": CLIENT_API_KEY }
         });
 
-        const dados = await res.json();
-        listagem.innerHTML = "";
-        dados.forEach(v => criarCard(v));
+        const todasVendas = await res.json();
+        
+        // FILTRO: Pega APENAS as compras onde a coluna id_usuario for igual a 25
+        const minhasVendas = todasVendas.filter(venda => venda.id_usuario === ID_USUARIO_LOGADO);
+
+        loading.classList.add("hide"); // Esconde a mensagem de "Buscando..."
+
+        if (minhasVendas.length === 0) {
+            vazio.classList.remove("hide"); // Mostra que está vazio se não achar nada
+            return;
+        }
+
+        // Para cada venda encontrada, cria uma linha na tabela
+        minhasVendas.forEach(venda => criarLinhaTabela(venda));
 
     } catch (e) {
-        console.error(e);
+        console.error("Erro ao conectar na API:", e);
+        loading.innerHTML = "Erro ao carregar seus pedidos. Tente novamente.";
     }
 }
 
-function criarCard(v) {
-    const card = document.createElement("div");
-    card.classList.add("card");
+function criarLinhaTabela(v) {
+    const tr = document.createElement("tr");
+    
+    // 1. Tratamento da DATA (Formata do banco para DD/MM/AAAA)
+    let dataFormatada = "-";
+    if (v.datavenda) {
+        const dataObj = new Date(v.datavenda);
+        // O timeZone UTC previne que o navegador atrase a data em 1 dia
+        dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
+    }
 
-    card.innerHTML = `
-    <h3>Venda #${v.codigovendas}</h3>
-    <p><b>Produto:</b> ${v.codigoproduto}</p>
-    <p><b>Cliente:</b> ${v.id_usuarios}</p>
-    <p><b>Quantidade:</b> ${v.pecaquantidade}</p>
-    <p><b>Valor:</b> R$ ${v.valortotal}</p>
-    <p><b>Status:</b> ${v.statusvenda}</p>
-    <p><b>Data:</b> ${v.datavenda}</p>
+    // 2. Tratamento do VALOR (Como no banco é 'money', limpamos e formatamos para R$)
+    let valorFormatado = "R$ 0,00";
+    if (v.valortotal) {
+        let valorTratado = v.valortotal.toString().replace(/[^0-9.,-]+/g, "");
+        valorTratado = valorTratado.replace(',', '.'); 
+        
+        let valorNumerico = parseFloat(valorTratado);
+        if (!isNaN(valorNumerico)) {
+            valorFormatado = valorNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        } else {
+            valorFormatado = v.valortotal; 
+        }
+    }
+    
+    // 3. Status visual
+    let classeStatus = "tag-status processando";
+    let textoStatus = v.statusvenda ? v.statusvenda : "Processando";
+    
+    const statusMinusculo = textoStatus.toLowerCase();
+    if (statusMinusculo.includes("concluíd") || statusMinusculo.includes("pago") || statusMinusculo.includes("aprovad")) {
+        classeStatus = "tag-status concluido";
+    }
 
-    <button class="btn-delete" onclick="deletar(${v.codigovendas})">Deletar</button>
-    <button class="btn-atualizar" onclick="abrirEdicao(
-      ${v.codigovendas},
-      ${v.codigoproduto},
-      ${v.id_usuarios},
-      ${v.pecaquantidade},
-      ${v.valortotal},
-      '${v.statusvenda}',
-      '${v.datavenda}'
-    )">Atualizar</button>
-  `;
+    // 4. Forma de pagamento
+    let pagamento = v.forma_pagamento ? v.forma_pagamento : "-";
 
-    listagem.appendChild(card);
-}
-
-async function inserirVenda() {
-    const venda = {
-        codigoproduto: campoCodigoProduto.value,
-        id_usuarios: campoCliente.value,
-        pecaquantidade: campoQuantidade.value,
-        valortotal: campoValorTotal.value,
-        statusvenda: campoStatus.value,
-        datavenda: campoData.value
-    };
-
-    await fetch(API, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "minha-chave": CLIENT_API_KEY
-        },
-        body: JSON.stringify(venda)
-    });
-
-    limparFormulario();
-    carregarVendas();
-}
-
-function abrirEdicao(id, produto, cliente, qtd, valor, status, data) {
-    campoCodigoVenda.value = id;
-    campoCodigoProduto.value = produto;
-    campoCliente.value = cliente;
-    campoQuantidade.value = qtd;
-    campoValorTotal.value = valor;
-    campoStatus.value = status;
-    campoData.value = data;
-
-    btnSalvar.style.display = "none";
-    btnAtualizar.style.display = "inline-block";
-    btnCancelar.style.display = "inline-block";
-}
-
-async function salvarAtualizacao() {
-    const id = campoCodigoVenda.value;
-
-    const venda = {
-        codigoproduto: campoCodigoProduto.value,
-        id_usuarios: campoCliente.value,
-        pecaquantidade: campoQuantidade.value,
-        valortotal: campoValorTotal.value,
-        statusvenda: campoStatus.value,
-        datavenda: campoData.value
-    };
-
-    await fetch(`${API}/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "minha-chave": CLIENT_API_KEY
-        },
-        body: JSON.stringify(venda)
-    });
-
-    limparFormulario();
-    carregarVendas();
-}
-
-async function deletar(id) {
-    await fetch(`${API}/${id}`, {
-        method: "DELETE",
-        headers: { "minha-chave": CLIENT_API_KEY }
-    });
-
-    carregarVendas();
-}
-
-function limparFormulario() {
-    document.querySelectorAll("input").forEach(i => i.value = "");
-    btnSalvar.style.display = "inline-block";
-    btnAtualizar.style.display = "none";
-    btnCancelar.style.display = "none";
-}
-
-function cancelarEdicao() {
-    limparFormulario();
+    // 5. Monta a linha HTML baseada exatamentes nos nomes do seu banco
+    tr.innerHTML = `
+        <td><strong>#${v.codigovendas}</strong></td>
+        <td>Cód: ${v.codigoproduto}</td>
+        <td>${dataFormatada}</td>
+        <td>${v.pecaquantidade}x</td>
+        <td>${pagamento}</td>
+        <td class="valor-destaque">${valorFormatado}</td>
+        <td><span class="${classeStatus}">${textoStatus}</span></td>
+    `;
+    
+    listaPedidos.appendChild(tr);
 }

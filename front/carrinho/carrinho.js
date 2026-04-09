@@ -161,7 +161,7 @@ async function finalizarCompraDefinitiva() {
         if (errosNaVenda === 0) {
             localStorage.removeItem('carrinho_bikes'); 
             alert("🎉 Compra finalizada com sucesso! Seu pedido foi gerado.");
-            window.location.href = "../pedidos/meus-pedidos.html"; 
+            window.location.href = "../pedidos/pedidos.html"; 
         } else {
             alert(`⚠️ Tivemos erro em ${errosNaVenda} produto(s). Olhe o console.`);
             reabilitarBotaoCheckout(btnFinalizar);
