@@ -45,7 +45,7 @@ function atualizarMenu() {
                 <li><a href="../usuario/usuario.html">Usuários</a></li>
             `;
         } else {
-            linksExtras = `<li><a href="../pedidos/pedidos.html">Meus Pedidos</a></li>`;
+            linksExtras = `<li><a href="../vendas/vendas.html">Meus Pedidos</a></li>`;
         }
 
         if (menuCentral) menuCentral.innerHTML = linksPrincipais + linksExtras;

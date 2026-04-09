@@ -14,6 +14,35 @@ let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
 let paginaAtual = 1;
 const itensPorPagina = 8;
 
+// 🚀 FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro perfeitamente
+function extrairPrecoReal(valor) {
+    if (!valor) return 0;
+    if (typeof valor === 'number') return valor;
+    
+    let texto = String(valor);
+    let limpo = texto.replace(/[^0-9.,]/g, "");
+    
+    if (limpo.includes('.') && limpo.includes(',')) {
+        let ultimoPonto = limpo.lastIndexOf('.');
+        let ultimaVirgula = limpo.lastIndexOf(',');
+        
+        if (ultimaVirgula > ultimoPonto) {
+            limpo = limpo.replace(/\./g, "").replace(",", ".");
+        } else {
+            limpo = limpo.replace(/,/g, "");
+        }
+    } else if (limpo.includes(',')) {
+        limpo = limpo.replace(",", ".");
+    } else if (limpo.includes('.')) {
+        let partes = limpo.split('.');
+        if (partes[1] && partes[1].length === 3) {
+            limpo = limpo.replace(".", ""); 
+        }
+    }
+    
+    return parseFloat(limpo) || 0;
+}
+
 // --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
     verificarAcesso();
@@ -71,7 +100,7 @@ function atualizarMenu() {
             menuCentral.innerHTML = `
                 <li><a href="../index/index.html">Início</a></li>
                 <li><a href="produto.html" class="ativo">Catálogo</a></li>
-                <li><a href="../pedidos/pedidos.html">Meus Pedidos</a></li>
+                <li><a href="../vendas/vendas.html">Meus Pedidos</a></li>
             `;
         }
         if (btnNovoProduto) btnNovoProduto.style.display = 'none';
@@ -95,6 +124,12 @@ function logout() {
 async function carregarCatalogo() {
     try {
         const res = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
+        
+        // 🔥 Tratamento caso o Render caia ou devolva erro 500
+        if (!res.ok) {
+            throw new Error(`Erro no servidor da API: ${res.status}`);
+        }
+
         const dados = await res.json();
         
         todosProdutos = Array.isArray(dados) ? dados.sort((a,b) => b.id - a.id) : [];
@@ -103,7 +138,8 @@ async function carregarCatalogo() {
         popularFiltroCategorias();
         renderizarProdutos();
     } catch (err) {
-        document.getElementById('catalogo-home').innerHTML = "<div class='carregando'>Erro ao carregar produtos.</div>";
+        console.error(err);
+        document.getElementById('catalogo-home').innerHTML = "<div class='carregando' style='color:#ff4444; font-weight:bold;'><i class='fas fa-exclamation-triangle'></i> A API no Render apresentou um erro (Verifique os logs do Backend).</div>";
     }
 }
 
@@ -124,7 +160,8 @@ function renderizarProdutos(resetarPagina = false) {
     const itensPagina = produtosFiltrados.slice(inicio, fim);
 
     grid.innerHTML = itensPagina.map(item => {
-        const preco = parseFloat(item.preco || 0);
+        // 🔥 Usa a nossa função para não ter erro no catálogo!
+        const preco = extrairPrecoReal(item.preco);
         
         let imgPath = IMAGEM_PADRAO;
         if (item.imagem && item.imagem.trim() !== "" && item.imagem !== 'undefined') {
@@ -185,7 +222,11 @@ function aplicarFiltros() {
         const nomeMatch = p.nomeproduto ? p.nomeproduto.toLowerCase().includes(busca) : false;
         const marcaMatch = p.marcaproduto ? p.marcaproduto.toLowerCase().includes(busca) : false;
         const matchesBusca = nomeMatch || marcaMatch;
-        const matchesPreco = parseFloat(p.preco || 0) <= (precoMax || Infinity);
+        
+        // 🔥 Garante que a barra de preço funcione blindada
+        const precoProdutoReal = extrairPrecoReal(p.preco);
+        const matchesPreco = precoProdutoReal <= (precoMax || Infinity);
+        
         const matchesTipo = tipo === "" || p.tipoproduto === tipo;
         
         return matchesBusca && matchesPreco && matchesTipo;
@@ -266,15 +307,11 @@ async function carregarItensCarrinhoBanco() {
 
         dados.forEach(item => {
             const nome = item.nomeproduto || "Produto";
-            const preco = parseFloat(item.preco) || 0;
+            const preco = extrairPrecoReal(item.preco); // 🔥 Blindado no carrinho lateral também!
             const qtd = parseInt(item.qtd || item.pecaquantidade) || 1;
             const subtotal = preco * qtd;
             
-            // 🔥 O SEGREDO AQUI: Busca a imagem do catálogo original!
-            // Procura na lista global de produtos um produto com o mesmo nome
             const produtoCatalogo = todosProdutos.find(p => p.nomeproduto === nome);
-            
-            // Pega a imagem que veio no carrinho OU pega a imagem do Catálogo
             let imagemCrua = (item.imagem && item.imagem !== 'undefined') ? item.imagem : (produtoCatalogo ? produtoCatalogo.imagem : null);
             
             let imgPath = IMAGEM_PADRAO;
@@ -360,10 +397,13 @@ async function salvarNovoProduto(e) {
     const form = e.target;
     const formData = new FormData(form);
     
+    // 🔥 Pega o que o usuário digitou e converte no número limpo pro banco!
+    const precoFormatadoParaOBanco = extrairPrecoReal(formData.get('preco'));
+
     const dadosApi = {
         nomeproduto: formData.get('nomeproduto'),
         tipoproduto: formData.get('tipoproduto'),
-        preco: parseFloat(formData.get('preco').replace(',', '.')),
+        preco: precoFormatadoParaOBanco, // Vai limpinho, ex: 1599
         tamanhoproduto: formData.get('tamanhoproduto'),
         marcaproduto: formData.get('marcaproduto'),
         codigoproduto: parseInt(formData.get('codigoproduto')),

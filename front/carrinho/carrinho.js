@@ -5,6 +5,31 @@ const API_VENDAS = "https://apiprojetointegrador.onrender.com/vendas";
 let totalCompraGeral = 0;
 let itensNoCarrinho = [];
 
+// 🛡️ FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro sem deixar o JS errar
+function extrairPrecoReal(valor) {
+    if (valor === null || valor === undefined) return 0;
+    if (typeof valor === 'number') return valor;
+    
+    let texto = valor.toString();
+    // Tira tudo que não for número, ponto ou vírgula (Ex: "R$", espaços, letras)
+    let limpo = texto.replace(/[^0-9.,-]+/g, "");
+    
+    if (limpo.includes(',')) {
+        // Veio no padrão BR (ex: 1.599,00)
+        limpo = limpo.replace(/\./g, ""); // Tira os pontos de milhar
+        limpo = limpo.replace(",", ".");  // Troca vírgula por ponto pro JS entender
+    } else if (limpo.includes('.')) {
+        // Veio com ponto (ex: 1.599)
+        let partes = limpo.split('.');
+        // Se depois do ponto tiver 3 números, foi erro de milhar! (ex: 1.599 vira 1599)
+        if (partes[1] && partes[1].length === 3) {
+            limpo = limpo.replace(".", ""); 
+        }
+    }
+    
+    return parseFloat(limpo) || 0;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     carregarTabelaDoCarrinho();
     atualizarMenuCarrinho();
@@ -26,7 +51,7 @@ function logout() {
     window.location.href = "../index/index.html";
 }
 
-// 1. CARREGAR OS DADOS DA TABELA (Ajustado para evitar erro de imagem)
+// 1. CARREGAR OS DADOS DA TABELA
 async function carregarTabelaDoCarrinho() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!user) {
@@ -59,7 +84,10 @@ async function carregarTabelaDoCarrinho() {
 
         itens.forEach(item => {
             const nome = item.nomeproduto || item.nome || "Produto sem nome";
-            const preco = parseFloat(item.preco) || 0;
+            
+            // 🔥 AQUI MUDOU: Usando a função blindada
+            const preco = extrairPrecoReal(item.preco); 
+            
             const qtd = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
             const subtotal = preco * qtd;
 
@@ -100,8 +128,7 @@ async function carregarTabelaDoCarrinho() {
     }
 }
 
-
-
+// 2. FINALIZAR COMPRA
 async function finalizarCompraDefinitiva() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const selectPagamento = document.getElementById('select-pagamento-final');
@@ -123,7 +150,10 @@ async function finalizarCompraDefinitiva() {
 
         for (const item of itensNoCarrinho) {
             const qtdProduto = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
-            const precoProduto = parseFloat(item.preco) || 0;
+            
+            // 🔥 AQUI MUDOU: Usando a função blindada antes de mandar pro banco!
+            const precoProduto = extrairPrecoReal(item.preco); 
+            
             const valorTotalProduto = qtdProduto * precoProduto;
 
             // Mantivemos o 1 temporário para a venda passar, 
@@ -154,14 +184,12 @@ async function finalizarCompraDefinitiva() {
                 errosNaVenda++;
                 console.error(`❌ Erro no servidor:`, await resVenda.text());
             }
-            // 🚨 REMOVEMOS O DELETE DAQUI! 
-            // O seu Backend (Node.js) já está deletando do carrinho automaticamente! 🎉
         }
 
         if (errosNaVenda === 0) {
             localStorage.removeItem('carrinho_bikes'); 
             alert("🎉 Compra finalizada com sucesso! Seu pedido foi gerado.");
-            window.location.href = "../pedidos/pedidos.html"; 
+            window.location.href = "../vendas/vendas.html"; 
         } else {
             alert(`⚠️ Tivemos erro em ${errosNaVenda} produto(s). Olhe o console.`);
             reabilitarBotaoCheckout(btnFinalizar);
@@ -173,26 +201,13 @@ async function finalizarCompraDefinitiva() {
     }
 }
 
+// Reabilita o botão em caso de erro
 function reabilitarBotaoCheckout(botao) {
     if(botao) {
         botao.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar e Pagar';
         botao.disabled = false;
     }
 }
-
-
-function reabilitarBotaoCheckout(botao) {
-    if (botao) {
-        botao.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar e Pagar';
-        botao.disabled = false;
-    }
-}
-
-
-
-
-
-
 
 // 3. REMOVER ITEM DA TABELA
 async function removerItemTabela(id_carrinho) {

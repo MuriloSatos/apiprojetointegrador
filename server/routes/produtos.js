@@ -2,7 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const router = express.Router();
 
-// LISTAR PRODUTOS (Com Filtros)
+// 1. LISTAR PRODUTOS (Com Filtros e Blindado)
 router.get("/", async (req, res) => {
   try {
     let {
@@ -22,21 +22,26 @@ router.get("/", async (req, res) => {
     tamanhoproduto = tamanhoproduto ? `%${tamanhoproduto}%` : `%`;
     marcaproduto   = marcaproduto ? `%${marcaproduto}%` : `%`;
 
-    preco = preco ? parseInt(preco) : null;
+    preco = preco ? parseFloat(preco) : null;
     codigoproduto = codigoproduto ? parseInt(codigoproduto) : null;
 
     ordem  = ordem && ordem.toLowerCase() === "asc" ? "ASC" : "DESC";
     offset = parseInt(offset) || 0;
     limit  = parseInt(limit) || 100;
 
+    // 🔥 MÁGICA 1: preco::numeric no SELECT para o Node receber um número limpo!
+    // 🔥 MÁGICA 2: preco::numeric no WHERE para não dar erro de "money = integer"
     const query = `
-      SELECT *
+      SELECT 
+        id, nomeproduto, tipoproduto, tamanhoproduto, marcaproduto, 
+        preco::numeric AS preco, 
+        codigoproduto, estoque, imagem
       FROM sistema.produto
       WHERE nomeproduto ILIKE $1
         AND tipoproduto ILIKE $2
         AND tamanhoproduto ILIKE $3
         AND marcaproduto ILIKE $4
-        AND ($5::int IS NULL OR preco = $5)
+        AND ($5::numeric IS NULL OR preco::numeric = $5::numeric)
         AND ($6::int IS NULL OR codigoproduto = $6)
       ORDER BY id ${ordem}
       LIMIT $7
@@ -49,68 +54,61 @@ router.get("/", async (req, res) => {
     res.json(result.rows);
 
   } catch (err) {
-    res.status(500).json({ error: "Erro ao listar produtos", detalhes: err.message });
+    console.error("Erro na listagem:", err);
+    // 🛑 TRUQUE AQUI: Mudei a frase do erro! 
+    res.status(500).json({ error: "ERRO NA NOVA ROTA DE PRODUTOS", detalhes: err.message });
   }
 });
 
-// CRIAR PRODUTO (Ajustado para Upload de Imagem)
+// 2. CRIAR PRODUTO
 router.post("/", async (req, res) => {
   try {
-    // Os campos de texto vem em req.body
     const {
-      nomeproduto,
-      tipoproduto,
-      tamanhoproduto,
-      marcaproduto,
-      preco,
-      codigoproduto,
-      estoque // Adicionado estoque que estava no seu banco
+      nomeproduto, tipoproduto, tamanhoproduto, marcaproduto, 
+      preco, codigoproduto, estoque 
     } = req.body;
 
-    // O arquivo da imagem vem em req.file (graças ao multer no server.js)
-    // Salvamos apenas o nome do arquivo no banco
-    const imagem = req.file ? req.file.filename : null;
+    const imagemURL = req.file ? req.file.filename : req.body.imagem || null;
 
     const query = `
       INSERT INTO sistema.produto
       (nomeproduto, tipoproduto, tamanhoproduto, marcaproduto, preco, codigoproduto, estoque, imagem)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
+      RETURNING id, nomeproduto, tipoproduto, tamanhoproduto, marcaproduto, preco::numeric AS preco, codigoproduto, estoque, imagem;
     `;
 
     const valores = [
-      nomeproduto,
-      tipoproduto,
-      tamanhoproduto,
-      marcaproduto,
-      parseInt(preco),
-      parseInt(codigoproduto),
-      parseInt(estoque) || 0,
-      imagem
+      nomeproduto, tipoproduto, tamanhoproduto, marcaproduto, 
+      parseFloat(preco), parseInt(codigoproduto), parseInt(estoque) || 0, imagemURL
     ];
 
     const resultado = await pool.query(query, valores);
     res.status(201).json(resultado.rows[0]);
 
   } catch (erro) {
-    console.error(erro);
-    res.status(400).json({ erro: "Erro ao inserir produto", detalhes: erro.message });
+    res.status(400).json({ erro: "ERRO NA NOVA ROTA DE POST", detalhes: erro.message });
   }
 });
 
-// BUSCAR POR ID
+// 3. BUSCAR POR ID
 router.get("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const result = await pool.query("SELECT * FROM sistema.produto WHERE id = $1", [id]);
+    const query = `
+      SELECT id, nomeproduto, tipoproduto, tamanhoproduto, marcaproduto, preco::numeric AS preco, codigoproduto, estoque, imagem 
+      FROM sistema.produto 
+      WHERE id = $1
+    `;
+    const result = await pool.query(query, [id]);
+    
     if (result.rows.length === 0) return res.status(404).json({ error: "Produto não encontrado" });
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: "Erro ao buscar produto" });
+    res.status(500).json({ error: "ERRO NOVO AO BUSCAR POR ID", detalhes: err.message });
   }
 });
 
-// DELETAR PRODUTO
+// 4. DELETAR PRODUTO
 router.delete("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -118,7 +116,7 @@ router.delete("/:id", async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: "Produto não encontrado" });
     res.status(204).end();
   } catch (err) {
-    res.status(500).json({ error: "Erro ao deletar produto" });
+    res.status(500).json({ error: "Erro ao deletar produto", detalhes: err.message });
   }
 });
 

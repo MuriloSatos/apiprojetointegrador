@@ -47,14 +47,26 @@ function criarLinhaTabela(v) {
         dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
     }
 
-    // 2. Tratamento do VALOR (Como no banco é 'money', limpamos e formatamos para R$)
+    // 2. Tratamento do VALOR (Corrigido para lidar com milhares de Reais corretamente)
     let valorFormatado = "R$ 0,00";
-    if (v.valortotal) {
-        let valorTratado = v.valortotal.toString().replace(/[^0-9.,-]+/g, "");
-        valorTratado = valorTratado.replace(',', '.'); 
+    if (v.valortotal !== null && v.valortotal !== undefined) {
+        let stringValor = v.valortotal.toString();
+        
+        // Limpa letras e símbolos mantendo apenas números, ponto e vírgula
+        let valorTratado = stringValor.replace(/[^0-9.,-]+/g, "");
+
+        // Se tem vírgula, significa que está no padrão brasileiro (ex: 1.599,00)
+        if (valorTratado.includes(',')) {
+            // Remove TODOS os pontos de milhar primeiro (ex: 1.599,00 vira 1599,00)
+            valorTratado = valorTratado.replace(/\./g, "");
+            
+            // Depois, troca a vírgula decimal por ponto para o JavaScript entender (vira 1599.00)
+            valorTratado = valorTratado.replace(',', '.');
+        }
         
         let valorNumerico = parseFloat(valorTratado);
         if (!isNaN(valorNumerico)) {
+            // Formata o número matemático de volta para a moeda linda do Brasil
             valorFormatado = valorNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         } else {
             valorFormatado = v.valortotal; 
@@ -66,14 +78,15 @@ function criarLinhaTabela(v) {
     let textoStatus = v.statusvenda ? v.statusvenda : "Processando";
     
     const statusMinusculo = textoStatus.toLowerCase();
-    if (statusMinusculo.includes("concluíd") || statusMinusculo.includes("pago") || statusMinusculo.includes("aprovad")) {
+    // Adicionei "finalizad" para garantir que a sua tag amarelinha do print fique verdinha de "concluído"!
+    if (statusMinusculo.includes("concluíd") || statusMinusculo.includes("pago") || statusMinusculo.includes("aprovad") || statusMinusculo.includes("finalizad")) {
         classeStatus = "tag-status concluido";
     }
 
     // 4. Forma de pagamento
     let pagamento = v.forma_pagamento ? v.forma_pagamento : "-";
 
-    // 5. Monta a linha HTML baseada exatamentes nos nomes do seu banco
+    // 5. Monta a linha HTML baseada exatamente nos nomes do seu banco
     tr.innerHTML = `
         <td><strong>#${v.codigovendas}</strong></td>
         <td>Cód: ${v.codigoproduto}</td>
