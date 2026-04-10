@@ -3,38 +3,49 @@ const pool = require("../db");
 const router = express.Router();
 
 // LISTAR VENDAS (GET)
-// LISTAR VENDAS (GET)
 router.get("/", async (req, res) => {
     try {
         const { id_usuario } = req.query;
 
-        // A MÁGICA FOI CORRIGIDA AQUI: ON v.codigoproduto = p.id
+        // Adicionei mais campos (valortotal, statusvenda, datavenda, etc.) 
+        // para a página "Meus Pedidos" ficar com cara de loja grande!
         let query = `
             SELECT 
-    v.codigovendas,
-    v.codigoproduto,
-    p.nomeproduto, 
-    p.imagem 
-FROM sistema.venda v
-LEFT JOIN sistema.produto p ON v.codigoproduto = p.id;
-
+                v.codigovendas,
+                v.codigoproduto,
+                v.pecaquantidade,
+                v.valortotal,
+                v.statusvenda,
+                v.forma_pagamento,
+                v.datavenda,
+                p.nomeproduto, 
+                p.imagem 
+            FROM sistema.venda v
+            LEFT JOIN sistema.produto p ON v.codigoproduto = p.id
         `;
+        
         let values = [];
 
+        // Se mandou o ID do usuário (como na página Meus Pedidos), adiciona o filtro
         if (id_usuario) {
             query += " WHERE v.id_usuario = $1";
             values.push(parseInt(id_usuario));
         }
 
+        // Ordena para mostrar a venda mais recente primeiro
         query += " ORDER BY v.datavenda DESC";
 
         const result = await pool.query(query, values);
+        
+        // Devolve a lista completa pro Front-end
         res.json(result.rows);
+        
     } catch (err) {
-        console.error(err);
+        console.error("ERRO REAL NO BANCO DE DADOS:", err);
         res.status(500).json({ error: "Erro ao listar vendas" });
     }
 });
+
 
 
 // CRIAR VENDA (POST) - Usada pelo pedidos.js
