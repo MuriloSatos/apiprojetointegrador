@@ -1,6 +1,9 @@
 const API = "https://apiprojetointegrador.onrender.com/vendas";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
-const ID_USUARIO_LOGADO = 25; // O ID do cliente de teste
+
+// URL Base para buscar a imagem do banco e imagem padrão
+const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
+const IMAGEM_PADRAO = "https://cdn-icons-png.flaticon.com/512/1055/1055185.png";
 
 const listaPedidos = document.getElementById("lista-pedidos");
 const loading = document.getElementById("loading");
@@ -10,88 +13,104 @@ const vazio = document.getElementById("vazio");
 document.addEventListener("DOMContentLoaded", carregarMeusPedidos);
 
 async function carregarMeusPedidos() {
+    // Busca o usuário logado. Se não achar, usa o 25 para seus testes.
+    let ID_USUARIO_LOGADO = 25; 
     try {
+        const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+        if (user && user.id) {
+            ID_USUARIO_LOGADO = parseInt(user.id);
+        }
+    } catch(e) {}
+
+    try {
+        // Agora só precisamos fazer UMA chamada à API. Ela já vem completa!
         const res = await fetch(`${API}?limit=100&offset=0`, {
             headers: { "minha-chave": CLIENT_API_KEY }
         });
-
-        const todasVendas = await res.json();
         
-        // FILTRO: Pega APENAS as compras onde a coluna id_usuario for igual a 25
-        const minhasVendas = todasVendas.filter(venda => venda.id_usuario === ID_USUARIO_LOGADO);
+        const todasVendas = await res.json();
+        console.log("FOFOCA DA API:", todasVendas); // <-- ADICIONE ESTA LINHA
 
-        loading.classList.add("hide"); // Esconde a mensagem de "Buscando..."
+        
+        // Filtra para o usuário atual
+        const minhasVendas = todasVendas.filter(venda => parseInt(venda.id_usuario) === ID_USUARIO_LOGADO);
+
+        loading.classList.add("hide");
 
         if (minhasVendas.length === 0) {
-            vazio.classList.remove("hide"); // Mostra que está vazio se não achar nada
+            vazio.classList.remove("hide");
             return;
         }
 
-        // Para cada venda encontrada, cria uma linha na tabela
+        // Cria a tabela
         minhasVendas.forEach(venda => criarLinhaTabela(venda));
 
     } catch (e) {
-        console.error("Erro ao conectar na API:", e);
-        loading.innerHTML = "Erro ao carregar seus pedidos. Tente novamente.";
+        console.error("Erro na API:", e);
+        loading.innerHTML = "Erro ao carregar seus pedidos. Atualize a página.";
     }
 }
 
 function criarLinhaTabela(v) {
     const tr = document.createElement("tr");
     
-    // 1. Tratamento da DATA (Formata do banco para DD/MM/AAAA)
+    // ==========================================
+    // 1. DADOS QUE VIERAM DO NOSSO NOVO SELECT
+    // ==========================================
+    const nomeProduto = v.nomeproduto ? v.nomeproduto : `Produto Cód: ${v.codigoproduto}`;
+    
+    let imgPath = IMAGEM_PADRAO;
+    if (v.imagem && v.imagem.trim() !== "" && v.imagem !== 'undefined') {
+        imgPath = v.imagem.startsWith('http') ? v.imagem : URL_BASE_BACKEND + v.imagem;
+    }
+
+    // ==========================================
+    // 2. FORMATAÇÕES DE DATA, VALOR E STATUS
+    // ==========================================
     let dataFormatada = "-";
     if (v.datavenda) {
         const dataObj = new Date(v.datavenda);
-        // O timeZone UTC previne que o navegador atrase a data em 1 dia
         dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
     }
 
-    // 2. Tratamento do VALOR (Corrigido para lidar com milhares de Reais corretamente)
     let valorFormatado = "R$ 0,00";
     if (v.valortotal !== null && v.valortotal !== undefined) {
-        let stringValor = v.valortotal.toString();
-        
-        // Limpa letras e símbolos mantendo apenas números, ponto e vírgula
-        let valorTratado = stringValor.replace(/[^0-9.,-]+/g, "");
-
-        // Se tem vírgula, significa que está no padrão brasileiro (ex: 1.599,00)
-        if (valorTratado.includes(',')) {
-            // Remove TODOS os pontos de milhar primeiro (ex: 1.599,00 vira 1599,00)
-            valorTratado = valorTratado.replace(/\./g, "");
-            
-            // Depois, troca a vírgula decimal por ponto para o JavaScript entender (vira 1599.00)
-            valorTratado = valorTratado.replace(',', '.');
+        let stringValor = v.valortotal.toString().replace(/[^0-9.,-]+/g, "");
+        if (stringValor.includes(',')) {
+            stringValor = stringValor.replace(/\./g, "").replace(',', '.');
         }
-        
-        let valorNumerico = parseFloat(valorTratado);
+        let valorNumerico = parseFloat(stringValor);
         if (!isNaN(valorNumerico)) {
-            // Formata o número matemático de volta para a moeda linda do Brasil
             valorFormatado = valorNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         } else {
             valorFormatado = v.valortotal; 
         }
     }
     
-    // 3. Status visual
+    let textoStatus = v.statusvenda || "Processando";
     let classeStatus = "tag-status processando";
-    let textoStatus = v.statusvenda ? v.statusvenda : "Processando";
-    
-    const statusMinusculo = textoStatus.toLowerCase();
-    // Adicionei "finalizad" para garantir que a sua tag amarelinha do print fique verdinha de "concluído"!
-    if (statusMinusculo.includes("concluíd") || statusMinusculo.includes("pago") || statusMinusculo.includes("aprovad") || statusMinusculo.includes("finalizad")) {
+    if (textoStatus.toLowerCase().match(/concluíd|pago|aprovad|finalizad/)) {
         classeStatus = "tag-status concluido";
     }
 
-    // 4. Forma de pagamento
-    let pagamento = v.forma_pagamento ? v.forma_pagamento : "-";
+    let pagamento = v.forma_pagamento || "-";
 
-    // 5. Monta a linha HTML baseada exatamente nos nomes do seu banco
+    // ==========================================
+    // 3. MONTAR O HTML DA LINHA
+    // ==========================================
     tr.innerHTML = `
-        <td><strong>#${v.codigovendas}</strong></td>
-        <td>Cód: ${v.codigoproduto}</td>
+        <td><strong>#${v.codigovendas || "-"}</strong></td>
+        
+        <td style="display: flex; align-items: center; gap: 15px; text-align: left; min-width: 250px;">
+            <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #fff; padding: 2px; border: 1px solid #ddd;">
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 600; font-size: 0.95rem; color: #222;">${nomeProduto}</span>
+                <span style="font-size: 0.8rem; color: #888;">Cód: ${v.codigoproduto}</span>
+            </div>
+        </td>
+
         <td>${dataFormatada}</td>
-        <td>${v.pecaquantidade}x</td>
+        <td>${v.pecaquantidade || 1}x</td>
         <td>${pagamento}</td>
         <td class="valor-destaque">${valorFormatado}</td>
         <td><span class="${classeStatus}">${textoStatus}</span></td>

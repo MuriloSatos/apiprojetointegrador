@@ -3,19 +3,30 @@ const pool = require("../db");
 const router = express.Router();
 
 // LISTAR VENDAS (GET)
+// LISTAR VENDAS (GET)
 router.get("/", async (req, res) => {
     try {
-        const { id_usuario } = req.query; // Pega o ID do usuário se vier na query
-        
-        let query = "SELECT * FROM sistema.venda";
+        const { id_usuario } = req.query;
+
+        // A MÁGICA FOI CORRIGIDA AQUI: ON v.codigoproduto = p.id
+        let query = `
+            SELECT 
+    v.codigovendas,
+    v.codigoproduto,
+    p.nomeproduto, 
+    p.imagem 
+FROM sistema.venda v
+LEFT JOIN sistema.produto p ON v.codigoproduto = p.id;
+
+        `;
         let values = [];
 
         if (id_usuario) {
-            query += " WHERE id_usuario = $1";
+            query += " WHERE v.id_usuario = $1";
             values.push(parseInt(id_usuario));
         }
 
-        query += " ORDER BY datavenda DESC";
+        query += " ORDER BY v.datavenda DESC";
 
         const result = await pool.query(query, values);
         res.json(result.rows);
@@ -24,6 +35,7 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: "Erro ao listar vendas" });
     }
 });
+
 
 // CRIAR VENDA (POST) - Usada pelo pedidos.js
 router.post("/", async (req, res) => {
@@ -36,21 +48,21 @@ router.post("/", async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, NOW())
             RETURNING *;
         `;
-        
+
         const values = [
-            codigoproduto, 
-            pecaquantidade, 
-            valortotal, 
-            id_usuario, 
-            'Finalizado', 
+            codigoproduto,
+            pecaquantidade,
+            valortotal,
+            id_usuario,
+            'Finalizado',
             forma_pagamento || 'Cartão'
         ];
-        
+
         const result = await pool.query(query, values);
 
         // Deleta do carrinho APÓS a venda ser confirmada
         await pool.query(
-            "DELETE FROM sistema.carrinho WHERE id_usuario = $1 AND codigoproduto = $2", 
+            "DELETE FROM sistema.carrinho WHERE id_usuario = $1 AND codigoproduto = $2",
             [id_usuario, codigoproduto]
         );
 
