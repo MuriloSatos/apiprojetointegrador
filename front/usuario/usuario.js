@@ -25,7 +25,6 @@ function atualizarMenu() {
         if (user && user.perfil === "adm") {
             links += `
                 <li><a href="../vendas/vendas.html">Vendas</a></li>
-                <li><a href="../cliente/cliente.html">Clientes</a></li>
                 <li><a href="../usuario/usuario.html">Usuários</a></li>
             `;
         } else if (user) {

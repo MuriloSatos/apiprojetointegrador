@@ -5,7 +5,6 @@ const path = require('path');
 const multer = require('multer');
 
 const produtosRouter = require("./routes/produtos");
-const clientesRouter = require("./routes/clientes");
 const vendasRouter = require("./routes/vendas");
 const usuariosRouter = require("./routes/usuarios");
 const carrinhoRouter = require("./routes/carrinho");
@@ -54,7 +53,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.use("/produtos", upload.single('imagem'), produtosRouter);
-app.use("/clientes", clientesRouter);
 app.use("/vendas", vendasRouter);
 app.use("/carrinho", carrinhoRouter);
 
