@@ -2,38 +2,39 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Meus Pedidos - BIKEPROMAX</title>
+  <title>Gestão de Vendas - BIKEPROMAX</title>
   <link rel="stylesheet" href="vendas.css">
   <script src="vendas.js" defer></script>
 </head>
 
 <body>
 
-<!-- Header BIKEPROMAX -->
-<!-- Header BIKEPROMAX -->
 <header class="navbar">
   <div class="logo">BIKE<span style="color: #ff5e00;">PROMAX</span></div>
   
   <nav class="nav-links">
     <a href="../index/index.html">Início</a>
     <a href="../produto/produto.html">Catálogo</a>
-    <a href="#" class="active">Meus Pedidos</a>
+    <a href="#" class="active" id="menu-pedidos">Vendas</a>
   </nav>
 
   <div class="nav-extras">
     <a href="../carrinho/carrinho.html" class="cart-link">
-      🛒 <span class="cart-count">1</span>
+      🛒 <span class="cart-count">!</span>
     </a>
-    <a href="#" class="sair-link">
-      ➜ Sair (cliente)
-    </a>
+    <a href="#" class="sair-link">➜ Sair</a>
   </div>
 </header>
 
 <main class="container">
   <section class="pedidos-header">
-    <h2>Meus Pedidos</h2>
-    <p>Acompanhe o histórico e o status das suas compras.</p>
+    <h2 id="titulo-pagina">Histórico de Vendas</h2>
+    <p id="subtitulo-pagina">Visualize todas as vendas realizadas no sistema.</p>
+  </section>
+
+  <section class="filtro-container" style="margin-bottom: 20px;">
+    <input type="text" id="input-pesquisa" placeholder="Pesquisar por produto, código ou pedido..." 
+           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem;">
   </section>
 
   <section class="tabela-container">
@@ -41,8 +42,7 @@
       <thead>
         <tr>
           <th>Nº Pedido</th>
-          <th>Cód. Produto</th>
-          <th>Data</th>
+          <th>Produto</th> <th>Data</th>
           <th>Qtd.</th>
           <th>Pagamento</th>
           <th>Valor Total</th>
@@ -50,12 +50,11 @@
         </tr>
       </thead>
       <tbody id="lista-pedidos">
-        <!-- As linhas da tabela serão geradas pelo JavaScript -->
-      </tbody>
+        </tbody>
     </table>
     
-    <div id="loading" class="mensagem">Buscando seus pedidos no servidor...</div>
-    <div id="vazio" class="mensagem hide">Você ainda não possui pedidos na BIKEPROMAX.</div>
+    <div id="loading" class="mensagem">Buscando dados no servidor...</div>
+    <div id="vazio" class="mensagem hide">Nenhuma venda encontrada.</div>
   </section>
 </main>
 

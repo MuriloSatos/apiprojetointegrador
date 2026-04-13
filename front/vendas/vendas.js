@@ -1,126 +1,103 @@
 const API = "https://apiprojetointegrador.onrender.com/vendas";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
-
-// URL Base para buscar a imagem do banco e imagem padrão
 const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
 const IMAGEM_PADRAO = "https://cdn-icons-png.flaticon.com/512/1055/1055185.png";
 
 const listaPedidos = document.getElementById("lista-pedidos");
 const loading = document.getElementById("loading");
 const vazio = document.getElementById("vazio");
+const inputPesquisa = document.getElementById("input-pesquisa");
 
-// Inicia a busca assim que a tela abre
-document.addEventListener("DOMContentLoaded", carregarMeusPedidos);
+let todasAsVendas = []; 
 
-async function carregarMeusPedidos() {
-    // Busca o usuário logado. Se não achar, usa o 25 para seus testes.
-    let ID_USUARIO_LOGADO = 25; 
+document.addEventListener("DOMContentLoaded", carregarVendas);
+
+// FILTRO EM TEMPO REAL
+inputPesquisa.addEventListener("input", (e) => {
+    const termoDigitado = e.target.value.toLowerCase();
+    
+    const vendasFiltradas = todasAsVendas.filter(v => {
+        const nome = (v.nomeproduto || "").toLowerCase();
+        const codProd = (v.codigoproduto || "").toString().toLowerCase();
+        const codVenda = (v.codigovendas || "").toString().toLowerCase();
+        
+        return nome.includes(termoDigitado) || codProd.includes(termoDigitado) || codVenda.includes(termoDigitado);
+    });
+
+    renderizarTabela(vendasFiltradas);
+});
+
+async function carregarVendas() {
+    // Forçamos a busca total removendo a lógica de filtro por ID do cliente no fetch
     try {
-        const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-        if (user && user.id) {
-            ID_USUARIO_LOGADO = parseInt(user.id);
-        }
-    } catch(e) {}
-
-    try {
-        // A MÁGICA DE PERFORMANCE AQUI: 
-        // Passamos o ID na URL. O Back-end faz o trabalho pesado e só devolve o que importa!
-        const res = await fetch(`${API}?id_usuario=${ID_USUARIO_LOGADO}`, {
+        const res = await fetch(API, {
             headers: { "minha-chave": CLIENT_API_KEY }
         });
         
-        const minhasVendas = await res.json();
-        console.log("PEDIDOS DO CLIENTE:", minhasVendas);
+        todasAsVendas = await res.json();
 
-        // Esconde o texto de "Carregando..."
         if (loading) loading.classList.add("hide");
-
-        // Se o banco não trouxe nada, mostra a mensagem de vazio
-        if (!minhasVendas || minhasVendas.length === 0) {
-            if (vazio) vazio.classList.remove("hide");
-            return;
-        }
-
-        // Se tem vendas, esconde a mensagem de vazio por segurança
-        if (vazio) vazio.classList.add("hide");
-
-        // Limpa a tabela antes de preencher (evita duplicar linhas se a tela recarregar)
-        if (listaPedidos) listaPedidos.innerHTML = "";
-
-        // Desenha cada linha na tabela!
-        minhasVendas.forEach(venda => criarLinhaTabela(venda));
+        renderizarTabela(todasAsVendas);
 
     } catch (e) {
         console.error("Erro na API:", e);
-        if (loading) loading.innerHTML = "Erro ao carregar seus pedidos. Atualize a página.";
+        if (loading) loading.innerHTML = "Erro ao carregar as informações do servidor.";
     }
 }
 
+function renderizarTabela(vendasParaMostrar) {
+    if (!listaPedidos) return;
+    listaPedidos.innerHTML = "";
 
-function criarLinhaTabela(v) {
-    const tr = document.createElement("tr");
-    
-    // ==========================================
-    // 1. DADOS QUE VIERAM DO NOSSO NOVO SELECT
-    // ==========================================
-    const nomeProduto = v.nomeproduto ? v.nomeproduto : `Produto Cód: ${v.codigoproduto}`;
-    
-    let imgPath = IMAGEM_PADRAO;
-    if (v.imagem && v.imagem.trim() !== "" && v.imagem !== 'undefined') {
-        imgPath = v.imagem.startsWith('http') ? v.imagem : URL_BASE_BACKEND + v.imagem;
+    if (!vendasParaMostrar || vendasParaMostrar.length === 0) {
+        if (vazio) vazio.classList.remove("hide");
+        return;
     }
 
-    // ==========================================
-    // 2. FORMATAÇÕES DE DATA, VALOR E STATUS
-    // ==========================================
-    let dataFormatada = "-";
-    if (v.datavenda) {
-        const dataObj = new Date(v.datavenda);
-        dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
-    }
+    if (vazio) vazio.classList.add("hide");
 
-    let valorFormatado = "R$ 0,00";
-    if (v.valortotal !== null && v.valortotal !== undefined) {
-        let stringValor = v.valortotal.toString().replace(/[^0-9.,-]+/g, "");
-        if (stringValor.includes(',')) {
-            stringValor = stringValor.replace(/\./g, "").replace(',', '.');
-        }
-        let valorNumerico = parseFloat(stringValor);
-        if (!isNaN(valorNumerico)) {
-            valorFormatado = valorNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        } else {
-            valorFormatado = v.valortotal; 
-        }
-    }
-    
-    let textoStatus = v.statusvenda || "Processando";
-    let classeStatus = "tag-status processando";
-    if (textoStatus.toLowerCase().match(/concluíd|pago|aprovad|finalizad/)) {
-        classeStatus = "tag-status concluido";
-    }
-
-    let pagamento = v.forma_pagamento || "-";
-
-    // ==========================================
-    // 3. MONTAR O HTML DA LINHA
-    // ==========================================
-    tr.innerHTML = `
-        <td><strong>#${v.codigovendas || "-"}</strong></td>
+    vendasParaMostrar.forEach(v => {
+        const tr = document.createElement("tr");
         
-        <td style="display: flex; align-items: center; gap: 15px; text-align: left; min-width: 250px;">
-            <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #fff; padding: 2px; border: 1px solid #ddd;">
-            <div style="display: flex; flex-direction: column;">
-                <span style="font-weight: 600; font-size: 0.95rem; color: #222;">${nomeProduto}</span>
-                <span style="font-size: 0.8rem; color: #888;">Cód: ${v.codigoproduto}</span>
-            </div>
-        </td>
+        // Pegando os nomes que definimos no AS da query do backend
+        const idVenda = v.venda_id || "N/A";
+        const nomeProduto = v.nomeproduto || "Produto não identificado";
+        const idProd = v.prod_id_venda || v.prod_id_estoque || "1";
+        
+        // Tratamento da Imagem
+        let imgPath = IMAGEM_PADRAO;
+        if (v.imagem && v.imagem !== 'null' && v.imagem !== 'undefined') {
+            imgPath = v.imagem.startsWith('http') ? v.imagem : URL_BASE_BACKEND + v.imagem;
+        }
 
-        <td>${dataFormatada}</td>
-        <td>${v.pecaquantidade || 1}x</td>
-        <td>${pagamento}</td>
-        <td class="valor-destaque">${valorFormatado}</td>
-        <td><span class="${classeStatus}">${textoStatus}</span></td>
-    `;
-    
-    listaPedidos.appendChild(tr);
+        // --- CORREÇÃO DO VALOR (O PONTO CRÍTICO) ---
+        let valorNumerico = 0;
+        if (v.valortotal) {
+            // Remove R$, espaços e converte vírgula em ponto para o JS entender como número
+            let limpo = v.valortotal.toString().replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+            valorNumerico = parseFloat(limpo) || 0;
+        }
+        const valorFormatado = valorNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        const dataFormatada = v.datavenda ? new Date(v.datavenda).toLocaleDateString('pt-BR') : "-";
+
+        tr.innerHTML = `
+            <td><strong>#${idVenda}</strong></td>
+            <td style="display: flex; align-items: center; gap: 15px; text-align: left;">
+                <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" 
+                     style="width: 45px; height: 45px; object-fit: cover; border-radius: 5px; border: 1px solid #eee;">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: 600;">${nomeProduto}</span>
+                    <small style="color: #666;">ID Produto: ${idProd}</small>
+                </div>
+            </td>
+            <td>${dataFormatada}</td>
+            <td>${v.pecaquantidade || 1}x</td>
+            <td>${v.forma_pagamento || "Cartão"}</td>
+            <td style="color: #ff5e00; font-weight: bold;">${valorFormatado}</td>
+            <td><span class="tag-status">${v.statusvenda || "Finalizado"}</span></td>
+        `;
+        
+        listaPedidos.appendChild(tr);
+    });
 }

@@ -90,19 +90,46 @@ body {
   padding: 0 20px;
 }
 
+/* Adicione ou substitua esta parte no seu CSS existente */
+
 .pedidos-header {
   margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Ajuda a não quebrar no celular */
+  gap: 15px;
 }
 
-.pedidos-header h2 {
+.textos h2 {
   font-size: 1.8rem;
   color: #222;
 }
 
-.pedidos-header p {
+.textos p {
   color: #666;
   margin-top: 5px;
 }
+
+/* ESTILO DA BARRA DE PESQUISA */
+.busca-container input {
+  padding: 12px 15px;
+  width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: 0.3s;
+  background-color: #fff;
+}
+
+.busca-container input:focus {
+  border-color: #ff5e00;
+  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.15);
+}
+
+
+
 
 /* TABELA DE PEDIDOS */
 .tabela-container {
@@ -165,4 +192,16 @@ body {
 
 .hide {
   display: none;
+}
+
+
+/* Responsividade para a barra de pesquisa no celular */
+@media (max-width: 768px) {
+  .pedidos-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .busca-container input {
+    width: 100%;
+  }
 }
