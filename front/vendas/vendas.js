@@ -23,33 +23,39 @@ async function carregarMeusPedidos() {
     } catch(e) {}
 
     try {
-        // Agora só precisamos fazer UMA chamada à API. Ela já vem completa!
-        const res = await fetch(`${API}?limit=100&offset=0`, {
+        // A MÁGICA DE PERFORMANCE AQUI: 
+        // Passamos o ID na URL. O Back-end faz o trabalho pesado e só devolve o que importa!
+        const res = await fetch(`${API}?id_usuario=${ID_USUARIO_LOGADO}`, {
             headers: { "minha-chave": CLIENT_API_KEY }
         });
         
-        const todasVendas = await res.json();
-        console.log("FOFOCA DA API:", todasVendas); // <-- ADICIONE ESTA LINHA
+        const minhasVendas = await res.json();
+        console.log("PEDIDOS DO CLIENTE:", minhasVendas);
 
-        
-        // Filtra para o usuário atual
-        const minhasVendas = todasVendas.filter(venda => parseInt(venda.id_usuario) === ID_USUARIO_LOGADO);
+        // Esconde o texto de "Carregando..."
+        if (loading) loading.classList.add("hide");
 
-        loading.classList.add("hide");
-
-        if (minhasVendas.length === 0) {
-            vazio.classList.remove("hide");
+        // Se o banco não trouxe nada, mostra a mensagem de vazio
+        if (!minhasVendas || minhasVendas.length === 0) {
+            if (vazio) vazio.classList.remove("hide");
             return;
         }
 
-        // Cria a tabela
+        // Se tem vendas, esconde a mensagem de vazio por segurança
+        if (vazio) vazio.classList.add("hide");
+
+        // Limpa a tabela antes de preencher (evita duplicar linhas se a tela recarregar)
+        if (listaPedidos) listaPedidos.innerHTML = "";
+
+        // Desenha cada linha na tabela!
         minhasVendas.forEach(venda => criarLinhaTabela(venda));
 
     } catch (e) {
         console.error("Erro na API:", e);
-        loading.innerHTML = "Erro ao carregar seus pedidos. Atualize a página.";
+        if (loading) loading.innerHTML = "Erro ao carregar seus pedidos. Atualize a página.";
     }
 }
+
 
 function criarLinhaTabela(v) {
     const tr = document.createElement("tr");
