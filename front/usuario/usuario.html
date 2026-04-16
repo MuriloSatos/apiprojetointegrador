@@ -59,31 +59,37 @@
             </div>
         </section>
 
-        <section id="sessao-gestao" style="display: none;">
-            <div class="header-gestao">
-                <h2>Gestão de <span>Usuários</span></h2>
-                <div class="acoes-topo">
-                    <span id="boas-vindas"></span>
-                    <button onclick="logout()" class="btn-sair">Sair</button>
-                </div>
-            </div>
+        <!-- HTML DA GESTÃO DE USUÁRIOS -->
+<section id="sessao-gestao" style="display: none;" class="container sessao-gestao">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-users" style="color: var(--primaria);"></i> Gestão de Usuários</h1>
+        
+        <!-- Nova Barra de Pesquisa -->
+        <div class="pesquisa-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="input-pesquisa-usuario" placeholder="Buscar por nome ou e-mail..." oninput="filtrarUsuarios()">
+        </div>
+    </div>
 
-            <div class="tabela-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
-                            <th>E-mail</th>
-                            <th>Perfil</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-usuarios-corpo">
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    <!-- Tabela em Card Branco -->
+    <div class="tabela-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuário</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-usuarios-corpo">
+                <!-- Injetado pelo Javascript -->
+            </tbody>
+        </table>
+    </div>
+</section>
+
     </main>
 
     <script src="usuario.js"></script>

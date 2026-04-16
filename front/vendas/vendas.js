@@ -12,118 +12,106 @@ let todasAsVendas = [];
 
 document.addEventListener("DOMContentLoaded", carregarVendas);
 
-// ==========================================
-// SISTEMA DE PESQUISA (FILTRO EM TEMPO REAL)
-// ==========================================
+// SISTEMA DE PESQUISA (Agora pesquisa dentro dos pedidos agrupados)
 if(inputPesquisa) {
     inputPesquisa.addEventListener("input", (e) => {
         const termoDigitado = e.target.value.toLowerCase();
         const vendasFiltradas = todasAsVendas.filter(v => {
             const nome = (v.nomeproduto || "").toLowerCase();
             const codProd = (v.codigoproduto || "").toString().toLowerCase();
-            const codVenda = (v.codigovendas || v.id || v.codigo || "").toString().toLowerCase();
+            const codVenda = (v.codigovendas || "").toString().toLowerCase();
             return nome.includes(termoDigitado) || codProd.includes(termoDigitado) || codVenda.includes(termoDigitado);
         });
         renderizarTabela(vendasFiltradas);
     });
 }
 
-// ==========================================
-// FUNÇÃO PARA BUSCAR AS VENDAS NA API
-// ==========================================
+// FUNÇÃO PRINCIPAL
 async function carregarVendas() {
     let ID_USUARIO_LOGADO = null; 
     let isAdm = false;
 
-    // 1. VERIFICA QUEM ESTÁ LOGADO
     try {
         const user = JSON.parse(localStorage.getItem('usuarioLogado'));
         if (user) {
-            if (user.id) ID_USUARIO_LOGADO = parseInt(user.id);
-            
-            // VERIFICAÇÃO DE ADMIN (Ajuste conforme o seu banco de dados)
-            if (user.tipo === 'adm' || user.tipo === 'admin' || user.isAdm === true || user.email === 'admin@bikepromax.com' || user.email === 'adm@bikepromax.com') {
+            ID_USUARIO_LOGADO = parseInt(user.id);
+            if (user.perfil === 'adm' || user.email === 'adm@gmail.com') {
                 isAdm = true;
             }
         }
     } catch(e) {}
 
-    // 2. MONTA O MENU DINAMICAMENTE (A Mágica acontece aqui!)
-    const menuNavegacao = document.getElementById("menu-navegacao");
-    const menuDireita = document.getElementById("menu-direita");
+    // 2. CORREÇÃO DO MENU: Agora apontamos para as classes corretas do HTML!
+    setTimeout(() => {
+        const navLinks = document.querySelector(".nav-links");
+        const navExtras = document.querySelector(".nav-extras");
 
-    if (isAdm) {
-        // MENU DO ADMINISTRADOR
-        if(menuNavegacao) {
-            menuNavegacao.innerHTML = `
-                <li><a href="../index/index.html">Início</a></li>
-                <li><a href="../catalogo/catalogo.html">Catálogo</a></li>
-                <li><a href="../vendas/vendas.html" style="color: #ff6b00; font-weight: 700;">Vendas</a></li>
-                <li><a href="../usuarios/usuarios.html">Usuários</a></li>
-            `;
+        if (isAdm) {
+            if(navLinks) {
+                navLinks.innerHTML = `
+                    <a href="../index/index.html">Início</a>
+                    <a href="../produto/produto.html">Catálogo</a>
+                    <a href="../vendas/vendas.html" class="active" style="color: #ff5e00; font-weight: bold;">Vendas da Loja</a>
+                    <a href="../usuario/usuario.html">Usuários</a>
+                `;
+            }
+            if(navExtras) {
+                navExtras.innerHTML = `<a href="#" onclick="sair()" class="sair-link" style="color: #e74c3c;">➜ Sair</a>`;
+            }
+        } else {
+            if(navLinks) {
+                navLinks.innerHTML = `
+                    <a href="../index/index.html">Início</a>
+                    <a href="../produto/produto.html">Catálogo</a>
+                    <a href="../vendas/vendas.html" class="active" style="color: #ff5e00; font-weight: bold;">Meus Pedidos</a>
+                `;
+            }
+            if(navExtras) {
+                navExtras.innerHTML = `
+                    <a href="../carrinho/carrinho.html" class="cart-link">🛒</a>
+                    <a href="#" onclick="sair()" class="sair-link" style="color: #e74c3c;">➜ Sair</a>
+                `;
+            }
         }
-        if(menuDireita) {
-            menuDireita.innerHTML = `
-                <li><a href="#" onclick="sair()" style="color: #e74c3c; font-weight: bold;">➜ Sair</a></li>
-            `;
-        }
+    }, 100);
 
-        // Muda os textos da tela para padrão Admin
-        const titulo = document.getElementById("titulo-pagina");
-        const subtitulo = document.getElementById("subtitulo-pagina");
-        if(titulo) titulo.innerText = "Gestão de Vendas (Admin)";
-        if(subtitulo) subtitulo.innerText = "Visualize e gerencie todas as vendas realizadas na BIKEPROMAX.";
 
-    } else {
-        // MENU DO CLIENTE COMUM
-        if(menuNavegacao) {
-            menuNavegacao.innerHTML = `
-                <li><a href="../index/index.html">Início</a></li>
-                <li><a href="../catalogo/catalogo.html">Catálogo</a></li>
-                <li><a href="../vendas/vendas.html" style="color: #ff6b00; font-weight: 700;">Meus Pedidos</a></li>
-            `;
-        }
-        if(menuDireita) {
-            menuDireita.innerHTML = `
-                <li><a href="../carrinho/carrinho.html" style="font-size: 1.1rem;">🛒 Carrinho</a></li>
-                <li><a href="#" onclick="sair()" style="color: #e74c3c; font-weight: bold;">➜ Sair</a></li>
-            `;
-        }
-    }
-
-    // Fallback de segurança caso alguém acesse sem logar
-    if (!ID_USUARIO_LOGADO && !isAdm) {
-        ID_USUARIO_LOGADO = 25; // ID de teste
-    }
-
-    // 3. BUSCA OS DADOS NA API
+    // 3. BUSCANDO OS DADOS NA API
     try {
-        let urlFetch = isAdm ? API : `${API}?id_usuario=${ID_USUARIO_LOGADO}`;
+        let urlFetch = isAdm ? API : `${API}?id_usuario=${ID_USUARIO_LOGADO || 0}`;
 
         const res = await fetch(urlFetch, {
             headers: { "minha-chave": CLIENT_API_KEY }
         });
         
         todasAsVendas = await res.json();
-        console.log("VENDAS ENCONTRADAS:", todasAsVendas);
 
         if (loading) loading.classList.add("hide");
         renderizarTabela(todasAsVendas);
 
     } catch (e) {
         console.error("Erro na API:", e);
-        if (loading) loading.innerHTML = "Erro ao carregar as informações. Verifique se o servidor está online.";
+        if (loading) loading.innerHTML = "Erro ao carregar as informações.";
     }
 }
 
-// Função de sair (Logout)
 function sair() {
     localStorage.removeItem('usuarioLogado');
-    window.location.href = "../index/index.html"; // Redireciona para a home
+    window.location.href = "../index/index.html";
+}
+
+// Função para garantir que os cálculos não deem erro de Matemática
+function extrairPreco(valor) {
+    if (!valor) return 0;
+    if (typeof valor === 'number') return valor;
+    let stringValor = valor.toString().replace(/[^0-9.,-]+/g, "");
+    if (stringValor.includes(',')) stringValor = stringValor.replace(/\./g, "").replace(',', '.');
+    let valorNumerico = parseFloat(stringValor);
+    return isNaN(valorNumerico) ? 0 : valorNumerico;
 }
 
 // ==========================================
-// FUNÇÃO PARA DESENHAR A TABELA
+// A MÁGICA: AGRUPAMENTO VENDA POR VENDA
 // ==========================================
 function renderizarTabela(vendasParaMostrar) {
     if (!vendasParaMostrar || vendasParaMostrar.length === 0) {
@@ -135,61 +123,90 @@ function renderizarTabela(vendasParaMostrar) {
     if (vazio) vazio.classList.add("hide");
     if (listaPedidos) listaPedidos.innerHTML = "";
 
+    const gruposDePedidos = {};
+
     vendasParaMostrar.forEach(v => {
-        const tr = document.createElement("tr");
-        
-        // Verifica vários nomes de ID para garantir que um deles funcione
-        const idVenda = v.codigovendas || v.id || v.id_venda || v.codigo || "ERRO";
-        const idProduto = v.codigoproduto || v.produto_id || "S/N";
-        const nomeProduto = v.nomeproduto || `Produto Cód: ${idProduto}`;
-        
-        let imgPath = IMAGEM_PADRAO;
-        if (v.imagem && v.imagem.trim() !== "" && v.imagem !== 'undefined') {
-            imgPath = v.imagem.startsWith('http') ? v.imagem : URL_BASE_BACKEND + v.imagem;
+        let pagamentoOriginal = v.forma_pagamento || "Cartão";
+        let idCheckout = v.codigovendas; // Se for compra antiga, separa por produto
+        let pagamentoLimpo = pagamentoOriginal;
+
+        // SEGREDO: Desempacotando o "Pix_1713289123456"
+        if (pagamentoOriginal.includes('_')) {
+            const partes = pagamentoOriginal.split('_');
+            pagamentoLimpo = partes[0]; // Guarda só o "Pix"
+            idCheckout = partes[1];     // Guarda o ID único "1713289123456"
         }
 
+        // A Chave para agrupar agora é o MOMENTO EXATO da compra!
+        const chavePedido = idCheckout;
+        
+        if (!gruposDePedidos[chavePedido]) {
+            gruposDePedidos[chavePedido] = {
+                idPedido: v.codigovendas, // O ID do primeiro produto vira o Nº do Pedido
+                datavenda: v.datavenda,
+                forma_pagamento: pagamentoLimpo,
+                statusvenda: v.statusvenda,
+                valorTotalPedido: 0,
+                qtdTotalItens: 0,
+                produtos: []
+            };
+        }
+
+        // Adiciona o produto na caixa daquela compra específica
+        gruposDePedidos[chavePedido].produtos.push(v);
+        gruposDePedidos[chavePedido].valorTotalPedido += extrairPreco(v.valortotal);
+        gruposDePedidos[chavePedido].qtdTotalItens += parseInt(v.pecaquantidade || 1);
+    });
+
+    // 2. DESENHANDO OS PEDIDOS SEPARADOS NA TELA
+    Object.values(gruposDePedidos).forEach(pedido => {
+        const tr = document.createElement("tr");
+        
+        let htmlProdutosDoPedido = `<div style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">`;
+        
+        pedido.produtos.forEach(p => {
+            const nomeProduto = p.nomeproduto || `Produto (Cód: ${p.codigoproduto})`;
+            let imgPath = IMAGEM_PADRAO;
+            if (p.imagem && p.imagem.trim() !== "" && p.imagem !== 'undefined') {
+                imgPath = p.imagem.startsWith('http') ? p.imagem : URL_BASE_BACKEND + p.imagem;
+            }
+
+            htmlProdutosDoPedido += `
+                <div style="display: flex; align-items: center; gap: 15px; text-align: left;">
+                    <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 600; font-size: 0.95rem; color: #222;">
+                            ${nomeProduto} <strong style="color: #ff5e00; font-size: 0.9rem;">(x${p.pecaquantidade || 1})</strong>
+                        </span>
+                        <span style="font-size: 0.8rem; color: #888;">Cód do Produto: ${p.codigoproduto || "S/N"}</span>
+                    </div>
+                </div>
+            `;
+        });
+        htmlProdutosDoPedido += `</div>`;
+
         let dataFormatada = "-";
-        if (v.datavenda) {
-            const dataObj = new Date(v.datavenda);
+        if (pedido.datavenda) {
+            const dataObj = new Date(pedido.datavenda);
             dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
         }
 
-        let valorFormatado = "R$ 0,00";
-        if (v.valortotal !== null && v.valortotal !== undefined) {
-            let stringValor = v.valortotal.toString().replace(/[^0-9.,-]+/g, "");
-            if (stringValor.includes(',')) stringValor = stringValor.replace(/\./g, "").replace(',', '.');
-            let valorNumerico = parseFloat(stringValor);
-            if (!isNaN(valorNumerico)) {
-                valorFormatado = valorNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            } else {
-                valorFormatado = v.valortotal; 
-            }
-        }
+        let valorFormatado = pedido.valorTotalPedido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         
-        let textoStatus = v.statusvenda || "Processando";
+        let textoStatus = pedido.statusvenda || "Processando";
         let classeStatus = "tag-status processando";
         if (textoStatus.toLowerCase().match(/concluíd|pago|aprovad|finalizad/)) {
             classeStatus = "tag-status concluido";
         }
 
-        let pagamento = v.forma_pagamento || "Cartão";
-
         tr.innerHTML = `
-            <td><strong>#${idVenda}</strong></td>
-            
-            <td style="display: flex; align-items: center; gap: 15px; text-align: left; min-width: 250px;">
-                <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #fff; padding: 2px; border: 1px solid #ddd;">
-                <div style="display: flex; flex-direction: column;">
-                    <span style="font-weight: 600; font-size: 0.95rem; color: #222;">${nomeProduto}</span>
-                    <span style="font-size: 0.8rem; color: #888;">Cód: ${idProduto}</span>
-                </div>
-            </td>
-
-            <td>${dataFormatada}</td>
-            <td>${v.pecaquantidade || 1}x</td>
-            <td>${pagamento}</td>
-            <td class="valor-destaque">${valorFormatado}</td>
-            <td><span class="${classeStatus}">${textoStatus}</span></td>
+            <td style="vertical-align: middle;"><strong>#${pedido.idPedido || "ERRO"}</strong></td>
+            <td style="vertical-align: middle; min-width: 250px;">${htmlProdutosDoPedido}</td>
+            <td style="vertical-align: middle;">${dataFormatada}</td>
+            <td style="vertical-align: middle;"><strong>${pedido.qtdTotalItens}</strong></td>
+            <td style="vertical-align: middle;">${pedido.forma_pagamento || "Cartão"}</td>
+            <td style="vertical-align: middle; color: #ff5e00; font-weight: bold; font-size: 1.1rem;">${valorFormatado}</td>
+            <td style="vertical-align: middle;"><span class="${classeStatus}">${textoStatus}</span></td>
         `;
         
         listaPedidos.appendChild(tr);

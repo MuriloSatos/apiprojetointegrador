@@ -1,32 +1,30 @@
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 const API_CARRINHO = "https://apiprojetointegrador.onrender.com/carrinho";
 const API_VENDAS = "https://apiprojetointegrador.onrender.com/vendas";
+// Rota de produtos para podermos descobrir os IDs reais!
+const API_PRODUTOS = "https://apiprojetointegrador.onrender.com/produtos";
 
 let totalCompraGeral = 0;
 let itensNoCarrinho = [];
+let todosOsProdutosParaConsulta = []; // 🔥 Nova lista para buscar IDs
 
-// 🛡️ FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro sem deixar o JS errar
+// 🛡️ FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro
 function extrairPrecoReal(valor) {
     if (valor === null || valor === undefined) return 0;
     if (typeof valor === 'number') return valor;
-    
+
     let texto = valor.toString();
-    // Tira tudo que não for número, ponto ou vírgula (Ex: "R$", espaços, letras)
     let limpo = texto.replace(/[^0-9.,-]+/g, "");
-    
+
     if (limpo.includes(',')) {
-        // Veio no padrão BR (ex: 1.599,00)
-        limpo = limpo.replace(/\./g, ""); // Tira os pontos de milhar
-        limpo = limpo.replace(",", ".");  // Troca vírgula por ponto pro JS entender
+        limpo = limpo.replace(/\./g, "");
+        limpo = limpo.replace(",", ".");
     } else if (limpo.includes('.')) {
-        // Veio com ponto (ex: 1.599)
         let partes = limpo.split('.');
-        // Se depois do ponto tiver 3 números, foi erro de milhar! (ex: 1.599 vira 1599)
         if (partes[1] && partes[1].length === 3) {
-            limpo = limpo.replace(".", ""); 
+            limpo = limpo.replace(".", "");
         }
     }
-    
     return parseFloat(limpo) || 0;
 }
 
@@ -38,11 +36,26 @@ document.addEventListener('DOMContentLoaded', () => {
 function atualizarMenuCarrinho() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const menuDireita = document.getElementById('menu-direita');
+    const menuNavegacao = document.getElementById('menu-navegacao');
 
-    if (user && menuDireita) {
-        menuDireita.innerHTML = `
-            <li><a href="javascript:void(0)" onclick="logout()" style="color: #ff4444; font-weight: bold;" class="btn-login-top">Sair (${user.nome.split(' ')[0]})</a></li>
-        `;
+    if (user) {
+        if (menuDireita) {
+            menuDireita.innerHTML = `
+                <li><a href="javascript:void(0)" onclick="logout()" style="color: #ff4444; font-weight: bold;" class="btn-login-top">Sair (${user.nome.split(' ')[0]})</a></li>
+            `;
+        }
+
+        // 🔥 Arrumando o menu se for Administrador!
+        let isAdm = (user.perfil === 'adm' || user.email === 'adm@gmail.com');
+        if (isAdm && menuNavegacao) {
+            menuNavegacao.innerHTML = `
+                <li><a href="../index/index.html">Início</a></li>
+                <li><a href="../produto/produto.html">Catálogo</a></li>
+                <li><a href="../vendas/vendas.html" style="color: #ff6b00; font-weight: 700;">Vendas</a></li>
+                <li><a href="../usuario/usuario.html">Usuários</a></li>
+                <li><a href="../carrinho/carrinho.html">Carrinho</a></li>
+            `;
+        }
     }
 }
 
@@ -65,6 +78,12 @@ async function carregarTabelaDoCarrinho() {
     const spanSubtotal = document.getElementById('valor-subtotal');
 
     try {
+        // 🔥 Baixamos os produtos reais para usar como "dicionário" depois
+        try {
+            const resProd = await fetch(API_PRODUTOS, { headers: { "minha-chave": CLIENT_API_KEY } });
+            if (resProd.ok) todosOsProdutosParaConsulta = await resProd.json();
+        } catch (e) { console.warn("Não foi possível carregar produtos para consulta de ID"); }
+
         const res = await fetch(`${API_CARRINHO}/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
@@ -84,14 +103,10 @@ async function carregarTabelaDoCarrinho() {
 
         itens.forEach(item => {
             const nome = item.nomeproduto || item.nome || "Produto sem nome";
-            
-            // 🔥 AQUI MUDOU: Usando a função blindada
-            const preco = extrairPrecoReal(item.preco); 
-            
+            const preco = extrairPrecoReal(item.preco);
             const qtd = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
             const subtotal = preco * qtd;
 
-            // Se não tiver imagem, deixa vazio para não mostrar o ícone quebrado feio
             const imagemHtml = (item.imagem && item.imagem.trim() !== "")
                 ? `<img src="${item.imagem}" alt="${nome}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">`
                 : `<div style="width: 60px; height: 60px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">Sem Foto</div>`;
@@ -127,12 +142,11 @@ async function carregarTabelaDoCarrinho() {
         tbody.innerHTML = `<tr><td colspan="5" class="mensagem-vazio" style="color: red;">⚠️ Erro ao carregar carrinho.</td></tr>`;
     }
 }
-
-// 2. FINALIZAR COMPRA
+// 2. FINALIZAR COMPRA (Agora usando a rota Profissional do seu Backend!)
 async function finalizarCompraDefinitiva() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const selectPagamento = document.getElementById('select-pagamento-final');
-    const formaPagamento = selectPagamento ? selectPagamento.value : 'Cartão'; 
+    const formaPagamento = selectPagamento ? selectPagamento.value : 'Cartão';
 
     if (totalCompraGeral <= 0 || itensNoCarrinho.length === 0) {
         alert("⚠️ Adicione produtos ao carrinho antes de finalizar!");
@@ -140,91 +154,77 @@ async function finalizarCompraDefinitiva() {
     }
 
     const btnFinalizar = document.querySelector('.btn-finalizar-compra');
-    if(btnFinalizar) {
+    if (btnFinalizar) {
         btnFinalizar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
         btnFinalizar.disabled = true;
     }
 
     try {
-        let errosNaVenda = 0; 
+        // O pacote agora é super leve! Só mandamos quem é o usuário e como ele vai pagar.
+        // O seu backend (na rota /finalizar) vai ler o carrinho lá no banco e fazer o resto!
+        // -------------------------------------------------------------------
+        // SUBSTITUA ESTA PARTE NO SEU CARRINHO.JS:
+        // -------------------------------------------------------------------
+        
+        // Geramos um código único exato para ESTE carrinho
+        const idUnicoCompra = Date.now(); 
 
-        for (const item of itensNoCarrinho) {
-            const qtdProduto = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
-            
-            // 🔥 AQUI MUDOU: Usando a função blindada antes de mandar pro banco!
-            const precoProduto = extrairPrecoReal(item.preco); 
-            
-            const valorTotalProduto = qtdProduto * precoProduto;
+        const payloadFinalizar = {
+            id_usuario: user.id,
+            // Truque Sênior: Enviamos o pagamento + ID único. Ex: "Pix_1713289123"
+            formaPagamento: `${formaPagamento}_${idUnicoCompra}`
+        };
+        
+        // -------------------------------------------------------------------
 
-            // Mantivemos o 1 temporário para a venda passar, 
-            // até você arrumar a rota de GET do carrinho no backend.
-            const idDoProdutoReal = item.codigoproduto || 1; 
 
-            // 📦 PACOTE EXATAMENTE IGUAL AO SEU BACKEND
-            const payloadVenda = {
-                codigoproduto: idDoProdutoReal, 
-                pecaquantidade: qtdProduto,
-                valortotal: valorTotalProduto,
-                id_usuario: user.id, // SINGULAR! Igual ao seu req.body
-                forma_pagamento: formaPagamento
-            };
+        console.log("📦 Enviando pedido completo para o backend:", payloadFinalizar);
 
-            console.log("📦 Pacote indo para o Render:", payloadVenda);
+        // Chamando a sua rota perfeita: /carrinho/finalizar
+        const res = await fetch(`${API_CARRINHO}/finalizar`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'minha-chave': CLIENT_API_KEY
+            },
+            body: JSON.stringify(payloadFinalizar)
+        });
 
-            const resVenda = await fetch(API_VENDAS, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'minha-chave': CLIENT_API_KEY
-                },
-                body: JSON.stringify(payloadVenda)
-            });
-
-            if (!resVenda.ok) {
-                errosNaVenda++;
-                console.error(`❌ Erro no servidor:`, await resVenda.text());
-            }
-        }
-
-        if (errosNaVenda === 0) {
-            localStorage.removeItem('carrinho_bikes'); 
+        if (res.ok) {
+            // Sucesso total! O backend já salvou as vendas e já limpou o carrinho.
             alert("🎉 Compra finalizada com sucesso! Seu pedido foi gerado.");
-            window.location.href = "../vendas/vendas.html"; 
+            window.location.href = "../vendas/vendas.html";
         } else {
-            alert(`⚠️ Tivemos erro em ${errosNaVenda} produto(s). Olhe o console.`);
+            const erroBackend = await res.json();
+            alert(`⚠️ Erro ao finalizar: ${erroBackend.erro || 'Falha no servidor'}`);
             reabilitarBotaoCheckout(btnFinalizar);
         }
 
     } catch (err) {
-        console.error("Erro fatal:", err);
+        console.error("Erro fatal ao finalizar pedido:", err);
+        alert("⚠️ Erro de conexão ao finalizar a compra.");
         reabilitarBotaoCheckout(btnFinalizar);
     }
 }
 
 // Reabilita o botão em caso de erro
 function reabilitarBotaoCheckout(botao) {
-    if(botao) {
+    if (botao) {
         botao.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar e Pagar';
         botao.disabled = false;
     }
 }
 
+
 // 3. REMOVER ITEM DA TABELA
 async function removerItemTabela(id_carrinho) {
     if (!confirm("Tem certeza que deseja remover este item?")) return;
-
     try {
         const res = await fetch(`${API_CARRINHO}/${id_carrinho}`, {
             method: 'DELETE',
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
-
-        if (res.ok) {
-            carregarTabelaDoCarrinho();
-        } else {
-            alert("Erro ao remover o item. Tente novamente.");
-        }
-    } catch (err) {
-        console.error("Erro ao remover:", err);
-    }
+        if (res.ok) carregarTabelaDoCarrinho();
+        else alert("Erro ao remover o item. Tente novamente.");
+    } catch (err) { console.error("Erro ao remover:", err); }
 }

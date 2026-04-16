@@ -84,7 +84,7 @@ function atualizarMenu() {
 
     if (!user) return;
 
-    if (user.perfil === "adm") {
+    if (user.perfil === "adm" || user.email === "adm@gmail.com") {
         if (menuCentral) {
             menuCentral.innerHTML = `
                 <li><a href="../index/index.html">Início</a></li>
@@ -124,7 +124,6 @@ async function carregarCatalogo() {
     try {
         const res = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
         
-        // 🔥 Tratamento caso o Render caia ou devolva erro 500
         if (!res.ok) {
             throw new Error(`Erro no servidor da API: ${res.status}`);
         }
@@ -158,8 +157,16 @@ function renderizarProdutos(resetarPagina = false) {
     const fim = inicio + itensPorPagina;
     const itensPagina = produtosFiltrados.slice(inicio, fim);
 
+    // 🔥 VERIFICANDO SE O USUÁRIO É ADMIN PARA LIBERAR A LIXEIRA
+    let isAdm = false;
+    try {
+        const user = JSON.parse(localStorage.getItem('usuarioLogado'));
+        if (user && (user.perfil === 'adm' || user.email === 'adm@gmail.com')) {
+            isAdm = true;
+        }
+    } catch(e) {}
+
     grid.innerHTML = itensPagina.map(item => {
-        // 🔥 Usa a nossa função para não ter erro no catálogo!
         const preco = extrairPrecoReal(item.preco);
         
         let imgPath = IMAGEM_PADRAO;
@@ -169,8 +176,19 @@ function renderizarProdutos(resetarPagina = false) {
 
         const nomeSeguro = item.nomeproduto ? item.nomeproduto.replace(/'/g, "\\'") : 'Produto';
 
+        // 🔥 CRIA O BOTÃO DE EXCLUIR SOMENTE SE FOR ADMIN
+        let botaoExcluirHtml = "";
+        if (isAdm) {
+            botaoExcluirHtml = `
+                <button onclick="deletarProduto(${item.id})" title="Excluir Produto" style="position: absolute; top: 10px; right: 10px; background-color: #ff4444; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; font-size: 14px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+        }
+
         return `
-            <div class="card-produto">
+            <div class="card-produto" style="position: relative;">
+                ${botaoExcluirHtml}
                 <div class="img-box">
                     <img src="${imgPath}" onerror="this.onerror=null; this.src='${IMAGEM_PADRAO}'" alt="${item.nomeproduto}">
                 </div>
@@ -222,7 +240,6 @@ function aplicarFiltros() {
         const marcaMatch = p.marcaproduto ? p.marcaproduto.toLowerCase().includes(busca) : false;
         const matchesBusca = nomeMatch || marcaMatch;
         
-        // 🔥 Garante que a barra de preço funcione blindada
         const precoProdutoReal = extrairPrecoReal(p.preco);
         const matchesPreco = precoProdutoReal <= (precoMax || Infinity);
         
@@ -306,7 +323,7 @@ async function carregarItensCarrinhoBanco() {
 
         dados.forEach(item => {
             const nome = item.nomeproduto || "Produto";
-            const preco = extrairPrecoReal(item.preco); // 🔥 Blindado no carrinho lateral também!
+            const preco = extrairPrecoReal(item.preco); 
             const qtd = parseInt(item.qtd || item.pecaquantidade) || 1;
             const subtotal = preco * qtd;
             
@@ -396,13 +413,12 @@ async function salvarNovoProduto(e) {
     const form = e.target;
     const formData = new FormData(form);
     
-    // 🔥 Pega o que o usuário digitou e converte no número limpo pro banco!
     const precoFormatadoParaOBanco = extrairPrecoReal(formData.get('preco'));
 
     const dadosApi = {
         nomeproduto: formData.get('nomeproduto'),
         tipoproduto: formData.get('tipoproduto'),
-        preco: precoFormatadoParaOBanco, // Vai limpinho, ex: 1599
+        preco: precoFormatadoParaOBanco,
         tamanhoproduto: formData.get('tamanhoproduto'),
         marcaproduto: formData.get('marcaproduto'),
         codigoproduto: parseInt(formData.get('codigoproduto')),
@@ -426,6 +442,33 @@ async function salvarNovoProduto(e) {
         }
     } catch (err) {
         showToast("Erro de conexão com servidor.", "error");
+    }
+}
+
+// 🔥 --- NOVA FUNÇÃO: EXCLUIR PRODUTO (SOMENTE ADMIN) --- 🔥
+async function deletarProduto(idProduto) {
+    // 1. Pede confirmação antes de excluir
+    if (!confirm("⚠️ Tem certeza que deseja excluir este produto do catálogo? Essa ação não pode ser desfeita e ele sumirá da loja imediatamente.")) {
+        return; // Se clicar em "Cancelar", a função para aqui
+    }
+
+    try {
+        // 2. Chama a API mandando deletar
+        const res = await fetch(`${API}/${idProduto}`, {
+            method: 'DELETE',
+            headers: { 'minha-chave': CLIENT_API_KEY }
+        });
+
+        if (res.ok) {
+            showToast("🗑️ Produto excluído com sucesso!", "success");
+            // 3. Recarrega o catálogo para o produto sumir da tela
+            carregarCatalogo();
+        } else {
+            showToast("Erro ao excluir o produto. Tente novamente.", "error");
+        }
+    } catch (err) {
+        console.error("Erro ao deletar:", err);
+        showToast("Erro de conexão com o servidor ao excluir.", "error");
     }
 }
 

@@ -403,3 +403,6 @@ function showToast(mensagem, tipo = "info", icone = "fa-info-circle") {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
+
+
+

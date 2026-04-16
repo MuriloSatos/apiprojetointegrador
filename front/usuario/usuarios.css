@@ -1,17 +1,130 @@
-/* --- GESTÃO DE USUÁRIOS (TABELA) --- */
-.header-tabela {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 40px 0 20px;
+/* =========================================
+   1. CABEÇALHO ESCURO (PADRÃO CATÁLOGO)
+   ========================================= */
+header {
+    background-color: #111111; /* Fundo escuro elegante */
+    border-bottom: 1px solid #222222; /* Linha divisória bem sutil */
 }
 
+.nav-principal {
+    display: flex;
+    justify-content: space-between; /* Separa logo, menu e botões */
+    align-items: center;
+    padding: 15px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Remove a bagunça padrão das listas do HTML */
+.nav-principal ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* --- LOGO --- */
+.logo a {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #ffffff !important; /* Deixa o texto "BIKE" branco */
+    letter-spacing: -0.5px;
+}
+
+.logo span {
+    color: #ff6600; /* Deixa o "PROMAX" laranja */
+}
+
+/* --- MENU CENTRAL (Início, Catálogo...) --- */
+#menu-navegacao {
+    gap: 30px; /* Espaçamento entre os links */
+}
+
+#menu-navegacao a {
+    color: #e0e0e0 !important; /* Branco levemente acinzentado */
+    font-weight: 500;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+#menu-navegacao a:hover {
+    color: #ff6600 !important; /* Laranja ao passar o mouse */
+}
+
+/* DESTAQUE: Deixa o link "Usuários" laranja para mostrar a página atual */
+#menu-navegacao li:nth-child(4) a {
+    color: #ff6600 !important;
+    font-weight: 600;
+}
+
+/* --- MENU DA DIREITA (Esconder Carrinho e Estilizar o Sair) --- */
+.menu-direita {
+    gap: 20px;
+}
+
+/* A MÁGICA PARA SUMIR COM O CARRINHO AQUI 👇 */
+.menu-direita li:first-child {
+    display: none !important;
+}
+
+/* Botão de Sair (administrador) em Vermelho */
+.btn-login {
+    color: #ff4444 !important; /* Vermelho vivo como no seu print */
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.3s;
+}
+
+.btn-login:hover {
+    color: #ff6666 !important;
+}
+
+
+/* Barra de Pesquisa */
+.pesquisa-box {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+}
+
+.pesquisa-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+.pesquisa-box input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: 0.3s;
+    background-color: #f9f9f9;
+}
+
+.pesquisa-box input:focus {
+    border-color: var(--primaria);
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.1);
+}
+
+/* Card da Tabela */
 .tabela-container {
-    background: var(--branco);
-    padding: 20px;
+    background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    overflow-x: auto;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    overflow: hidden; 
+    border: 1px solid #f0f0f0;
 }
 
 table {
@@ -19,58 +132,90 @@ table {
     border-collapse: collapse;
 }
 
-th, td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
 th {
-    color: #888;
-    font-size: 0.85rem;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
+    padding: 18px 20px;
+    border-bottom: 2px solid #edf2f7;
+    text-align: left;
 }
 
-/* Badges de Perfil */
-.badge {
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.75rem;
+td {
+    padding: 15px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid #edf2f7;
+    color: #4a5568;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background-color: #fcfcfc; }
+
+/* Avatares Dinâmicos */
+.avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
     font-weight: bold;
-    text-transform: uppercase;
-}
-
-.badge.adm { background: #ffe0cc; color: var(--primaria); }
-.badge.cliente { background: #e0f2f1; color: #00796b; }
-
-/* Botões da Tabela */
-.btn-tabela {
-    background: none;
-    border: none;
-    cursor: pointer;
     font-size: 1.1rem;
-    transition: 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.btn-tabela:hover { transform: scale(1.2); }
-
-/* Seções de Troca Login/Gestão */
-#sessao-login, #sessao-gestao {
-    animation: fadeIn 0.5s ease;
-}
-
-.badge.adm { 
-    background: #ff5722; /* Laranja forte */
-    color: white; 
-    padding: 5px 12px;
+/* Badges Modernas */
+.badge {
+    padding: 6px 12px;
     border-radius: 20px;
-    box-shadow: 0 2px 5px rgba(255, 87, 34, 0.3);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: inline-block;
 }
 
-.btn-tabela[title="Tornar ADM"]:hover {
-    filter: drop-shadow(0 0 5px gold);
+.badge-adm { 
+    background-color: #fff1eb; 
+    color: #ff5722; 
+    border: 1px solid #ffccbc;
 }
+
+.badge-cliente { 
+    background-color: #e6fffa; 
+    color: #047481; 
+    border: 1px solid #b2f5ea;
+}
+
+/* Botões de Ação com Ícones */
+.acoes-tabela {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-acao {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.btn-star { background-color: #fff8e1; color: #ffb300; }
+.btn-star:hover { background-color: #ffb300; color: white; transform: translateY(-3px); box-shadow: 0 4px 8px rgba(255,179,0,0.3); }
+
+.btn-check { background-color: #e8f5e9; color: #4caf50; cursor: default; opacity: 0.6; }
+
+.btn-lixeira { background-color: #ffebee; color: #f44336; }
+.btn-lixeira:hover { background-color: #f44336; color: white; transform: translateY(-3px); box-shadow: 0 4px 8px rgba(244,67,54,0.3); }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
