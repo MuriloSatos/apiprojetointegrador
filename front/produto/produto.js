@@ -88,7 +88,7 @@ function atualizarMenu() {
         if (menuCentral) {
             menuCentral.innerHTML = `
                 <li><a href="../index/index.html">Início</a></li>
-                <li><a href="produto.html" class="ativo">Catálogo</a></li>
+                <li><a href="../produto/produto.html" class="ativo">Catálogo</a></li>
                 <li><a href="../vendas/vendas.html">Vendas</a></li>
                 <li><a href="../usuario/usuario.html">Usuários</a></li>
             `;
@@ -98,7 +98,7 @@ function atualizarMenu() {
         if (menuCentral) {
             menuCentral.innerHTML = `
                 <li><a href="../index/index.html">Início</a></li>
-                <li><a href="produto.html" class="ativo">Catálogo</a></li>
+                <li><a href="../produto/produto.html" class="ativo">Catálogo</a></li>
                 <li><a href="../vendas/vendas.html">Meus Pedidos</a></li>
             `;
         }
