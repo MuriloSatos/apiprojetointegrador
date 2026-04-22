@@ -107,8 +107,18 @@ async function carregarTabelaDoCarrinho() {
             const qtd = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
             const subtotal = preco * qtd;
 
-            const imagemHtml = (item.imagem && item.imagem.trim() !== "")
-                ? `<img src="${item.imagem}" alt="${nome}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">`
+            // 🔥 CÓDIGO SÊNIOR PARA GARANTIR A IMAGEM
+            const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
+            let imgPath = "";
+            
+            if (item.imagem && item.imagem.trim() !== "" && item.imagem !== 'undefined') {
+                // Se a imagem já for um link HTTP completo (da internet), usa ela mesma.
+                // Se for apenas o nome do arquivo (ex: "guidao.jpg"), junta com a URL do nosso servidor Render
+                imgPath = item.imagem.startsWith('http') ? item.imagem : URL_BASE_BACKEND + item.imagem;
+            }
+
+            const imagemHtml = imgPath !== ""
+                ? `<img src="${imgPath}" alt="${nome}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">`
                 : `<div style="width: 60px; height: 60px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">Sem Foto</div>`;
 
             totalCompraGeral += subtotal;
@@ -142,7 +152,8 @@ async function carregarTabelaDoCarrinho() {
         tbody.innerHTML = `<tr><td colspan="5" class="mensagem-vazio" style="color: red;">⚠️ Erro ao carregar carrinho.</td></tr>`;
     }
 }
-// 2. FINALIZAR COMPRA (Agora usando a rota Profissional do seu Backend!)
+
+// 2. FINALIZAR COMPRA
 async function finalizarCompraDefinitiva() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const selectPagamento = document.getElementById('select-pagamento-final');
@@ -160,27 +171,15 @@ async function finalizarCompraDefinitiva() {
     }
 
     try {
-        // O pacote agora é super leve! Só mandamos quem é o usuário e como ele vai pagar.
-        // O seu backend (na rota /finalizar) vai ler o carrinho lá no banco e fazer o resto!
-        // -------------------------------------------------------------------
-        // SUBSTITUA ESTA PARTE NO SEU CARRINHO.JS:
-        // -------------------------------------------------------------------
-        
-        // Geramos um código único exato para ESTE carrinho
         const idUnicoCompra = Date.now(); 
 
         const payloadFinalizar = {
             id_usuario: user.id,
-            // Truque Sênior: Enviamos o pagamento + ID único. Ex: "Pix_1713289123"
             formaPagamento: `${formaPagamento}_${idUnicoCompra}`
         };
-        
-        // -------------------------------------------------------------------
-
 
         console.log("📦 Enviando pedido completo para o backend:", payloadFinalizar);
 
-        // Chamando a sua rota perfeita: /carrinho/finalizar
         const res = await fetch(`${API_CARRINHO}/finalizar`, {
             method: 'POST',
             headers: {
@@ -191,7 +190,6 @@ async function finalizarCompraDefinitiva() {
         });
 
         if (res.ok) {
-            // Sucesso total! O backend já salvou as vendas e já limpou o carrinho.
             alert("🎉 Compra finalizada com sucesso! Seu pedido foi gerado.");
             window.location.href = "../vendas/vendas.html";
         } else {
@@ -214,7 +212,6 @@ function reabilitarBotaoCheckout(botao) {
         botao.disabled = false;
     }
 }
-
 
 // 3. REMOVER ITEM DA TABELA
 async function removerItemTabela(id_carrinho) {

@@ -9,9 +9,11 @@ router.get("/:id", async (req, res) => {
         const query = `
             SELECT 
                 c.id_carrinho, 
+                c.codigoproduto,
                 c.pecaquantidade as qtd, 
                 p.nomeproduto, 
-                p.preco::NUMERIC as preco
+                p.preco::NUMERIC as preco,
+                p.imagem  /* 🔥 AQUI ESTAVA O SEGREDO! Pedimos a imagem e o código! */
             FROM sistema.carrinho c 
             INNER JOIN sistema.produto p ON c.codigoproduto = p.codigoproduto 
             WHERE c.id_usuario = $1;
@@ -88,7 +90,7 @@ router.post("/finalizar", async (req, res) => {
         const queryBusca = `
             SELECT c.*, p.preco 
             FROM sistema.carrinho c 
-            JOIN sistema.produto p ON c.codigoproduto = p.codigoproduto 
+            JOIN sistema.produto p ON c.codigoproduto = p.codigoproduto     
             WHERE c.id_usuario = $1
         `;
         const itens = await client.query(queryBusca, [id_usuario]);
