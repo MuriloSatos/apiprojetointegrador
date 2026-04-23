@@ -10,14 +10,12 @@
     <script src="produto.js" defer></script>
 </head>
 <body>
-    <!-- HEADER -->
     <header class="header-main">
         <nav class="container nav-principal">
             <div class="logo">
                 <a href="../index/index.html">BIKE<span>PROMAX</span></a>
             </div>
             <ul class="menu-central" id="menu-navegacao">
-                <!-- Links Injetados pelo JS (Início, Catálogo, Meus Pedidos) -->
             </ul>
             <ul class="menu-direita" id="menu-direita">
                 <!-- Injetado pelo JS -->
@@ -25,7 +23,6 @@
         </nav>
     </header>
 
-    <!-- CABEÇALHO DO CATÁLOGO -->
     <section class="catalogo-header">
         <div class="container">
             <h1>Nosso Catálogo</h1>
@@ -33,7 +30,6 @@
         </div>
     </section>
 
-    <!-- BARRA DE FILTROS E AÇÕES -->
     <section class="container">
         <div class="barra-acoes">
             <div class="filtros-container">
@@ -51,14 +47,12 @@
                     <input type="number" id="input-preco" placeholder="Preço Máximo (R$)">
                 </div>
             </div>
-            <!-- Botão exclusivo para Administradores -->
             <button id="btn-abrir-cadastro" class="btn-primario" onclick="abrirModalCadastro()" style="display: none;">
                 <i class="fas fa-plus"></i> Novo Produto
             </button>
         </div>
     </section>
 
-    <!-- VITRINE DE PRODUTOS -->
     <main class="container">
         <div class="grid-produtos" id="catalogo-home">
             <div class="carregando"><i class="fas fa-spinner fa-spin"></i> Carregando catálogo...</div>
@@ -66,7 +60,6 @@
         <div id="paginacao-container" class="paginacao-container"></div>
     </main>
 
-    <!-- MODAL NOVO PRODUTO (ADMIN) -->
     <div id="overlay-cadastro" class="overlay-escuro" onclick="fecharModalCadastro()"></div>
     <div id="modal-novo-produto" class="modal-centro">
         <button class="btn-fechar-modal" onclick="fecharModalCadastro()">&times;</button>
@@ -119,7 +112,6 @@
         </div>
     </div>
 
-    <!-- NOVO: MODAL DO CARRINHO NO CENTRO DA TELA -->
     <div id="overlay-carrinho" class="overlay-escuro" onclick="fecharModalCarrinho()"></div>
     <div id="modal-carrinho" class="modal-centro">
         <button class="btn-fechar-modal" onclick="fecharModalCarrinho()">&times;</button>
@@ -129,7 +121,6 @@
             </h2>
             
             <div class="carrinho-body-centro" id="itens-carrinho">
-                <!-- Injetado pelo JS -->
             </div>
             
             <div class="carrinho-footer-centro">
@@ -145,7 +136,6 @@
         </div>
     </div>
 
-    <!-- TOAST NOTIFICAÇÕES -->
     <div id="toast-container"></div>
 </body>
 </html>

@@ -1,14 +1,12 @@
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 const API_CARRINHO = "https://apiprojetointegrador.onrender.com/carrinho";
 const API_VENDAS = "https://apiprojetointegrador.onrender.com/vendas";
-// Rota de produtos para podermos descobrir os IDs reais!
 const API_PRODUTOS = "https://apiprojetointegrador.onrender.com/produtos";
 
 let totalCompraGeral = 0;
 let itensNoCarrinho = [];
-let todosOsProdutosParaConsulta = []; // 🔥 Nova lista para buscar IDs
+let todosOsProdutosParaConsulta = [];
 
-// 🛡️ FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro
 function extrairPrecoReal(valor) {
     if (valor === null || valor === undefined) return 0;
     if (typeof valor === 'number') return valor;
@@ -45,7 +43,6 @@ function atualizarMenuCarrinho() {
             `;
         }
 
-        // 🔥 Arrumando o menu se for Administrador!
         let isAdm = (user.perfil === 'adm' || user.email === 'adm@gmail.com');
         if (isAdm && menuNavegacao) {
             menuNavegacao.innerHTML = `
@@ -64,7 +61,6 @@ function logout() {
     window.location.href = "../index/index.html";
 }
 
-// 1. CARREGAR OS DADOS DA TABELA
 async function carregarTabelaDoCarrinho() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!user) {
@@ -78,7 +74,7 @@ async function carregarTabelaDoCarrinho() {
     const spanSubtotal = document.getElementById('valor-subtotal');
 
     try {
-        // 🔥 Baixamos os produtos reais para usar como "dicionário" depois
+       
         try {
             const resProd = await fetch(API_PRODUTOS, { headers: { "minha-chave": CLIENT_API_KEY } });
             if (resProd.ok) todosOsProdutosParaConsulta = await resProd.json();
@@ -107,13 +103,11 @@ async function carregarTabelaDoCarrinho() {
             const qtd = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
             const subtotal = preco * qtd;
 
-            // 🔥 CÓDIGO SÊNIOR PARA GARANTIR A IMAGEM
             const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
             let imgPath = "";
             
             if (item.imagem && item.imagem.trim() !== "" && item.imagem !== 'undefined') {
-                // Se a imagem já for um link HTTP completo (da internet), usa ela mesma.
-                // Se for apenas o nome do arquivo (ex: "guidao.jpg"), junta com a URL do nosso servidor Render
+            
                 imgPath = item.imagem.startsWith('http') ? item.imagem : URL_BASE_BACKEND + item.imagem;
             }
 
@@ -153,7 +147,6 @@ async function carregarTabelaDoCarrinho() {
     }
 }
 
-// 2. FINALIZAR COMPRA
 async function finalizarCompraDefinitiva() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const selectPagamento = document.getElementById('select-pagamento-final');
@@ -205,7 +198,7 @@ async function finalizarCompraDefinitiva() {
     }
 }
 
-// Reabilita o botão em caso de erro
+
 function reabilitarBotaoCheckout(botao) {
     if (botao) {
         botao.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar e Pagar';

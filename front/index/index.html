@@ -4,29 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIKEPROMAX | Sinta a Liberdade</title>
-    <!-- Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="index.css">
     <script src="index.js" defer></script>
 </head>
 <body>
-    <!-- HEADER -->
     <header class="header-main">
         <nav class="container nav-principal">
             <div class="logo">
                 <a href="index.html">BIKE<span>PROMAX</span></a>
             </div>
             <ul class="menu-central" id="menu-navegacao">
-                <!-- Injetado pelo JS -->
+             
             </ul>
             <ul class="menu-direita" id="menu-direita">
-                <!-- Injetado pelo JS -->
             </ul>
         </nav>
     </header>
 
-    <!-- BANNER HERO -->
     <section class="hero">
         <div class="hero-overlay"></div>
         <div class="container hero-content">
@@ -38,21 +34,18 @@
         </div>
     </section>
 
-    <!-- PRODUTOS EM DESTAQUE -->
     <section class="container secao-produtos">
         <div class="titulo-secao">
             <h2>Destaques da Semana</h2>
             <div class="linha-decorativa"></div>
         </div>
         <div class="grid-produtos" id="catalogo-home">
-            <!-- Os cards dos produtos serão injetados aqui pelo JS -->
         </div>
         <div class="ver-mais-container">
             <a href="../produto/produto.html" class="btn-secundario">Explorar Mais Produtos</a>
         </div>
     </section>
 
-    <!-- FOOTER -->
     <footer class="footer-main">
         <div class="container footer-content">
             <div class="footer-brand">
@@ -76,7 +69,6 @@
         </div>
     </footer>
 
-    <!-- MODAL CARRINHO (AGORA NO CENTRO) -->
     <div id="overlay-carrinho" class="overlay-escuro" onclick="fecharModalCarrinho()"></div>
     <div id="modal-carrinho" class="modal-centro">
         <button class="btn-fechar-modal" onclick="fecharModalCarrinho()">&times;</button>
@@ -86,7 +78,6 @@
             </h2>
             
             <div class="carrinho-body-centro" id="itens-carrinho">
-                <!-- Injetado pelo JS -->
             </div>
             
             <div class="carrinho-footer-centro">
@@ -102,12 +93,10 @@
         </div>
     </div>
 
-    <!-- MODAL DE LOGIN/CADASTRO -->
     <div id="overlay-login" class="overlay-escuro" onclick="fecharModalLogin()"></div>
     <div id="modal-login" class="modal-centro">
         <button class="btn-fechar-modal" onclick="fecharModalLogin()">&times;</button>
         
-        <!-- LOGIN -->
         <div id="secao-login" class="conteudo-modal">
             <div class="icone-modal"><i class="fas fa-user-circle"></i></div>
             <h2>Acesse sua conta</h2>
@@ -128,7 +117,6 @@
             </div>
         </div>
 
-        <!-- CADASTRO -->
         <div id="secao-cadastro" class="conteudo-modal" style="display: none;">
             <div class="icone-modal"><i class="fas fa-user-plus"></i></div>
             <h2>Criar Conta</h2>
@@ -152,7 +140,6 @@
             </div>
         </div>
 
-        <!-- RECUPERAR SENHA -->
         <div id="secao-esqueci" class="conteudo-modal" style="display: none;">
             <div class="icone-modal"><i class="fas fa-key"></i></div>
             <h2>Recuperar Senha</h2>
@@ -170,7 +157,6 @@
         </div>
     </div>
 
-    <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
 </body>
 </html>

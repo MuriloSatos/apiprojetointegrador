@@ -1,20 +1,16 @@
-// --- CONFIGURAÇÕES DE API ---
 const API = "https://apiprojetointegrador.onrender.com/produtos";
 const API_CARRINHO = "https://apiprojetointegrador.onrender.com/carrinho";
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
-// URL para imagens e Imagem Padrão
 const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
 const IMAGEM_PADRAO = "https://dummyimage.com/200x200/f4f6f8/ff6600.png&text=Sem+Foto";
 
-// VARIÁVEIS GLOBAIS
-let todosProdutos = []; // GUARDA TUDO QUE VEM DO BANCO AQUI!
+let todosProdutos = []; 
 let produtosFiltrados = [];
 let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
 let paginaAtual = 1;
 const itensPorPagina = 8;
 
-// 🚀 FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro perfeitamente
 function extrairPrecoReal(valor) {
     if (!valor) return 0;
     if (typeof valor === 'number') return valor;
@@ -43,7 +39,6 @@ function extrairPrecoReal(valor) {
     return parseFloat(limpo) || 0;
 }
 
-// --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
     verificarAcesso();
     atualizarMenu();
@@ -66,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// --- SEGURANÇA E ACESSO ---
 function verificarAcesso() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!user) {
@@ -75,7 +69,6 @@ function verificarAcesso() {
     }
 }
 
-// --- GESTÃO DO MENU E MEUS PEDIDOS ---
 function atualizarMenu() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const menuDireita = document.getElementById('menu-direita');
@@ -88,7 +81,7 @@ function atualizarMenu() {
         if (menuCentral) {
             menuCentral.innerHTML = `
                 <li><a href="../index/index.html">Início</a></li>
-                <li><a href="../produto/produto.html" class="ativo">Catálogo</a></li>
+                <li><a href="produto.html" class="ativo">Catálogo</a></li>
                 <li><a href="../vendas/vendas.html">Vendas</a></li>
                 <li><a href="../usuario/usuario.html">Usuários</a></li>
             `;
@@ -98,7 +91,7 @@ function atualizarMenu() {
         if (menuCentral) {
             menuCentral.innerHTML = `
                 <li><a href="../index/index.html">Início</a></li>
-                <li><a href="../produto/produto.html" class="ativo">Catálogo</a></li>
+                <li><a href="produto.html" class="ativo">Catálogo</a></li>
                 <li><a href="../vendas/vendas.html">Meus Pedidos</a></li>
             `;
         }
@@ -119,7 +112,6 @@ function logout() {
     window.location.href = "../index/index.html";
 }
 
-// --- CARREGAR CATÁLOGO ---
 async function carregarCatalogo() {
     try {
         const res = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
@@ -141,7 +133,6 @@ async function carregarCatalogo() {
     }
 }
 
-// --- RENDERIZAR VITRINE E PAGINAÇÃO ---
 function renderizarProdutos(resetarPagina = false) {
     if (resetarPagina) paginaAtual = 1;
     const grid = document.getElementById('catalogo-home');
@@ -157,7 +148,6 @@ function renderizarProdutos(resetarPagina = false) {
     const fim = inicio + itensPorPagina;
     const itensPagina = produtosFiltrados.slice(inicio, fim);
 
-    // 🔥 VERIFICANDO SE O USUÁRIO É ADMIN PARA LIBERAR A LIXEIRA
     let isAdm = false;
     try {
         const user = JSON.parse(localStorage.getItem('usuarioLogado'));
@@ -176,7 +166,6 @@ function renderizarProdutos(resetarPagina = false) {
 
         const nomeSeguro = item.nomeproduto ? item.nomeproduto.replace(/'/g, "\\'") : 'Produto';
 
-        // 🔥 CRIA O BOTÃO DE EXCLUIR SOMENTE SE FOR ADMIN
         let botaoExcluirHtml = "";
         if (isAdm) {
             botaoExcluirHtml = `
@@ -229,7 +218,6 @@ function renderizarControlesPaginacao() {
     }
 }
 
-// --- FILTROS ---
 function aplicarFiltros() {
     const busca = document.getElementById('input-busca')?.value.toLowerCase() || "";
     const precoMax = parseFloat(document.getElementById('input-preco')?.value) || Infinity;
@@ -260,7 +248,6 @@ function popularFiltroCategorias() {
         tipos.map(t => `<option value="${t}">${t}</option>`).join('');
 }
 
-// --- LÓGICA DO CARRINHO ---
 async function adicionarAoCarrinhoBanco(codigoProduto, nome, preco, imagem) {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!user) return;
@@ -385,7 +372,6 @@ async function atualizarContadorCarrinho() {
     } catch (err) {}
 }
 
-// --- CONTROLE DE MODAIS ---
 function abrirModalCarrinho() {
     document.getElementById('modal-carrinho').classList.add('ativo');
     document.getElementById('overlay-carrinho').classList.add('ativo');
@@ -407,7 +393,6 @@ function fecharModalCadastro() {
     document.getElementById('previa-img').src = IMAGEM_PADRAO;
 }
 
-// --- LÓGICA DO ADMINISTRADOR (SALVAR PRODUTO) ---
 async function salvarNovoProduto(e) {
     e.preventDefault();
     const form = e.target;
@@ -445,15 +430,12 @@ async function salvarNovoProduto(e) {
     }
 }
 
-// 🔥 --- NOVA FUNÇÃO: EXCLUIR PRODUTO (SOMENTE ADMIN) --- 🔥
 async function deletarProduto(idProduto) {
-    // 1. Pede confirmação antes de excluir
     if (!confirm("⚠️ Tem certeza que deseja excluir este produto do catálogo? Essa ação não pode ser desfeita e ele sumirá da loja imediatamente.")) {
-        return; // Se clicar em "Cancelar", a função para aqui
+        return; 
     }
 
     try {
-        // 2. Chama a API mandando deletar
         const res = await fetch(`${API}/${idProduto}`, {
             method: 'DELETE',
             headers: { 'minha-chave': CLIENT_API_KEY }
@@ -461,7 +443,6 @@ async function deletarProduto(idProduto) {
 
         if (res.ok) {
             showToast("🗑️ Produto excluído com sucesso!", "success");
-            // 3. Recarrega o catálogo para o produto sumir da tela
             carregarCatalogo();
         } else {
             showToast("Erro ao excluir o produto. Tente novamente.", "error");
@@ -472,7 +453,6 @@ async function deletarProduto(idProduto) {
     }
 }
 
-// --- SISTEMA DE TOAST (NOTIFICAÇÕES) ---
 function showToast(mensagem, tipo = "success") {
     let container = document.getElementById('toast-container');
     if (!container) return;

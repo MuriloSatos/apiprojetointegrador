@@ -4,16 +4,13 @@ const API_LOGIN = "https://apiprojetointegrador.onrender.com/usuarios";
 const API_CARRINHO = "https://apiprojetointegrador.onrender.com/carrinho"; // ADICIONADO A API DO CARRINHO
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 
-// URL para imagens que vêm apenas com o nome do arquivo do banco
 const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
 
-// Imagem padrão caso o produto não tenha foto (ícone de caixinha)
 const IMAGEM_PADRAO = "https://cdn-icons-png.flaticon.com/512/1055/1055185.png";
 
 let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
-let todosProdutos = []; // Guardará os produtos para o carrinho achar a foto depois
+let todosProdutos = []; 
 
-// 🚀 FUNÇÃO BLINDADA: Lê qualquer formato de dinheiro perfeitamente (Copiada do produto.js)
 function extrairPrecoReal(valor) {
     if (!valor) return 0;
     if (typeof valor === 'number') return valor;
@@ -42,13 +39,11 @@ function extrairPrecoReal(valor) {
     return parseFloat(limpo) || 0;
 }
 
-// --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
     atualizarMenu();
     carregarDestaques();
 });
 
-// --- GESTÃO DO MENU E LOGIN ---
 function atualizarMenu() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const menuCentral = document.getElementById('menu-navegacao');
@@ -57,6 +52,7 @@ function atualizarMenu() {
     let linksPrincipais = `
         <li><a href="index.html" class="ativo">Início</a></li>
         <li><a href="../produto/produto.html">Catálogo</a></li>
+        <li><a href="../carrinho/carrinho.html">Meu Carrinho</a></li>
     `;
 
     if (!user) {
@@ -86,7 +82,6 @@ function atualizarMenu() {
             `;
         }
     }
-    // Agora o index busca a contagem oficial do Banco de Dados
     atualizarContadorCarrinho(); 
 }
 
@@ -95,7 +90,6 @@ function logout() {
     window.location.reload();
 }
 
-// --- CARREGAR PRODUTOS EM DESTAQUE ---
 async function carregarDestaques() {
     const grid = document.getElementById('catalogo-home');
     if (!grid) return;
@@ -105,7 +99,6 @@ async function carregarDestaques() {
         const res = await fetch(API, { headers: { 'minha-chave': CLIENT_API_KEY } });
         const dados = await res.json();
         
-        // Guardamos todos os produtos no index também para o carrinho achar as imagens
         todosProdutos = Array.isArray(dados) ? dados : [];
         grid.innerHTML = "";
 
@@ -113,9 +106,8 @@ async function carregarDestaques() {
         const destaques = produtosOrdenados.slice(0, 4);
 
         destaques.forEach(bike => {
-            const preco = extrairPrecoReal(bike.preco); // Usa a função do catálogo
+            const preco = extrairPrecoReal(bike.preco);
             
-            // TRATAMENTO DA IMAGEM
             let imgPath = IMAGEM_PADRAO;
             if (bike.imagem && bike.imagem.trim() !== "" && bike.imagem !== 'undefined') {
                 imgPath = bike.imagem.startsWith('http') ? bike.imagem : URL_BASE_BACKEND + bike.imagem;
@@ -146,14 +138,11 @@ async function carregarDestaques() {
     }
 }
 
-// =========================================================
-// --- LÓGICA DO CARRINHO OFICIAL (IGUAL AO PRODUTO.JS) ---
-// =========================================================
+
 
 async function adicionarAoCarrinhoBanco(codigoProduto, nome, preco, imagem) {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     
-    // Proteção: Obriga o cliente a logar para adicionar produtos pela Home
     if (!user) {
         showToast("⚠️ Faça login para adicionar ao carrinho.", "error", "fa-user-lock");
         setTimeout(() => abrirModalLogin(), 1500);
@@ -297,7 +286,6 @@ async function atualizarContadorCarrinho() {
     }
 }
 
-// --- CONTROLES DE MODAIS ---
 function abrirModalCarrinho() {
     document.getElementById('modal-carrinho').classList.add('ativo');
     document.getElementById('overlay-carrinho').classList.add('ativo');
@@ -326,7 +314,6 @@ function alternarTela(tela) {
     document.getElementById('secao-esqueci').style.display = tela === 'esqueci' ? 'block' : 'none';
 }
 
-// --- AUTENTICAÇÃO ---
 document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -387,7 +374,6 @@ document.getElementById('form-cadastro')?.addEventListener('submit', async (e) =
     }
 });
 
-// --- SISTEMA DE TOAST ---
 function showToast(mensagem, tipo = "info", icone = "fa-info-circle") {
     let container = document.getElementById('toast-container');
     if (!container) return;
