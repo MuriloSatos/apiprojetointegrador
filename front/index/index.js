@@ -52,7 +52,6 @@ function atualizarMenu() {
     let linksPrincipais = `
         <li><a href="index.html" class="ativo">Início</a></li>
         <li><a href="../produto/produto.html">Catálogo</a></li>
-        <li><a href="../carrinho/carrinho.html">Meu Carrinho</a></li>
     `;
 
     if (!user) {
@@ -137,8 +136,6 @@ async function carregarDestaques() {
         grid.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:red;'>Erro ao carregar o catálogo.</p>";
     }
 }
-
-
 
 async function adicionarAoCarrinhoBanco(codigoProduto, nome, preco, imagem) {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
@@ -289,7 +286,7 @@ async function atualizarContadorCarrinho() {
 function abrirModalCarrinho() {
     document.getElementById('modal-carrinho').classList.add('ativo');
     document.getElementById('overlay-carrinho').classList.add('ativo');
-    carregarItensCarrinhoBanco(); // Carrega do Banco e não do localStorage!
+    carregarItensCarrinhoBanco(); 
 }
 
 function fecharModalCarrinho() {
@@ -314,6 +311,9 @@ function alternarTela(tela) {
     document.getElementById('secao-esqueci').style.display = tela === 'esqueci' ? 'block' : 'none';
 }
 
+// ==========================================
+// 🔥 NOVO SISTEMA DE LOGIN BLINDADO
+// ==========================================
 document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -321,6 +321,14 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
 
     const emailInput = document.getElementById('login-email').value.trim();
     const senhaInput = document.getElementById('login-senha').value.trim();
+
+    // 🛡️ VALIDAÇÃO: Verifica se o e-mail tem o formato correto (ex: nome@email.com)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailInput)) {
+        showToast("⚠️ Digite um e-mail válido com @.", "error", "fa-envelope");
+        btn.innerHTML = 'Entrar na Loja';
+        return; 
+    }
 
     try {
         const url = `${API_LOGIN}?email=${emailInput.toLowerCase()}&senha=${senhaInput}`;
@@ -333,18 +341,21 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
 
         if (usuarios.length > 0) {
             localStorage.setItem('usuarioLogado', JSON.stringify(usuarios[0]));
-            showToast(`Bem-vindo de volta!`, "success", "fa-user-check");
+            showToast(`Bem-vindo de volta, ${usuarios[0].nome.split(' ')[0]}!`, "success", "fa-user-check");
             setTimeout(() => window.location.reload(), 1200);
         } else {
-            showToast("Usuário ou senha incorretos.", "error", "fa-times-circle");
+            showToast("⚠️ Usuário ou senha incorretos.", "error", "fa-times-circle");
             btn.innerHTML = 'Entrar na Loja';
         }
     } catch (err) {
-        showToast("Erro ao conectar com o servidor.", "error", "fa-exclamation-triangle");
+        showToast("⚠️ Erro ao conectar com o servidor.", "error", "fa-exclamation-triangle");
         btn.innerHTML = 'Entrar na Loja';
     }
 });
 
+// ==========================================
+// 🔥 NOVO SISTEMA DE CADASTRO BLINDADO
+// ==========================================
 document.getElementById('form-cadastro')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
@@ -354,7 +365,39 @@ document.getElementById('form-cadastro')?.addEventListener('submit', async (e) =
     const email = document.getElementById('cad-email').value.trim().toLowerCase();
     const senha = document.getElementById('cad-senha').value.trim();
 
+    // 🛡️ VALIDAÇÃO 1: Formato do e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast("⚠️ Por favor, insira um e-mail válido (ex: joao@email.com).", "error", "fa-envelope");
+        btn.innerHTML = 'Finalizar Cadastro';
+        return;
+    }
+
+    // 🛡️ VALIDAÇÃO 2: Tamanho mínimo de senha
+    if (senha.length < 4) {
+        showToast("⚠️ A senha deve ter pelo menos 4 caracteres.", "error", "fa-lock");
+        btn.innerHTML = 'Finalizar Cadastro';
+        return;
+    }
+
     try {
+        // 🛡️ VALIDAÇÃO 3: Verificando no Banco de Dados se o e-mail já existe ANTES de salvar
+        const urlBusca = `${API_LOGIN}?email=${email}`;
+        const resBusca = await fetch(urlBusca, {
+            method: 'GET',
+            headers: { 'minha-chave': CLIENT_API_KEY, 'Content-Type': 'application/json' }
+        });
+        
+        const usuariosExistentes = await resBusca.json();
+
+        if (usuariosExistentes.length > 0) {
+            // Se encontrou alguém, barra o cadastro!
+            showToast("❌ Este e-mail já está cadastrado! Faça login.", "error", "fa-user-times");
+            btn.innerHTML = 'Finalizar Cadastro';
+            return;
+        }
+
+        // Se chegou aqui, o e-mail está liberado e bonitinho. Vamos criar a conta!
         const res = await fetch(API_LOGIN, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY, 'Prefer': 'return=representation' },
@@ -362,14 +405,18 @@ document.getElementById('form-cadastro')?.addEventListener('submit', async (e) =
         });
 
         if (res.ok) {
-            showToast("Conta criada! Faça login.", "success", "fa-check");
+            showToast("🎉 Conta criada com sucesso! Faça login.", "success", "fa-check");
+            // Limpa os campos após o sucesso
+            document.getElementById('cad-nome').value = '';
+            document.getElementById('cad-email').value = '';
+            document.getElementById('cad-senha').value = '';
             setTimeout(() => alternarTela('login'), 1500);
         } else {
-            showToast("E-mail já cadastrado.", "error", "fa-times");
+            showToast("⚠️ Erro no servidor ao criar conta.", "error", "fa-times");
+            btn.innerHTML = 'Finalizar Cadastro';
         }
     } catch (err) {
-        showToast("Erro ao cadastrar.", "error", "fa-wifi");
-    } finally {
+        showToast("⚠️ Erro de conexão ao cadastrar.", "error", "fa-wifi");
         btn.innerHTML = 'Finalizar Cadastro';
     }
 });
@@ -389,6 +436,3 @@ function showToast(mensagem, tipo = "info", icone = "fa-info-circle") {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
-
-
-
