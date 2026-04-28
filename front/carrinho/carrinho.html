@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIKEPROMAX | Meu Carrinho</title>
     <link rel="stylesheet" href="carrinho.css">
-    <!-- FontAwesome para os ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="carrinho.js" defer></script>
+    <style>
+        /* Pequeno ajuste de CSS para os novos inputs ficarem bonitos */
+        .grupo-input { margin-bottom: 15px; text-align: left; }
+        .grupo-input label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; color: #333; }
+        .grupo-input input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; outline: none; transition: 0.3s; }
+        .grupo-input input:focus { border-color: #ff6600; box-shadow: 0 0 5px rgba(255, 102, 0, 0.3); }
+    </style>
 </head>
 <body>
     <header>
@@ -47,7 +53,6 @@
                             </tr>
                         </thead>
                         <tbody id="tabela-itens-carrinho">
-                            <!-- O JavaScript vai injetar os produtos aqui -->
                             <tr>
                                 <td colspan="5" class="mensagem-vazio">
                                     <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px; display: block; color: #ff6600;"></i>
@@ -69,7 +74,6 @@
                         <span id="valor-subtotal">R$ 0,00</span>
                     </div>
 
-                    <!-- 🌟 LINHA DA TAXA ADICIONAL INSERIDA AQUI -->
                     <div class="linha-resumo" style="color: #ff6600; font-weight: 500;">
                         <span>Taxa Adicional:</span>
                         <span id="valor-taxa">R$ 0,00</span>
@@ -78,6 +82,20 @@
                     <div class="linha-resumo destaque">
                         <span>Total:</span>
                         <span id="valor-total-final">R$ 0,00</span>
+                    </div>
+
+                    <hr>
+
+                    <!-- 🌟 NOVOS CAMPOS DE DADOS DO CLIENTE -->
+                    <div class="dados-entrega" style="margin-top: 15px;">
+                        <div class="grupo-input">
+                            <label for="input-cpf"><i class="fas fa-id-card"></i> CPF (Para Nota Fiscal)</label>
+                            <input type="text" id="input-cpf" placeholder="Digite seu CPF" maxlength="14">
+                        </div>
+                        <div class="grupo-input">
+                            <label for="input-endereco"><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</label>
+                            <input type="text" id="input-endereco" placeholder="Ex: Rua das Flores, 123 - Centro">
+                        </div>
                     </div>
 
                     <div class="area-pagamento">
@@ -103,7 +121,7 @@
         </div>
     </main>
 
-    <!-- 🌟 MODAL DE CONFIRMAÇÃO DE REMOÇÃO (Fica escondido até o clique) -->
+    <!-- MODAL DE CONFIRMAÇÃO DE REMOÇÃO -->
     <div id="overlay-confirmacao" class="overlay-escuro" onclick="fecharModalConfirmacao()"></div>
     <div id="modal-confirmacao" class="modal-centro" style="max-width: 400px; text-align: center;">
         <div class="conteudo-modal">
@@ -118,7 +136,7 @@
         </div>
     </div>
 
-    <!-- 🌟 CONTAINER PARA AS NOTIFICAÇÕES TOAST -->
+    <!-- CONTAINER PARA AS NOTIFICAÇÕES TOAST -->
     <div id="toast-container"></div>
 
 </body>

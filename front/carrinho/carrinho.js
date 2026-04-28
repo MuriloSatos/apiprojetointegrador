@@ -31,6 +31,7 @@ function extrairPrecoReal(valor) {
 document.addEventListener('DOMContentLoaded', () => {
     carregarTabelaDoCarrinho();
     atualizarMenuCarrinho();
+    aplicarMascaraCPF(); // 🌟 ATIVANDO A MÁSCARA DO CPF
 });
 
 function atualizarMenuCarrinho() {
@@ -61,6 +62,48 @@ function atualizarMenuCarrinho() {
 function logout() {
     localStorage.removeItem('usuarioLogado');
     window.location.href = "../index/index.html";
+}
+
+// 🌟 NOVA FUNÇÃO: Aplica máscara de CPF enquanto o cliente digita
+function aplicarMascaraCPF() {
+    const inputCpf = document.getElementById('input-cpf');
+    if (inputCpf) {
+        inputCpf.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\D/g, ""); // Remove letras e símbolos
+            if (valor.length > 11) valor = valor.slice(0, 11); // Trava em 11 números
+
+            // Coloca a máscara
+            valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+            valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+            valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            
+            e.target.value = valor;
+        });
+    }
+}
+
+// 🌟 NOVA FUNÇÃO: Validador Matemático de CPF
+function validarCPF(cpf) {
+    cpf = cpf.replace(/[^\d]+/g, ''); // Remove máscara para calcular
+    
+    if (cpf === '') return false;
+    
+    // Bloqueia CPFs com números repetidos (ex: 111.111.111-11)
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    
+    let soma = 0;
+    for (let i = 1; i <= 9; i++) soma = soma + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+    let resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+    
+    soma = 0;
+    for (let i = 1; i <= 10; i++) soma = soma + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(10, 11))) return false;
+    
+    return true;
 }
 
 async function carregarTabelaDoCarrinho() {
@@ -109,15 +152,14 @@ async function carregarTabelaDoCarrinho() {
             const qtd = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
             const subtotal = preco * qtd;
 
-            // 🌟 REGRA DE NEGÓCIO: CÁLCULO DA TAXA INDIVIDUAL POR PRODUTO
             let taxaDesteProduto = 0;
             let textoPorcentagem = "";
 
             if (preco > 100) {
-                taxaDesteProduto = subtotal * 0.10; // 10% se o valor for maior que 100
+                taxaDesteProduto = subtotal * 0.10; 
                 textoPorcentagem = "10%";
             } else {
-                taxaDesteProduto = subtotal * 0.05; // 5% se o valor for até 100
+                taxaDesteProduto = subtotal * 0.05; 
                 textoPorcentagem = "5%";
             }
 
@@ -135,7 +177,6 @@ async function carregarTabelaDoCarrinho() {
                 ? `<img src="${imgPath}" alt="${nome}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">`
                 : `<div style="width: 60px; height: 60px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">Sem Foto</div>`;
 
-            // 🌟 MUDANÇA AQUI: Mostrando a taxa de cada produto na tabela
             tbody.innerHTML += `
                 <tr>
                     <td>
@@ -177,9 +218,33 @@ async function finalizarCompraDefinitiva() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     const selectPagamento = document.getElementById('select-pagamento-final');
     const formaPagamento = selectPagamento ? selectPagamento.value : 'Cartão';
+    
+    const inputCpf = document.getElementById('input-cpf');
+    const inputEndereco = document.getElementById('input-endereco');
+    const cpf = inputCpf ? inputCpf.value.trim() : '';
+    const endereco = inputEndereco ? inputEndereco.value.trim() : '';
 
     if (totalCompraGeral <= 0 || itensNoCarrinho.length === 0) {
         showToast("⚠️ Adicione produtos ao carrinho antes de finalizar!", "error");
+        return;
+    }
+
+    // 🌟 NOVA VALIDAÇÃO PODEROSA: CPF e Endereço
+    if (cpf === "") {
+        showToast("⚠️ Por favor, informe seu CPF para a Nota Fiscal.", "error");
+        inputCpf.focus(); 
+        return;
+    }
+
+    if (!validarCPF(cpf)) {
+        showToast("⚠️ O CPF informado é inválido. Verifique os números.", "error");
+        inputCpf.focus(); 
+        return;
+    }
+
+    if (endereco === "" || endereco.length < 10) {
+        showToast("⚠️ Por favor, informe um endereço de entrega completo (mínimo de 10 letras).", "error");
+        inputEndereco.focus(); 
         return;
     }
 
@@ -194,7 +259,9 @@ async function finalizarCompraDefinitiva() {
 
         const payloadFinalizar = {
             id_usuario: user.id,
-            formaPagamento: `${formaPagamento}_${idUnicoCompra}`
+            formaPagamento: `${formaPagamento}_${idUnicoCompra}`,
+            cpf_cliente: cpf,
+            endereco_entrega: endereco
         };
 
         const res = await fetch(`${API_CARRINHO}/finalizar`, {
@@ -207,10 +274,10 @@ async function finalizarCompraDefinitiva() {
         });
 
         if (res.ok) {
-            showToast("🎉 Compra finalizada com sucesso!", "success");
+            showToast("🎉 Compra finalizada com sucesso! Preparando entrega...", "success");
             setTimeout(() => {
                 window.location.href = "../vendas/vendas.html";
-            }, 1500);
+            }, 2000);
         } else {
             const erroBackend = await res.json();
             showToast(`⚠️ Erro ao finalizar: ${erroBackend.erro || 'Falha no servidor'}`, "error");
@@ -223,6 +290,7 @@ async function finalizarCompraDefinitiva() {
         reabilitarBotaoCheckout(btnFinalizar);
     }
 }
+
 
 function reabilitarBotaoCheckout(botao) {
     if (botao) {

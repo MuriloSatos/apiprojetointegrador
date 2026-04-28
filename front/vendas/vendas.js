@@ -1,5 +1,4 @@
 const API = "https://apiprojetointegrador.onrender.com/vendas";
-// 🌟 NOVA ROTA ADICIONADA: Para buscar os nomes dos clientes!
 const API_USUARIOS = "https://apiprojetointegrador.onrender.com/usuarios"; 
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
@@ -11,7 +10,7 @@ const vazio = document.getElementById("vazio");
 const inputPesquisa = document.getElementById("input-pesquisa");
 
 let todasAsVendas = []; 
-let mapaUsuarios = {}; // 🌟 NOVO: Dicionário para guardar ID -> Nome
+let mapaUsuarios = {}; 
 
 document.addEventListener("DOMContentLoaded", carregarVendas);
 
@@ -25,7 +24,6 @@ if(inputPesquisa) {
             const codVenda = (v.codigovendas || "").toString().toLowerCase();
             const idUsuario = (v.id_usuario || "").toString().toLowerCase();
             
-            // 🌟 Agora a pesquisa também funciona se o adm digitar o nome do cliente!
             const nomeCliente = (mapaUsuarios[v.id_usuario] || "").toLowerCase();
             
             return nomeProduto.includes(termoDigitado) || 
@@ -38,7 +36,6 @@ if(inputPesquisa) {
     });
 }
 
-// 🌟 FUNÇÃO NOVA: Busca os usuários no banco e cria uma lista de nomes
 async function buscarNomesDosUsuarios() {
     try {
         const res = await fetch(API_USUARIOS, {
@@ -47,13 +44,11 @@ async function buscarNomesDosUsuarios() {
         if (res.ok) {
             const usuarios = await res.json();
             usuarios.forEach(u => {
-                // Pega o ID (pode estar como 'id' ou 'id_usuario' no seu banco)
                 const id = u.id || u.id_usuario; 
-                // Pega o nome, se não tiver nome usa o email
                 const nome = u.nome || u.nomeusuario || u.email || "Cliente Desconhecido";
                 
                 if (id) {
-                    mapaUsuarios[id] = nome; // Guarda no formato: mapaUsuarios[5] = "Angélica"
+                    mapaUsuarios[id] = nome; 
                 }
             });
         }
@@ -113,11 +108,9 @@ async function carregarVendas() {
 
     // BUSCANDO OS DADOS NA API
     try {
-        // 🌟 Se for ADM, busca a lista de nomes de usuários primeiro!
         if (isAdm) {
             await buscarNomesDosUsuarios();
         } else if (dadosUsuario) {
-            // Se for cliente comum, pega o próprio nome dele
             mapaUsuarios[ID_USUARIO_LOGADO] = dadosUsuario.nome || dadosUsuario.nomeusuario || "Você";
         }
 
@@ -181,12 +174,15 @@ function renderizarTabela(vendasParaMostrar) {
         const chavePedido = idCheckout;
         
         if (!gruposDePedidos[chavePedido]) {
+            // 🌟 AQUI NÓS ESTAMOS CAPTURANDO O CPF E O ENDEREÇO DA API
             gruposDePedidos[chavePedido] = {
                 idPedido: v.codigovendas,
                 id_usuario: v.id_usuario, 
                 datavenda: v.datavenda,
                 forma_pagamento: pagamentoLimpo,
                 statusvenda: v.statusvenda,
+                cpf: v.cpf_cliente || v.cpf || "Não informado", // <-- Pega o CPF
+                endereco: v.endereco_entrega || v.endereco || "Não informado", // <-- Pega o Endereço
                 valorTotalPedido: 0,
                 qtdTotalItens: 0,
                 produtos: []
@@ -240,18 +236,21 @@ function renderizarTabela(vendasParaMostrar) {
             classeStatus = "tag-status concluido";
         }
 
-        // 🌟 AQUI ESTÁ A MÁGICA DO NOME DO CLIENTE!
-        // Tenta buscar o nome no mapa. Se não achar, escreve "Cliente"
         const nomeDoCliente = mapaUsuarios[pedido.id_usuario] || "Cliente Não Encontrado";
 
+        // 🌟 NOVO DESIGN DA CÉLULA: MOSTRA NOME, CPF E ENDEREÇO
         tr.innerHTML = `
             <td style="vertical-align: middle;"><strong>#${pedido.idPedido || "-"}</strong></td>
             
-            <!-- 🌟 NOVA CÉLULA COM NOME EM CIMA E ID PEQUENO EMBAIXO -->
-            <td style="vertical-align: middle; min-width: 150px;">
-                <div style="display: flex; flex-direction: column;">
+            <td style="vertical-align: middle; min-width: 220px;">
+                <div style="display: flex; flex-direction: column; gap: 5px; text-align: left;">
                     <span style="font-weight: bold; font-size: 0.95rem; color: #222;">👤 ${nomeDoCliente}</span>
-                    <span style="font-size: 0.75rem; color: #888; margin-top: 2px;">ID do cliente: ${pedido.id_usuario || "-"}</span>
+                    <span style="font-size: 0.8rem; color: #555;">
+                        <i class="fas fa-id-card" style="color: #ff5e00; width: 14px;"></i> <strong>CPF:</strong> ${pedido.cpf}
+                    </span>
+                    <span style="font-size: 0.8rem; color: #555; word-break: break-word;">
+                        <i class="fas fa-map-marker-alt" style="color: #ff5e00; width: 14px;"></i> <strong>Entrega:</strong> ${pedido.endereco}
+                    </span>
                 </div>
             </td>
 
