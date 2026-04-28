@@ -1,4 +1,6 @@
-/* Reset Básico e Fontes */
+/* =========================================
+   RESET BÁSICO E FONTES
+========================================= */
 * {
     margin: 0;
     padding: 0;
@@ -11,7 +13,9 @@ body {
     color: #333;
 }
 
-/* HEADER PADRÃO */
+/* =========================================
+   HEADER PADRÃO
+========================================= */
 header {
     background-color: #111;
     color: white;
@@ -36,7 +40,9 @@ header {
     letter-spacing: 1px;
 }
 
-.logo span { color: #ff6600; }
+.logo span { 
+    color: #ff6600; 
+}
 
 .menu-central, .menu-direita {
     list-style: none;
@@ -52,9 +58,13 @@ header {
     transition: color 0.3s;
 }
 
-.menu-central a:hover, .menu-direita a:hover { color: #ff6600; }
+.menu-central a:hover, .menu-direita a:hover { 
+    color: #ff6600; 
+}
 
-/* CONTAINER PRINCIPAL DO CARRINHO */
+/* =========================================
+   CONTAINER PRINCIPAL DO CARRINHO
+========================================= */
 .container-carrinho {
     max-width: 1200px;
     margin: 40px auto;
@@ -73,7 +83,10 @@ header {
     color: #222;
 }
 
-.cabecalho-carrinho h2 i { color: #ff6600; margin-right: 10px; }
+.cabecalho-carrinho h2 i { 
+    color: #ff6600; 
+    margin-right: 10px; 
+}
 
 .btn-voltar {
     color: #555;
@@ -81,9 +94,14 @@ header {
     font-weight: 600;
     transition: color 0.2s;
 }
-.btn-voltar:hover { color: #ff6600; }
 
-/* LAYOUT DE DUAS COLUNAS */
+.btn-voltar:hover { 
+    color: #ff6600; 
+}
+
+/* =========================================
+   LAYOUT DE DUAS COLUNAS
+========================================= */
 .layout-carrinho {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -91,7 +109,9 @@ header {
     align-items: start;
 }
 
-/* ÁREA DA TABELA */
+/* =========================================
+   ÁREA DA TABELA (ITENS)
+========================================= */
 .itens-carrinho-area {
     background: white;
     border-radius: 12px;
@@ -99,7 +119,10 @@ header {
     overflow: hidden;
 }
 
-.tabela-responsiva { width: 100%; overflow-x: auto; }
+.tabela-responsiva { 
+    width: 100%; 
+    overflow-x: auto; 
+}
 
 table {
     width: 100%;
@@ -146,7 +169,16 @@ td {
     color: #222;
 }
 
-/* BOTÃO DE REMOVER DA TABELA */
+.mensagem-vazio {
+    text-align: center;
+    padding: 40px !important;
+    color: #777;
+    font-size: 16px;
+}
+
+/* =========================================
+   BOTÃO DE REMOVER DA TABELA
+========================================= */
 .btn-remover {
     color: #dc3545;
     background: rgba(220, 53, 69, 0.1);
@@ -156,7 +188,7 @@ td {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 5px;
 }
@@ -166,14 +198,9 @@ td {
     color: white;
 }
 
-.mensagem-vazio {
-    text-align: center;
-    padding: 40px !important;
-    color: #777;
-    font-size: 16px;
-}
-
-/* ÁREA DE RESUMO E CHECKOUT (Lateral Direita) */
+/* =========================================
+   ÁREA DE RESUMO E CHECKOUT (Lateral Direita)
+========================================= */
 .card-resumo {
     background: white;
     padding: 30px;
@@ -183,9 +210,16 @@ td {
     top: 20px;
 }
 
-.card-resumo h3 { margin-bottom: 15px; color: #222; }
+.card-resumo h3 { 
+    margin-bottom: 15px; 
+    color: #222; 
+}
 
-.card-resumo hr { border: 0; border-top: 1px solid #eee; margin-bottom: 20px; }
+.card-resumo hr { 
+    border: 0; 
+    border-top: 1px solid #eee; 
+    margin-bottom: 20px; 
+}
 
 .linha-resumo {
     display: flex;
@@ -204,10 +238,16 @@ td {
     border-top: 2px dashed #eee;
 }
 
-.linha-resumo.destaque span:last-child { color: #ff6600; }
+.linha-resumo.destaque span:last-child { 
+    color: #ff6600; 
+}
 
-/* ESTILO DO SELECT DE PAGAMENTO */
-.area-pagamento { margin: 30px 0; }
+/* =========================================
+   ESTILO DO SELECT DE PAGAMENTO
+========================================= */
+.area-pagamento { 
+    margin: 30px 0; 
+}
 
 .area-pagamento label {
     display: block;
@@ -216,7 +256,9 @@ td {
     color: #444;
 }
 
-.select-wrapper { position: relative; }
+.select-wrapper { 
+    position: relative; 
+}
 
 .select-wrapper::after {
     content: '\f107';
@@ -244,9 +286,13 @@ select#select-pagamento-final {
     transition: border-color 0.3s;
 }
 
-select#select-pagamento-final:focus { border-color: #ff6600; }
+select#select-pagamento-final:focus { 
+    border-color: #ff6600; 
+}
 
-/* BOTÃO FINALIZAR COMPRA */
+/* =========================================
+   BOTÃO FINALIZAR COMPRA
+========================================= */
 .btn-finalizar-compra {
     width: 100%;
     background-color: #28a745;
@@ -270,9 +316,10 @@ select#select-pagamento-final:focus { border-color: #ff6600; }
     transform: translateY(-2px);
 }
 
-.btn-finalizar-compra:active { transform: translateY(0); }
+.btn-finalizar-compra:active { 
+    transform: translateY(0); 
+}
 
-/* NOVO: Estilo para quando o botão estiver desabilitado (processando) */
 .btn-finalizar-compra:disabled {
     background-color: #cccccc !important;
     cursor: not-allowed;
@@ -288,10 +335,121 @@ select#select-pagamento-final:focus { border-color: #ff6600; }
     font-weight: 600;
 }
 
-/* RESPONSIVIDADE PARA CELULARES */
+/* =========================================
+   MODAL DE CONFIRMAÇÃO (REMOVER DO CARRINHO)
+========================================= */
+.overlay-escuro {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.overlay-escuro.ativo {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-centro {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 90%;
+    max-width: 400px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-centro.ativo {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.conteudo-modal {
+    padding: 30px;
+    text-align: center;
+}
+
+/* =========================================
+   TOASTS (NOTIFICAÇÕES FLUTUANTES)
+========================================= */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background-color: #333;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-weight: 500;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+.toast.success { border-left: 5px solid #4CAF50; }
+.toast.success i { color: #4CAF50; }
+
+.toast.error { border-left: 5px solid #ff4444; }
+.toast.error i { color: #ff4444; }
+
+.toast.fade-out {
+    animation: fadeOut 0.4s ease forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* =========================================
+   RESPONSIVIDADE PARA CELULARES
+========================================= */
 @media (max-width: 900px) {
-    .layout-carrinho { grid-template-columns: 1fr; }
-    .cabecalho-carrinho { flex-direction: column; gap: 15px; align-items: flex-start; }
-    th { font-size: 12px; padding: 12px; }
-    td { padding: 12px; }
+    .layout-carrinho { 
+        grid-template-columns: 1fr; 
+    }
+    .cabecalho-carrinho { 
+        flex-direction: column; 
+        gap: 15px; 
+        align-items: flex-start; 
+    }
+    th { 
+        font-size: 12px; 
+        padding: 12px; 
+    }
+    td { 
+        padding: 12px; 
+    }
 }

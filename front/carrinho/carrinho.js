@@ -4,8 +4,10 @@ const API_VENDAS = "https://apiprojetointegrador.onrender.com/vendas";
 const API_PRODUTOS = "https://apiprojetointegrador.onrender.com/produtos";
 
 let totalCompraGeral = 0;
+let valorTotalComTaxa = 0; 
 let itensNoCarrinho = [];
 let todosOsProdutosParaConsulta = [];
+let idItemParaRemover = null; 
 
 function extrairPrecoReal(valor) {
     if (valor === null || valor === undefined) return 0;
@@ -64,21 +66,23 @@ function logout() {
 async function carregarTabelaDoCarrinho() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!user) {
-        alert("⚠️ Faça login para ver seu carrinho.");
-        window.location.href = "../login/login.html";
+        showToast("⚠️ Faça login para ver seu carrinho.", "error");
+        setTimeout(() => {
+            window.location.href = "../login/login.html";
+        }, 2000);
         return;
     }
 
     const tbody = document.getElementById('tabela-itens-carrinho');
     const spanTotal = document.getElementById('valor-total-final');
     const spanSubtotal = document.getElementById('valor-subtotal');
+    const spanTaxa = document.getElementById('valor-taxa');
 
     try {
-       
         try {
             const resProd = await fetch(API_PRODUTOS, { headers: { "minha-chave": CLIENT_API_KEY } });
             if (resProd.ok) todosOsProdutosParaConsulta = await resProd.json();
-        } catch (e) { console.warn("Não foi possível carregar produtos para consulta de ID"); }
+        } catch (e) { console.warn("Não foi possível carregar produtos para consulta"); }
 
         const res = await fetch(`${API_CARRINHO}/${user.id}`, {
             headers: { 'minha-chave': CLIENT_API_KEY }
@@ -91,10 +95,12 @@ async function carregarTabelaDoCarrinho() {
             tbody.innerHTML = `<tr><td colspan="5" class="mensagem-vazio"><i class="fas fa-box-open" style="font-size: 24px; margin-bottom: 10px; display: block; color: #ccc;"></i>Seu carrinho está vazio.</td></tr>`;
             if (spanTotal) spanTotal.innerText = "R$ 0,00";
             if (spanSubtotal) spanSubtotal.innerText = "R$ 0,00";
+            if (spanTaxa) spanTaxa.innerText = "R$ 0,00";
             return;
         }
 
         totalCompraGeral = 0;
+        let totalTaxasAdicionais = 0; 
         tbody.innerHTML = '';
 
         itens.forEach(item => {
@@ -103,11 +109,25 @@ async function carregarTabelaDoCarrinho() {
             const qtd = parseInt(item.pecaquantidade) || parseInt(item.quantidade) || 1;
             const subtotal = preco * qtd;
 
+            // 🌟 REGRA DE NEGÓCIO: CÁLCULO DA TAXA INDIVIDUAL POR PRODUTO
+            let taxaDesteProduto = 0;
+            let textoPorcentagem = "";
+
+            if (preco > 100) {
+                taxaDesteProduto = subtotal * 0.10; // 10% se o valor for maior que 100
+                textoPorcentagem = "10%";
+            } else {
+                taxaDesteProduto = subtotal * 0.05; // 5% se o valor for até 100
+                textoPorcentagem = "5%";
+            }
+
+            totalCompraGeral += subtotal;
+            totalTaxasAdicionais += taxaDesteProduto;
+
             const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
             let imgPath = "";
             
             if (item.imagem && item.imagem.trim() !== "" && item.imagem !== 'undefined') {
-            
                 imgPath = item.imagem.startsWith('http') ? item.imagem : URL_BASE_BACKEND + item.imagem;
             }
 
@@ -115,8 +135,7 @@ async function carregarTabelaDoCarrinho() {
                 ? `<img src="${imgPath}" alt="${nome}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">`
                 : `<div style="width: 60px; height: 60px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">Sem Foto</div>`;
 
-            totalCompraGeral += subtotal;
-
+            // 🌟 MUDANÇA AQUI: Mostrando a taxa de cada produto na tabela
             tbody.innerHTML += `
                 <tr>
                     <td>
@@ -127,9 +146,14 @@ async function carregarTabelaDoCarrinho() {
                     </td>
                     <td>R$ ${preco.toFixed(2).replace('.', ',')}</td>
                     <td><strong>${qtd}</strong></td>
-                    <td style="color: #ff6600; font-weight: bold;">R$ ${subtotal.toFixed(2).replace('.', ',')}</td>
                     <td>
-                        <button onclick="removerItemTabela(${item.id_carrinho || item.id})" class="btn-remover">
+                        <span style="color: #ff6600; font-weight: bold; display: block;">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+                        <span style="font-size: 12px; color: #666; display: block; margin-top: 4px;">
+                            + R$ ${taxaDesteProduto.toFixed(2).replace('.', ',')} (Taxa ${textoPorcentagem})
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="abrirModalConfirmacao('${item.id_carrinho || item.id}')" class="btn-remover">
                             <i class="fas fa-trash-alt"></i> Remover
                         </button>
                     </td>
@@ -137,9 +161,11 @@ async function carregarTabelaDoCarrinho() {
             `;
         });
 
-        const valorFormatado = `R$ ${totalCompraGeral.toFixed(2).replace('.', ',')}`;
-        if (spanTotal) spanTotal.innerText = valorFormatado;
-        if (spanSubtotal) spanSubtotal.innerText = valorFormatado;
+        valorTotalComTaxa = totalCompraGeral + totalTaxasAdicionais;
+
+        if (spanSubtotal) spanSubtotal.innerText = `R$ ${totalCompraGeral.toFixed(2).replace('.', ',')}`;
+        if (spanTaxa) spanTaxa.innerText = `+ R$ ${totalTaxasAdicionais.toFixed(2).replace('.', ',')}`;
+        if (spanTotal) spanTotal.innerText = `R$ ${valorTotalComTaxa.toFixed(2).replace('.', ',')}`;
 
     } catch (err) {
         console.error("Erro ao carregar a tabela do carrinho:", err);
@@ -153,7 +179,7 @@ async function finalizarCompraDefinitiva() {
     const formaPagamento = selectPagamento ? selectPagamento.value : 'Cartão';
 
     if (totalCompraGeral <= 0 || itensNoCarrinho.length === 0) {
-        alert("⚠️ Adicione produtos ao carrinho antes de finalizar!");
+        showToast("⚠️ Adicione produtos ao carrinho antes de finalizar!", "error");
         return;
     }
 
@@ -171,8 +197,6 @@ async function finalizarCompraDefinitiva() {
             formaPagamento: `${formaPagamento}_${idUnicoCompra}`
         };
 
-        console.log("📦 Enviando pedido completo para o backend:", payloadFinalizar);
-
         const res = await fetch(`${API_CARRINHO}/finalizar`, {
             method: 'POST',
             headers: {
@@ -183,21 +207,22 @@ async function finalizarCompraDefinitiva() {
         });
 
         if (res.ok) {
-            alert("🎉 Compra finalizada com sucesso! Seu pedido foi gerado.");
-            window.location.href = "../vendas/vendas.html";
+            showToast("🎉 Compra finalizada com sucesso!", "success");
+            setTimeout(() => {
+                window.location.href = "../vendas/vendas.html";
+            }, 1500);
         } else {
             const erroBackend = await res.json();
-            alert(`⚠️ Erro ao finalizar: ${erroBackend.erro || 'Falha no servidor'}`);
+            showToast(`⚠️ Erro ao finalizar: ${erroBackend.erro || 'Falha no servidor'}`, "error");
             reabilitarBotaoCheckout(btnFinalizar);
         }
 
     } catch (err) {
         console.error("Erro fatal ao finalizar pedido:", err);
-        alert("⚠️ Erro de conexão ao finalizar a compra.");
+        showToast("⚠️ Erro de conexão ao finalizar a compra.", "error");
         reabilitarBotaoCheckout(btnFinalizar);
     }
 }
-
 
 function reabilitarBotaoCheckout(botao) {
     if (botao) {
@@ -206,15 +231,83 @@ function reabilitarBotaoCheckout(botao) {
     }
 }
 
-// 3. REMOVER ITEM DA TABELA
-async function removerItemTabela(id_carrinho) {
-    if (!confirm("Tem certeza que deseja remover este item?")) return;
+// ==========================================
+// FUNÇÕES DO MODAL DE REMOÇÃO
+// ==========================================
+function abrirModalConfirmacao(idCarrinho) {
+    idItemParaRemover = idCarrinho;
+    const modal = document.getElementById('modal-confirmacao');
+    const overlay = document.getElementById('overlay-confirmacao');
+    
+    if (modal && overlay) {
+        modal.classList.add('ativo');
+        overlay.classList.add('ativo');
+    }
+}
+
+function fecharModalConfirmacao() {
+    idItemParaRemover = null;
+    const modal = document.getElementById('modal-confirmacao');
+    const overlay = document.getElementById('overlay-confirmacao');
+    
+    if (modal && overlay) {
+        modal.classList.remove('ativo');
+        overlay.classList.remove('ativo');
+    }
+}
+
+async function confirmarRemocaoItem() {
+    if (!idItemParaRemover) return;
+    
     try {
-        const res = await fetch(`${API_CARRINHO}/${id_carrinho}`, {
+        const btnConfirmar = document.querySelector('#modal-confirmacao .btn-primario');
+        if (btnConfirmar) {
+            btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removendo...';
+            btnConfirmar.disabled = true;
+        }
+
+        const res = await fetch(`${API_CARRINHO}/${idItemParaRemover}`, {
             method: 'DELETE',
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
-        if (res.ok) carregarTabelaDoCarrinho();
-        else alert("Erro ao remover o item. Tente novamente.");
-    } catch (err) { console.error("Erro ao remover:", err); }
+        
+        if (res.ok) {
+            fecharModalConfirmacao();
+            carregarTabelaDoCarrinho();
+            showToast("🗑️ Item removido do carrinho!", "success"); 
+        } else {
+            fecharModalConfirmacao();
+            showToast("Erro ao remover o item. Tente novamente.", "error");
+        }
+        
+        if (btnConfirmar) {
+            btnConfirmar.innerHTML = 'Sim, Remover';
+            btnConfirmar.disabled = false;
+        }
+
+    } catch (err) { 
+        console.error("Erro ao remover:", err); 
+        fecharModalConfirmacao();
+        showToast("Erro de conexão ao tentar remover.", "error");
+    }
+}
+
+// ==========================================
+// FUNÇÃO DE TOAST (MENSAGENS BONITAS)
+// ==========================================
+function showToast(mensagem, tipo = "success") {
+    let container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const icone = tipo === "success" ? "fa-check-circle" : "fa-exclamation-circle";
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `<i class="fas ${icone}"></i> <span>${mensagem}</span>`;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
 }
