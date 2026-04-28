@@ -10,6 +10,7 @@ let produtosFiltrados = [];
 let carrinhoLocal = JSON.parse(localStorage.getItem('carrinho_bikes')) || [];
 let paginaAtual = 1;
 const itensPorPagina = 8;
+let idProdutoParaExcluir = null; // 🌟 NOVA VARIÁVEL: Guarda o ID do produto que vai ser apagado
 
 function extrairPrecoReal(valor) {
     if (!valor) return 0;
@@ -168,8 +169,9 @@ function renderizarProdutos(resetarPagina = false) {
 
         let botaoExcluirHtml = "";
         if (isAdm) {
+            // 🌟 AQUI: Alterado de deletarProduto() para abrirModalConfirmacao()
             botaoExcluirHtml = `
-                <button onclick="deletarProduto(${item.id})" title="Excluir Produto" style="position: absolute; top: 10px; right: 10px; background-color: #ff4444; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; font-size: 14px;">
+                <button onclick="abrirModalConfirmacao(${item.id})" title="Excluir Produto" style="position: absolute; top: 10px; right: 10px; background-color: #ff4444; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; font-size: 14px;">
                     <i class="fas fa-trash"></i>
                 </button>
             `;
@@ -430,26 +432,40 @@ async function salvarNovoProduto(e) {
     }
 }
 
-async function deletarProduto(idProduto) {
-    if (!confirm("⚠️ Tem certeza que deseja excluir este produto do catálogo? Essa ação não pode ser desfeita e ele sumirá da loja imediatamente.")) {
-        return; 
-    }
+// 🌟 NOVAS FUNÇÕES PARA A MENSAGEM CUSTOMIZADA DE EXCLUSÃO!
+function abrirModalConfirmacao(idProduto) {
+    idProdutoParaExcluir = idProduto;
+    document.getElementById('modal-confirmacao').classList.add('ativo');
+    document.getElementById('overlay-confirmacao').classList.add('ativo');
+}
+
+function fecharModalConfirmacao() {
+    idProdutoParaExcluir = null;
+    document.getElementById('modal-confirmacao').classList.remove('ativo');
+    document.getElementById('overlay-confirmacao').classList.remove('ativo');
+}
+
+async function confirmarExclusaoProduto() {
+    if (!idProdutoParaExcluir) return;
 
     try {
-        const res = await fetch(`${API}/${idProduto}`, {
+        const res = await fetch(`${API}/${idProdutoParaExcluir}`, {
             method: 'DELETE',
             headers: { 'minha-chave': CLIENT_API_KEY }
         });
 
         if (res.ok) {
             showToast("🗑️ Produto excluído com sucesso!", "success");
+            fecharModalConfirmacao();
             carregarCatalogo();
         } else {
             showToast("Erro ao excluir o produto. Tente novamente.", "error");
+            fecharModalConfirmacao();
         }
     } catch (err) {
         console.error("Erro ao deletar:", err);
         showToast("Erro de conexão com o servidor ao excluir.", "error");
+        fecharModalConfirmacao();
     }
 }
 

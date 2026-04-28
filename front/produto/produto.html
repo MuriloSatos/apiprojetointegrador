@@ -137,5 +137,21 @@
     </div>
 
     <div id="toast-container"></div>
+
+    <div id="overlay-confirmacao" class="overlay-escuro" onclick="fecharModalConfirmacao()"></div>
+    <div id="modal-confirmacao" class="modal-centro" style="max-width: 400px; text-align: center;">
+        <div class="conteudo-modal" style="padding: 30px;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3.5rem; color: #ff4444; margin-bottom: 20px; display: block;"></i>
+            <h2 style="margin-bottom: 15px; font-size: 1.5rem;">Excluir Produto?</h2>
+            <p style="color: #666; margin-bottom: 25px; line-height: 1.5;">Tem certeza que deseja excluir este produto do catálogo? <br><b>Essa ação não pode ser desfeita.</b></p>
+            
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn-continuar" style="flex: 1; padding: 12px; font-weight: bold;" onclick="fecharModalConfirmacao()">Cancelar</button>
+                <button class="btn-primario" style="flex: 1; background-color: #ff4444; padding: 12px; font-weight: bold;" onclick="confirmarExclusaoProduto()">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+
+
 </body>
 </html>
