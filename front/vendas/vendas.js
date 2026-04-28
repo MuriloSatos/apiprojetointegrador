@@ -1,4 +1,6 @@
 const API = "https://apiprojetointegrador.onrender.com/vendas";
+// 🌟 NOVA ROTA ADICIONADA: Para buscar os nomes dos clientes!
+const API_USUARIOS = "https://apiprojetointegrador.onrender.com/usuarios"; 
 const CLIENT_API_KEY = "SUA_CHAVE_SECRETA_MUITO_FORTE_123456";
 const URL_BASE_BACKEND = "https://apiprojetointegrador.onrender.com/uploads/"; 
 const IMAGEM_PADRAO = "https://cdn-icons-png.flaticon.com/512/1055/1055185.png";
@@ -9,39 +11,73 @@ const vazio = document.getElementById("vazio");
 const inputPesquisa = document.getElementById("input-pesquisa");
 
 let todasAsVendas = []; 
+let mapaUsuarios = {}; // 🌟 NOVO: Dicionário para guardar ID -> Nome
 
 document.addEventListener("DOMContentLoaded", carregarVendas);
 
-// SISTEMA DE PESQUISA (Agora pesquisa dentro dos pedidos agrupados)
+// SISTEMA DE PESQUISA
 if(inputPesquisa) {
     inputPesquisa.addEventListener("input", (e) => {
         const termoDigitado = e.target.value.toLowerCase();
         const vendasFiltradas = todasAsVendas.filter(v => {
-            const nome = (v.nomeproduto || "").toLowerCase();
+            const nomeProduto = (v.nomeproduto || "").toLowerCase();
             const codProd = (v.codigoproduto || "").toString().toLowerCase();
             const codVenda = (v.codigovendas || "").toString().toLowerCase();
-            return nome.includes(termoDigitado) || codProd.includes(termoDigitado) || codVenda.includes(termoDigitado);
+            const idUsuario = (v.id_usuario || "").toString().toLowerCase();
+            
+            // 🌟 Agora a pesquisa também funciona se o adm digitar o nome do cliente!
+            const nomeCliente = (mapaUsuarios[v.id_usuario] || "").toLowerCase();
+            
+            return nomeProduto.includes(termoDigitado) || 
+                   codProd.includes(termoDigitado) || 
+                   codVenda.includes(termoDigitado) || 
+                   idUsuario.includes(termoDigitado) ||
+                   nomeCliente.includes(termoDigitado);
         });
         renderizarTabela(vendasFiltradas);
     });
 }
 
-// FUNÇÃO PRINCIPAL
+// 🌟 FUNÇÃO NOVA: Busca os usuários no banco e cria uma lista de nomes
+async function buscarNomesDosUsuarios() {
+    try {
+        const res = await fetch(API_USUARIOS, {
+            headers: { "minha-chave": CLIENT_API_KEY }
+        });
+        if (res.ok) {
+            const usuarios = await res.json();
+            usuarios.forEach(u => {
+                // Pega o ID (pode estar como 'id' ou 'id_usuario' no seu banco)
+                const id = u.id || u.id_usuario; 
+                // Pega o nome, se não tiver nome usa o email
+                const nome = u.nome || u.nomeusuario || u.email || "Cliente Desconhecido";
+                
+                if (id) {
+                    mapaUsuarios[id] = nome; // Guarda no formato: mapaUsuarios[5] = "Angélica"
+                }
+            });
+        }
+    } catch (error) {
+        console.warn("Aviso: Não foi possível carregar a lista de usuários.", error);
+    }
+}
+
 async function carregarVendas() {
     let ID_USUARIO_LOGADO = null; 
     let isAdm = false;
+    let dadosUsuario = null;
 
     try {
-        const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-        if (user) {
-            ID_USUARIO_LOGADO = parseInt(user.id);
-            if (user.perfil === 'adm' || user.email === 'adm@gmail.com') {
+        dadosUsuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+        if (dadosUsuario) {
+            ID_USUARIO_LOGADO = parseInt(dadosUsuario.id);
+            if (dadosUsuario.perfil === 'adm' || dadosUsuario.email === 'adm@gmail.com') {
                 isAdm = true;
             }
         }
     } catch(e) {}
 
-    // 2. CORREÇÃO DO MENU: Agora apontamos para as classes corretas do HTML!
+    // MENU CONFIGURATION
     setTimeout(() => {
         const navLinks = document.querySelector(".nav-links");
         const navExtras = document.querySelector(".nav-extras");
@@ -75,9 +111,16 @@ async function carregarVendas() {
         }
     }, 100);
 
-
-    // 3. BUSCANDO OS DADOS NA API
+    // BUSCANDO OS DADOS NA API
     try {
+        // 🌟 Se for ADM, busca a lista de nomes de usuários primeiro!
+        if (isAdm) {
+            await buscarNomesDosUsuarios();
+        } else if (dadosUsuario) {
+            // Se for cliente comum, pega o próprio nome dele
+            mapaUsuarios[ID_USUARIO_LOGADO] = dadosUsuario.nome || dadosUsuario.nomeusuario || "Você";
+        }
+
         let urlFetch = isAdm ? API : `${API}?id_usuario=${ID_USUARIO_LOGADO || 0}`;
 
         const res = await fetch(urlFetch, {
@@ -100,7 +143,6 @@ function sair() {
     window.location.href = "../index/index.html";
 }
 
-// Função para garantir que os cálculos não deem erro de Matemática
 function extrairPreco(valor) {
     if (!valor) return 0;
     if (typeof valor === 'number') return valor;
@@ -111,7 +153,7 @@ function extrairPreco(valor) {
 }
 
 // ==========================================
-// A MÁGICA: AGRUPAMENTO VENDA POR VENDA
+// RENDERIZAR TABELA
 // ==========================================
 function renderizarTabela(vendasParaMostrar) {
     if (!vendasParaMostrar || vendasParaMostrar.length === 0) {
@@ -127,22 +169,21 @@ function renderizarTabela(vendasParaMostrar) {
 
     vendasParaMostrar.forEach(v => {
         let pagamentoOriginal = v.forma_pagamento || "Cartão";
-        let idCheckout = v.codigovendas; // Se for compra antiga, separa por produto
+        let idCheckout = v.codigovendas; 
         let pagamentoLimpo = pagamentoOriginal;
 
-        // SEGREDO: Desempacotando o "Pix_1713289123456"
         if (pagamentoOriginal.includes('_')) {
             const partes = pagamentoOriginal.split('_');
-            pagamentoLimpo = partes[0]; // Guarda só o "Pix"
-            idCheckout = partes[1];     // Guarda o ID único "1713289123456"
+            pagamentoLimpo = partes[0]; 
+            idCheckout = partes[1];     
         }
 
-        // A Chave para agrupar agora é o MOMENTO EXATO da compra!
         const chavePedido = idCheckout;
         
         if (!gruposDePedidos[chavePedido]) {
             gruposDePedidos[chavePedido] = {
-                idPedido: v.codigovendas, // O ID do primeiro produto vira o Nº do Pedido
+                idPedido: v.codigovendas,
+                id_usuario: v.id_usuario, 
                 datavenda: v.datavenda,
                 forma_pagamento: pagamentoLimpo,
                 statusvenda: v.statusvenda,
@@ -152,13 +193,11 @@ function renderizarTabela(vendasParaMostrar) {
             };
         }
 
-        // Adiciona o produto na caixa daquela compra específica
         gruposDePedidos[chavePedido].produtos.push(v);
         gruposDePedidos[chavePedido].valorTotalPedido += extrairPreco(v.valortotal);
         gruposDePedidos[chavePedido].qtdTotalItens += parseInt(v.pecaquantidade || 1);
     });
 
-    // 2. DESENHANDO OS PEDIDOS SEPARADOS NA TELA
     Object.values(gruposDePedidos).forEach(pedido => {
         const tr = document.createElement("tr");
         
@@ -178,7 +217,7 @@ function renderizarTabela(vendasParaMostrar) {
                         <span style="font-weight: 600; font-size: 0.95rem; color: #222;">
                             ${nomeProduto} <strong style="color: #ff5e00; font-size: 0.9rem;">(x${p.pecaquantidade || 1})</strong>
                         </span>
-                        <span style="font-size: 0.8rem; color: #888;">Cód do Produto: ${p.codigoproduto || "S/N"}</span>
+                        <span style="font-size: 0.8rem; color: #888;">Cód: ${p.codigoproduto || "S/N"}</span>
                     </div>
                 </div>
             `;
@@ -188,23 +227,38 @@ function renderizarTabela(vendasParaMostrar) {
         let dataFormatada = "-";
         if (pedido.datavenda) {
             const dataObj = new Date(pedido.datavenda);
-            dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
+            if(!isNaN(dataObj)) {
+                dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
+            }
         }
 
         let valorFormatado = pedido.valorTotalPedido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        
-        let textoStatus = pedido.statusvenda || "Processando";
+        let textoStatus = pedido.statusvenda ? pedido.statusvenda : "Pendente"; 
         let classeStatus = "tag-status processando";
-        if (textoStatus.toLowerCase().match(/concluíd|pago|aprovad|finalizad/)) {
+        
+        if (textoStatus.toLowerCase().match(/concluíd|pago|aprovad|finalizad|entregue/)) {
             classeStatus = "tag-status concluido";
         }
 
+        // 🌟 AQUI ESTÁ A MÁGICA DO NOME DO CLIENTE!
+        // Tenta buscar o nome no mapa. Se não achar, escreve "Cliente"
+        const nomeDoCliente = mapaUsuarios[pedido.id_usuario] || "Cliente Não Encontrado";
+
         tr.innerHTML = `
-            <td style="vertical-align: middle;"><strong>#${pedido.idPedido || "ERRO"}</strong></td>
+            <td style="vertical-align: middle;"><strong>#${pedido.idPedido || "-"}</strong></td>
+            
+            <!-- 🌟 NOVA CÉLULA COM NOME EM CIMA E ID PEQUENO EMBAIXO -->
+            <td style="vertical-align: middle; min-width: 150px;">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: bold; font-size: 0.95rem; color: #222;">👤 ${nomeDoCliente}</span>
+                    <span style="font-size: 0.75rem; color: #888; margin-top: 2px;">ID do cliente: ${pedido.id_usuario || "-"}</span>
+                </div>
+            </td>
+
             <td style="vertical-align: middle; min-width: 250px;">${htmlProdutosDoPedido}</td>
             <td style="vertical-align: middle;">${dataFormatada}</td>
-            <td style="vertical-align: middle;"><strong>${pedido.qtdTotalItens}</strong></td>
-            <td style="vertical-align: middle;">${pedido.forma_pagamento || "Cartão"}</td>
+            <td style="vertical-align: middle; text-align: center;"><strong>${pedido.qtdTotalItens}</strong></td>
+            <td style="vertical-align: middle;">${pedido.forma_pagamento || "N/A"}</td>
             <td style="vertical-align: middle; color: #ff5e00; font-weight: bold; font-size: 1.1rem;">${valorFormatado}</td>
             <td style="vertical-align: middle;"><span class="${classeStatus}">${textoStatus}</span></td>
         `;

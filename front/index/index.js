@@ -365,6 +365,14 @@ document.getElementById('form-cadastro')?.addEventListener('submit', async (e) =
     const email = document.getElementById('cad-email').value.trim().toLowerCase();
     const senha = document.getElementById('cad-senha').value.trim();
 
+    // 🛡️ NOVA VALIDAÇÃO: Impede números e símbolos no Nome (aceita apenas letras e espaços)
+    const nomeRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/;
+    if (!nomeRegex.test(nome)) {
+        showToast("⚠️ O nome deve conter apenas letras, sem números ou símbolos.", "error", "fa-user");
+        btn.innerHTML = 'Finalizar Cadastro';
+        return;
+    }
+
     // 🛡️ VALIDAÇÃO 1: Formato do e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {

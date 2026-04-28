@@ -96,6 +96,7 @@ async function carregarTabelaUsuarios() {
         corpoTabela.innerHTML = "<tr><td colspan='5' style='text-align:center; color: #ff4444; padding: 20px;'>Erro ao carregar dados do banco.</td></tr>";
     }
 }
+
 // --- 3. DESENHO DA TABELA E AVATARES ---
 function renderizarTabela(lista) {
     const corpoTabela = document.getElementById('tabela-usuarios-corpo');
@@ -106,7 +107,6 @@ function renderizarTabela(lista) {
         return;
     }
 
-    // Pega os dados de quem está logado para destacar "O Meu" usuário
     const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || {};
 
     corpoTabela.innerHTML = lista.map(u => {
@@ -114,10 +114,25 @@ function renderizarTabela(lista) {
         const corAvatar = gerarCorAvatar(inicial);
         const badgeClass = u.perfil === 'adm' ? 'badge-adm' : 'badge-cliente';
         
-        // 🌟 MELHORIA 1: Identifica se a linha é o SEU usuário
         const isMeuUsuario = (u.email === usuarioLogado.email);
         const estiloLinha = isMeuUsuario ? 'background-color: #fff5f0; box-shadow: inset 4px 0 0 #ff6600;' : '';
         const tagVoce = isMeuUsuario ? `<span style="font-size: 0.65rem; background: #ff6600; color: white; padding: 3px 6px; border-radius: 4px; margin-left: 8px; font-weight: bold;">VOCÊ</span>` : '';
+
+        // 🌟 Lógica do Botão de Ação: Promover, Rebaixar ou Bloqueado
+        let botaoAcaoPerfil = '';
+        if (u.perfil !== 'adm') {
+            // Se for cliente, mostra a Estrela para promover
+            botaoAcaoPerfil = `<button onclick="tornarAdm(${u.id})" class="btn-acao btn-star" title="Tornar Administrador">⭐</button>`;
+        } else {
+            // Se for Adm...
+            if (isMeuUsuario) {
+                 // Se for o PRÓPRIO usuário, não pode se rebaixar
+                 botaoAcaoPerfil = `<button class="btn-acao btn-check" style="background: #eee; cursor: not-allowed; opacity: 0.5;" title="Você não pode remover seu próprio acesso" disabled>✔️</button>`;
+            } else {
+                 // Se for um Adm QUALQUER, mostra a setinha para rebaixar
+                 botaoAcaoPerfil = `<button onclick="removerAdm(${u.id})" class="btn-acao btn-down" style="background: #e3f2fd; border-radius: 6px; border: 1px solid #90caf9;" title="Remover cargo de Administrador">⬇️</button>`;
+            }
+        }
 
         return `
             <tr style="${estiloLinha}">
@@ -131,12 +146,8 @@ function renderizarTabela(lista) {
                 <td style="color: #666; font-weight: ${isMeuUsuario ? 'bold' : 'normal'};">${u.email}</td>
                 <td><span class="badge ${badgeClass}">${u.perfil}</span></td>
                 <td>
-                    <!-- 🌟 MELHORIA 2: Ações usando Emojis e bloqueio de exclusão do próprio usuário -->
-                    <div class="acoes-tabela">
-                        ${u.perfil !== 'adm' ? 
-                            `<button onclick="tornarAdm(${u.id})" class="btn-acao btn-star" title="Tornar Administrador">⭐</button>` : 
-                            `<button class="btn-acao btn-check" title="Já é Administrador" disabled>✔️</button>`
-                        }
+                    <div class="acoes-tabela" style="display: flex; gap: 8px;">
+                        ${botaoAcaoPerfil}
                         
                         ${!isMeuUsuario ? 
                             `<button onclick="excluirUsuario(${u.id})" class="btn-acao btn-lixeira" title="Excluir Usuário">🗑️</button>` :
@@ -165,14 +176,18 @@ function filtrarUsuarios() {
     renderizarTabela(filtrados);
 }
 
-// --- 4. AÇÕES DA TABELA (PROMOVER E EXCLUIR) ---
+// --- 4. AÇÕES DA TABELA (PROMOVER, REBAIXAR E EXCLUIR) ---
+
+// 🌟 FUNÇÃO ORIGINAL: Transforma em Adm
 async function tornarAdm(id) {
     if (!confirm("Deseja promover este usuário a Administrador?")) return;
 
     try {
+        // Primeiro busca o usuário completo
         const busca = await fetch(`${API_BASE}/${id}`, { headers: { 'minha-chave': CLIENT_API_KEY } });
         const usuarioAtual = await busca.json();
 
+        // Depois salva de novo mudando SÓ o perfil
         const resposta = await fetch(`${API_BASE}/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
@@ -180,9 +195,33 @@ async function tornarAdm(id) {
         });
 
         if (resposta.ok) {
-            carregarTabelaUsuarios();
+            carregarTabelaUsuarios(); // Recarrega a tela na hora!
         } else {
             alert("Erro ao promover usuário.");
+        }
+    } catch (err) { console.error(err); }
+}
+
+// 🌟 NOVA FUNÇÃO: Transforma em Cliente de novo!
+async function removerAdm(id) {
+    if (!confirm("Tem certeza que deseja remover o acesso de Administrador deste usuário? Ele voltará a ser Cliente.")) return;
+
+    try {
+        // Primeiro busca o usuário completo
+        const busca = await fetch(`${API_BASE}/${id}`, { headers: { 'minha-chave': CLIENT_API_KEY } });
+        const usuarioAtual = await busca.json();
+
+        // Depois salva de novo mudando o perfil de volta para 'cliente'
+        const resposta = await fetch(`${API_BASE}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'minha-chave': CLIENT_API_KEY },
+            body: JSON.stringify({ ...usuarioAtual, perfil: 'cliente' })
+        });
+
+        if (resposta.ok) {
+            carregarTabelaUsuarios(); // Recarrega a tela na hora!
+        } else {
+            alert("Erro ao remover privilégios de administrador.");
         }
     } catch (err) { console.error(err); }
 }
@@ -233,7 +272,6 @@ async function realizarCadastro(nome, email, senha) {
 
         if (resposta.ok) {
             alert("Cadastro realizado com sucesso! Faça seu login.");
-            // alternarTela('login'); // Caso use uma função para trocar de tela
         } else {
             const erro = await resposta.json();
             alert(erro.error || "Erro no cadastro.");
