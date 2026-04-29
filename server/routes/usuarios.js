@@ -56,24 +56,29 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const { nome, email, senha, perfil } = req.body;
-        const perfilFinal = perfil || 'cliente'; // Se não vier perfil, vira cliente padrão
+        const perfilFinal = perfil || 'cliente';
 
-        // 🌟 GERANDO O HASH DA SENHA ANTES DE SALVAR
-        const saltRounds = 10; // Nível de complexidade da criptografia
+        // 👇 ARMADILHA 1: VAI AVISAR NO TERMINAL QUE ENTROU AQUI
+        console.log("🚨 ATENÇÃO: Entrou na rota NOVA de cadastro!"); 
+
+        const saltRounds = 10;
         const senhaCriptografada = await bcrypt.hash(senha, saltRounds);
+
+        // 👇 ARMADILHA 2: VAI MOSTRAR COMO A SENHA FICOU
+        console.log("🔐 Senha original:", senha, "| Senha Hash:", senhaCriptografada);
 
         const result = await pool.query(
             `INSERT INTO sistema.usuarios (nome, senha, email, perfil)
              VALUES ($1, $2, $3, $4) RETURNING id, nome, email, perfil`,
-            [nome, senhaCriptografada, email, perfilFinal] // Salvando o Hash no banco!
+            [nome, senhaCriptografada, email, perfilFinal]
         );
         
         res.status(201).json(result.rows[0]);
     } catch (err) {
+        console.log("❌ ERRO NO CADASTRO:", err); // Mostra se deu erro
         res.status(500).json({ error: err.message });
     }
 });
-
 
 // ==========================================
 // ROTAS DE GESTÃO (PROTEGIDAS)
