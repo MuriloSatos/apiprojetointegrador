@@ -444,3 +444,50 @@ function showToast(mensagem, tipo = "info", icone = "fa-info-circle") {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
+
+
+// Função para verificar se o usuário logado ainda é válido no banco de dados
+async function verificarSessao() {
+    // 1. Pega os dados do usuário salvo no navegador (ajuste a chave conforme o seu projeto)
+    const usuarioLogado = localStorage.getItem('usuario_bikepromax'); 
+
+    // Se não tem ninguém logado no navegador, não precisa fazer nada
+    if (!usuarioLogado) return; 
+
+    // Converte o texto do localStorage de volta para objeto (se você salvou como JSON)
+    const dadosUsuario = JSON.parse(usuarioLogado);
+
+    try {
+        // 2. Chama a nova rota do backend que criamos no Passo 1
+        const resposta = await fetch('http://localhost:3000/usuarios/validar-sessao', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Se a rota de usuários precisar da chave mestre, descomente abaixo:
+                // 'minha-chave': 'SUA_CHAVE_SECRETA_MUITO_FORTE_123456' 
+            },
+            // Manda o ID do usuário para o backend conferir
+            body: JSON.stringify({ id_usuario: dadosUsuario.id }) 
+        });
+
+        // 3. Se o backend disser que deu erro (ex: 401), significa que foi deletado
+        if (!resposta.ok) {
+            console.warn("Usuário não existe mais no banco de dados. Deslogando...");
+            
+            // Limpa os dados do navegador
+            localStorage.removeItem('usuario_bikepromax'); 
+            
+            // Mostra um aviso (opcional)
+            alert("Sua sessão expirou ou a conta não existe mais. Faça login novamente.");
+            
+            // Redireciona para a página de login
+            window.location.href = '/login.html'; 
+        }
+
+    } catch (erro) {
+        console.error("Erro ao validar o usuário com o servidor:", erro);
+    }
+}
+
+// Executa a função assim que a página terminar de carregar
+document.addEventListener('DOMContentLoaded', verificarSessao);

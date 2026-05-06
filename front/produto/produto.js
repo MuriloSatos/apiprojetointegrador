@@ -485,3 +485,43 @@ function showToast(mensagem, tipo = "success") {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
+
+// Função que valida se o usuário que está no navegador ainda existe no banco
+async function verificarUsuarioLogado() {
+    // 1. Pegamos os dados do usuário no localStorage
+    // 🚨 ATENÇÃO: Substitua 'usuario' pelo nome exato que você usou quando salvou no momento do login
+    const dadosUsuarioStr = localStorage.getItem('usuario'); 
+
+    // Se não tem usuário salvo no navegador, não faz nada
+    if (!dadosUsuarioStr) {
+        return; 
+    }
+
+    try {
+        // Transformamos o texto de volta em um objeto JavaScript
+        const usuario = JSON.parse(dadosUsuarioStr);
+        
+        // 2. Chamamos a SUA rota do backend de BUSCAR POR ID
+        const resposta = await fetch(`http://localhost:3000/usuarios/${usuario.id}`);
+
+        // 3. Se a resposta for 404, significa que o usuário não existe mais no banco!
+        if (resposta.status === 404) {
+            console.warn("🚨 Usuário deletado do banco. Encerrando sessão...");
+            
+            // Removemos o usuário falso/deletado do navegador
+            localStorage.removeItem('usuario'); 
+            
+            // Avisamos a pessoa (opcional)
+            alert("Sua conta foi removida ou a sessão expirou.");
+            
+            // Redirecionamos para a tela de login
+            window.location.href = '/login.html'; // Ajuste para o nome do seu arquivo de login
+        }
+
+    } catch (erro) {
+        console.error("Erro ao verificar status do usuário com o servidor:", erro);
+    }
+}
+
+// 4. Essa linha garante que a verificação vai rodar TODA VEZ que o usuário mudar de página
+document.addEventListener('DOMContentLoaded', verificarUsuarioLogado);

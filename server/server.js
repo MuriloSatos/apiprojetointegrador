@@ -52,6 +52,32 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// Exemplo de rota para validar se o usuário ainda existe no banco
+router.post('/validar-sessao', async (req, res) => {
+    const { id_usuario } = req.body; // ou email, dependendo de como você salva no frontend
+
+    if (!id_usuario) {
+        return res.status(400).json({ mensagem: "ID não fornecido." });
+    }
+
+    try {
+      
+        
+        const usuarioExiste = true; 
+        if (!usuarioExiste) {
+            return res.status(401).json({ mensagem: "Usuário não encontrado ou foi excluído." });
+        }
+
+        return res.status(200).json({ mensagem: "Sessão válida." });
+
+    } catch (erro) {
+        console.error("Erro ao validar sessão:", erro);
+        return res.status(500).json({ mensagem: "Erro interno do servidor." });
+    }
+});
+
+
+
 app.use("/produtos", upload.single('imagem'), produtosRouter);
 app.use("/vendas", vendasRouter);
 app.use("/carrinho", carrinhoRouter);

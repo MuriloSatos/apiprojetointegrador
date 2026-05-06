@@ -60,39 +60,42 @@
         </section>
 
         <!-- HTML DA GESTÃO DE USUÁRIOS -->
-<section id="sessao-gestao" style="display: none;" class="container sessao-gestao">
-    <div class="dashboard-header">
-        <h1><i class="fas fa-users" style="color: var(--primaria);"></i> Gestão de Usuários</h1>
-        
-        <!-- Nova Barra de Pesquisa -->
-        <div class="pesquisa-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="input-pesquisa-usuario" placeholder="Buscar por nome ou e-mail..." oninput="filtrarUsuarios()">
-        </div>
-    </div>
+        <section id="sessao-gestao" style="display: none;" class="container sessao-gestao">
+            <div class="dashboard-header">
+                <h1><i class="fas fa-users" style="color: var(--primaria);"></i> Gestão de Usuários</h1>
+                
+                <!-- Nova Barra de Pesquisa -->
+                <div class="pesquisa-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="input-pesquisa-usuario" placeholder="Buscar por nome ou e-mail..." oninput="filtrarUsuarios()">
+                </div>
+            </div>
 
-    <!-- Tabela em Card Branco -->
-    <div class="tabela-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Usuário</th>
-                    <th>E-mail</th>
-                    <th>Perfil</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tabela-usuarios-corpo">
-                <!-- Injetado pelo Javascript -->
-            </tbody>
-        </table>
-    </div>
-</section>
+            <!-- Tabela em Card Branco -->
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th>E-mail</th>
+                            <th>Perfil</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-usuarios-corpo">
+                        <!-- Injetado pelo Javascript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
     </main>
 
     <script src="usuario.js"></script>
+    
+    <!-- 🔒 SCRIPT DE SEGURANÇA ADICIONADO AQUI -->
+    <script src="../assets/seguranca.js"></script>
 </body>
 
 </html>
