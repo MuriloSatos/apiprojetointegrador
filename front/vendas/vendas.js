@@ -14,23 +14,16 @@ let mapaUsuarios = {};
 
 document.addEventListener("DOMContentLoaded", carregarVendas);
 
-// SISTEMA DE PESQUISA
 if(inputPesquisa) {
     inputPesquisa.addEventListener("input", (e) => {
         const termoDigitado = e.target.value.toLowerCase();
         const vendasFiltradas = todasAsVendas.filter(v => {
-            const nomeProduto = (v.nomeproduto || "").toLowerCase();
-            const codProd = (v.codigoproduto || "").toString().toLowerCase();
-            const codVenda = (v.codigovendas || "").toString().toLowerCase();
-            const idUsuario = (v.id_usuario || "").toString().toLowerCase();
-            
-            const nomeCliente = (mapaUsuarios[v.id_usuario] || "").toLowerCase();
-            
-            return nomeProduto.includes(termoDigitado) || 
-                   codProd.includes(termoDigitado) || 
-                   codVenda.includes(termoDigitado) || 
-                   idUsuario.includes(termoDigitado) ||
-                   nomeCliente.includes(termoDigitado);
+            const clienteObj = mapaUsuarios[v.id_usuario] || {};
+            return (v.nomeproduto || "").toLowerCase().includes(termoDigitado) || 
+                   (v.codigoproduto || "").toString().toLowerCase().includes(termoDigitado) || 
+                   (v.codigovendas || "").toString().toLowerCase().includes(termoDigitado) || 
+                   (clienteObj.nome || "").toLowerCase().includes(termoDigitado) ||
+                   (clienteObj.cpf || "").toLowerCase().includes(termoDigitado);
         });
         renderizarTabela(vendasFiltradas);
     });
@@ -38,23 +31,21 @@ if(inputPesquisa) {
 
 async function buscarNomesDosUsuarios() {
     try {
-        const res = await fetch(API_USUARIOS, {
-            headers: { "minha-chave": CLIENT_API_KEY }
-        });
+        const res = await fetch(API_USUARIOS, { headers: { "minha-chave": CLIENT_API_KEY } });
         if (res.ok) {
             const usuarios = await res.json();
             usuarios.forEach(u => {
                 const id = u.id || u.id_usuario; 
-                const nome = u.nome || u.nomeusuario || u.email || "Cliente Desconhecido";
-                
                 if (id) {
-                    mapaUsuarios[id] = nome; 
+                    mapaUsuarios[id] = {
+                        nome: u.nome || u.nomeusuario || u.email || "Cliente Desconhecido",
+                        cpf: u.cpf || u.cpf_cliente || "Não informado",
+                        endereco: u.endereco || u.endereco_completo || "Não informado"
+                    }; 
                 }
             });
         }
-    } catch (error) {
-        console.warn("Aviso: Não foi possível carregar a lista de usuários.", error);
-    }
+    } catch (error) {}
 }
 
 async function carregarVendas() {
@@ -66,9 +57,7 @@ async function carregarVendas() {
         dadosUsuario = JSON.parse(localStorage.getItem('usuarioLogado'));
         if (dadosUsuario) {
             ID_USUARIO_LOGADO = parseInt(dadosUsuario.id);
-            if (dadosUsuario.perfil === 'adm' || dadosUsuario.email === 'adm@gmail.com') {
-                isAdm = true;
-            }
+            if (dadosUsuario.perfil === 'adm' || dadosUsuario.email === 'adm@gmail.com') isAdm = true;
         }
     } catch(e) {}
 
@@ -78,55 +67,34 @@ async function carregarVendas() {
         const navExtras = document.querySelector(".nav-extras");
 
         if (isAdm) {
-            if(navLinks) {
-                navLinks.innerHTML = `
+            if(navLinks) navLinks.innerHTML = `
                     <a href="../index/index.html">Início</a>
                     <a href="../produto/produto.html">Catálogo</a>
                     <a href="../vendas/vendas.html" class="active" style="color: #ff5e00; font-weight: bold;">Vendas da Loja</a>
-                    <a href="../usuario/usuario.html">Usuários</a>
-                `;
-            }
-            if(navExtras) {
-                navExtras.innerHTML = `<a href="#" onclick="sair()" class="sair-link" style="color: #e74c3c;">➜ Sair</a>`;
-            }
+                    <a href="../usuario/usuario.html">Usuários</a>`;
+            if(navExtras) navExtras.innerHTML = `<a href="#" onclick="sair()" class="sair-link" style="color: #e74c3c;">➜ Sair</a>`;
         } else {
-            if(navLinks) {
-                navLinks.innerHTML = `
+            if(navLinks) navLinks.innerHTML = `
                     <a href="../index/index.html">Início</a>
                     <a href="../produto/produto.html">Catálogo</a>
-                    <a href="../vendas/vendas.html" class="active" style="color: #ff5e00; font-weight: bold;">Meus Pedidos</a>
-                `;
-            }
-            if(navExtras) {
-                navExtras.innerHTML = `
+                    <a href="../vendas/vendas.html" class="active" style="color: #ff5e00; font-weight: bold;">Meus Pedidos</a>`;
+            if(navExtras) navExtras.innerHTML = `
                     <a href="../carrinho/carrinho.html" class="cart-link">🛒</a>
-                    <a href="#" onclick="sair()" class="sair-link" style="color: #e74c3c;">➜ Sair</a>
-                `;
-            }
+                    <a href="#" onclick="sair()" class="sair-link" style="color: #e74c3c;">➜ Sair</a>`;
         }
     }, 100);
 
-    // BUSCANDO OS DADOS NA API
     try {
-        if (isAdm) {
-            await buscarNomesDosUsuarios();
-        } else if (dadosUsuario) {
-            mapaUsuarios[ID_USUARIO_LOGADO] = dadosUsuario.nome || dadosUsuario.nomeusuario || "Você";
-        }
+        if (isAdm) await buscarNomesDosUsuarios();
+        else if (dadosUsuario) mapaUsuarios[ID_USUARIO_LOGADO] = { nome: dadosUsuario.nome || "Você", cpf: dadosUsuario.cpf || "Não informado", endereco: dadosUsuario.endereco || "Não informado" };
 
         let urlFetch = isAdm ? API : `${API}?id_usuario=${ID_USUARIO_LOGADO || 0}`;
-
-        const res = await fetch(urlFetch, {
-            headers: { "minha-chave": CLIENT_API_KEY }
-        });
-        
+        const res = await fetch(urlFetch, { headers: { "minha-chave": CLIENT_API_KEY } });
         todasAsVendas = await res.json();
 
         if (loading) loading.classList.add("hide");
         renderizarTabela(todasAsVendas);
-
     } catch (e) {
-        console.error("Erro na API:", e);
         if (loading) loading.innerHTML = "Erro ao carregar as informações.";
     }
 }
@@ -136,18 +104,30 @@ function sair() {
     window.location.href = "../index/index.html";
 }
 
+// 🌟 CORREÇÃO DO BUG DA BICICLETA DE R$ 1,60
 function extrairPreco(valor) {
-    if (!valor) return 0;
-    if (typeof valor === 'number') return valor;
-    let stringValor = valor.toString().replace(/[^0-9.,-]+/g, "");
-    if (stringValor.includes(',')) stringValor = stringValor.replace(/\./g, "").replace(',', '.');
+    if (valor === null || valor === undefined) return 0;
+    
+    // Convertemos para texto ANTES de tudo para evitar que o JS se perca
+    let stringValor = valor.toString().trim();
+    stringValor = stringValor.replace(/[^0-9.,-]/g, ""); 
+    
+    if (stringValor.includes(',') && stringValor.includes('.')) {
+        stringValor = stringValor.replace(/\./g, "").replace(',', '.');
+    } else if (stringValor.includes(',')) {
+        stringValor = stringValor.replace(',', '.');
+    } else if (stringValor.includes('.')) {
+        let partes = stringValor.split('.');
+        // Se a API mandou 1.599 achando que era float, a gente remove o ponto!
+        if (partes[1] && partes[1].length === 3) {
+            stringValor = stringValor.replace(/\./g, '');
+        }
+    }
+
     let valorNumerico = parseFloat(stringValor);
     return isNaN(valorNumerico) ? 0 : valorNumerico;
 }
 
-// ==========================================
-// RENDERIZAR TABELA
-// ==========================================
 function renderizarTabela(vendasParaMostrar) {
     if (!vendasParaMostrar || vendasParaMostrar.length === 0) {
         if (vazio) vazio.classList.remove("hide");
@@ -164,96 +144,101 @@ function renderizarTabela(vendasParaMostrar) {
         let pagamentoOriginal = v.forma_pagamento || "Cartão";
         let idCheckout = v.codigovendas; 
         let pagamentoLimpo = pagamentoOriginal;
+        let cpfHack = null;
+        let enderecoHack = null;
+        let valorTotalHack = null;
 
-        if (pagamentoOriginal.includes('_')) {
+        // 🌟 DESEMPACOTANDO O TRUQUE NINJA
+        if (pagamentoOriginal.includes('|')) {
+            const partes = pagamentoOriginal.split('|');
+            pagamentoLimpo = partes[0]; 
+            idCheckout = partes[1];
+            if (partes[2]) cpfHack = partes[2];
+            if (partes[3]) enderecoHack = partes[3];
+            if (partes[4]) valorTotalHack = parseFloat(partes[4]);
+        } else if (pagamentoOriginal.includes('_')) {
             const partes = pagamentoOriginal.split('_');
             pagamentoLimpo = partes[0]; 
             idCheckout = partes[1];     
         }
 
         const chavePedido = idCheckout;
+        const clienteVinculado = mapaUsuarios[v.id_usuario] || {};
         
         if (!gruposDePedidos[chavePedido]) {
-            // 🌟 AQUI NÓS ESTAMOS CAPTURANDO O CPF E O ENDEREÇO DA API
             gruposDePedidos[chavePedido] = {
                 idPedido: v.codigovendas,
                 id_usuario: v.id_usuario, 
                 datavenda: v.datavenda,
                 forma_pagamento: pagamentoLimpo,
                 statusvenda: v.statusvenda,
-                cpf: v.cpf_cliente || v.cpf || "Não informado", // <-- Pega o CPF
-                endereco: v.endereco_entrega || v.endereco || "Não informado", // <-- Pega o Endereço
-                valorTotalPedido: 0,
+                cpf: cpfHack || (clienteVinculado.cpf !== "Não informado" && clienteVinculado.cpf ? clienteVinculado.cpf : (v.cpf_cliente || v.cpf || "Não informado")),
+                endereco: enderecoHack || (clienteVinculado.endereco !== "Não informado" && clienteVinculado.endereco ? clienteVinculado.endereco : (v.endereco_entrega || v.endereco || "Não informado")),
+                valorTotalPedido: valorTotalHack ? valorTotalHack : 0,
+                usaValorHack: valorTotalHack ? true : false,
                 qtdTotalItens: 0,
                 produtos: []
             };
         }
 
         gruposDePedidos[chavePedido].produtos.push(v);
-        gruposDePedidos[chavePedido].valorTotalPedido += extrairPreco(v.valortotal);
-        gruposDePedidos[chavePedido].qtdTotalItens += parseInt(v.pecaquantidade || 1);
+        
+        const precoUnitario = extrairPreco(v.preco || v.precounitario || v.valor || v.valortotal);
+        const qtdItem = parseInt(v.pecaquantidade || 1);
+        
+        if (!gruposDePedidos[chavePedido].usaValorHack) {
+            if (v.preco || v.precounitario || v.valor) {
+                gruposDePedidos[chavePedido].valorTotalPedido += (precoUnitario * qtdItem);
+            } else {
+                gruposDePedidos[chavePedido].valorTotalPedido += precoUnitario;
+            }
+        }
+        gruposDePedidos[chavePedido].qtdTotalItens += qtdItem;
     });
 
     Object.values(gruposDePedidos).forEach(pedido => {
         const tr = document.createElement("tr");
         
         let htmlProdutosDoPedido = `<div style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">`;
-        
         pedido.produtos.forEach(p => {
             const nomeProduto = p.nomeproduto || `Produto (Cód: ${p.codigoproduto})`;
             let imgPath = IMAGEM_PADRAO;
-            if (p.imagem && p.imagem.trim() !== "" && p.imagem !== 'undefined') {
-                imgPath = p.imagem.startsWith('http') ? p.imagem : URL_BASE_BACKEND + p.imagem;
-            }
+            if (p.imagem && p.imagem.trim() !== "" && p.imagem !== 'undefined') imgPath = p.imagem.startsWith('http') ? p.imagem : URL_BASE_BACKEND + p.imagem;
 
             htmlProdutosDoPedido += `
                 <div style="display: flex; align-items: center; gap: 15px; text-align: left;">
                     <img src="${imgPath}" onerror="this.src='${IMAGEM_PADRAO}'" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
                     <div style="display: flex; flex-direction: column;">
-                        <span style="font-weight: 600; font-size: 0.95rem; color: #222;">
-                            ${nomeProduto} <strong style="color: #ff5e00; font-size: 0.9rem;">(x${p.pecaquantidade || 1})</strong>
-                        </span>
+                        <span style="font-weight: 600; font-size: 0.95rem; color: #222;">${nomeProduto} <strong style="color: #ff5e00; font-size: 0.9rem;">(x${p.pecaquantidade || 1})</strong></span>
                         <span style="font-size: 0.8rem; color: #888;">Cód: ${p.codigoproduto || "S/N"}</span>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
         htmlProdutosDoPedido += `</div>`;
 
         let dataFormatada = "-";
         if (pedido.datavenda) {
             const dataObj = new Date(pedido.datavenda);
-            if(!isNaN(dataObj)) {
-                dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
-            }
+            if(!isNaN(dataObj)) dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
         }
 
         let valorFormatado = pedido.valorTotalPedido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         let textoStatus = pedido.statusvenda ? pedido.statusvenda : "Pendente"; 
         let classeStatus = "tag-status processando";
-        
-        if (textoStatus.toLowerCase().match(/concluíd|pago|aprovad|finalizad|entregue/)) {
-            classeStatus = "tag-status concluido";
-        }
+        if (textoStatus.toLowerCase().match(/concluíd|pago|aprovad|finalizad|entregue/)) classeStatus = "tag-status concluido";
 
-        const nomeDoCliente = mapaUsuarios[pedido.id_usuario] || "Cliente Não Encontrado";
+        const clienteVinculado = mapaUsuarios[pedido.id_usuario] || {};
+        const nomeDoCliente = clienteVinculado.nome || "Cliente Não Encontrado";
 
-        // 🌟 NOVO DESIGN DA CÉLULA: MOSTRA NOME, CPF E ENDEREÇO
         tr.innerHTML = `
             <td style="vertical-align: middle;"><strong>#${pedido.idPedido || "-"}</strong></td>
-            
             <td style="vertical-align: middle; min-width: 220px;">
                 <div style="display: flex; flex-direction: column; gap: 5px; text-align: left;">
                     <span style="font-weight: bold; font-size: 0.95rem; color: #222;">👤 ${nomeDoCliente}</span>
-                    <span style="font-size: 0.8rem; color: #555;">
-                        <i class="fas fa-id-card" style="color: #ff5e00; width: 14px;"></i> <strong>CPF:</strong> ${pedido.cpf}
-                    </span>
-                    <span style="font-size: 0.8rem; color: #555; word-break: break-word;">
-                        <i class="fas fa-map-marker-alt" style="color: #ff5e00; width: 14px;"></i> <strong>Entrega:</strong> ${pedido.endereco}
-                    </span>
+                    <span style="font-size: 0.8rem; color: #555;"><i class="fas fa-id-card" style="color: #ff5e00; width: 14px;"></i> <strong>CPF:</strong> ${pedido.cpf}</span>
+                    <span style="font-size: 0.8rem; color: #555; word-break: break-word;"><i class="fas fa-map-marker-alt" style="color: #ff5e00; width: 14px;"></i> <strong>Entrega:</strong> ${pedido.endereco}</span>
                 </div>
             </td>
-
             <td style="vertical-align: middle; min-width: 250px;">${htmlProdutosDoPedido}</td>
             <td style="vertical-align: middle;">${dataFormatada}</td>
             <td style="vertical-align: middle; text-align: center;"><strong>${pedido.qtdTotalItens}</strong></td>
@@ -261,47 +246,6 @@ function renderizarTabela(vendasParaMostrar) {
             <td style="vertical-align: middle; color: #ff5e00; font-weight: bold; font-size: 1.1rem;">${valorFormatado}</td>
             <td style="vertical-align: middle;"><span class="${classeStatus}">${textoStatus}</span></td>
         `;
-        
         listaPedidos.appendChild(tr);
     });
 }
-
-// Função que valida se o usuário que está no navegador ainda existe no banco
-async function verificarUsuarioLogado() {
-    // 1. Pegamos os dados do usuário no localStorage
-    // 🚨 ATENÇÃO: Substitua 'usuario' pelo nome exato que você usou quando salvou no momento do login
-    const dadosUsuarioStr = localStorage.getItem('usuario'); 
-
-    // Se não tem usuário salvo no navegador, não faz nada
-    if (!dadosUsuarioStr) {
-        return; 
-    }
-
-    try {
-        // Transformamos o texto de volta em um objeto JavaScript
-        const usuario = JSON.parse(dadosUsuarioStr);
-        
-        // 2. Chamamos a SUA rota do backend de BUSCAR POR ID
-        const resposta = await fetch(`http://localhost:3000/usuarios/${usuario.id}`);
-
-        // 3. Se a resposta for 404, significa que o usuário não existe mais no banco!
-        if (resposta.status === 404) {
-            console.warn("🚨 Usuário deletado do banco. Encerrando sessão...");
-            
-            // Removemos o usuário falso/deletado do navegador
-            localStorage.removeItem('usuario'); 
-            
-            // Avisamos a pessoa (opcional)
-            alert("Sua conta foi removida ou a sessão expirou.");
-            
-            // Redirecionamos para a tela de login
-            window.location.href = '/login.html'; // Ajuste para o nome do seu arquivo de login
-        }
-
-    } catch (erro) {
-        console.error("Erro ao verificar status do usuário com o servidor:", erro);
-    }
-}
-
-// 4. Essa linha garante que a verificação vai rodar TODA VEZ que o usuário mudar de página
-document.addEventListener('DOMContentLoaded', verificarUsuarioLogado);
