@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BIKEPROMAX - A sua loja definitiva para bicicletas de alta performance. Domine qualquer trilha com design, leveza e durabilidade.">
     <title>BIKEPROMAX | Sinta a Liberdade</title>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos e Scripts -->
     <link rel="stylesheet" href="index.css">
     <script src="index.js" defer></script>
 </head>
@@ -15,37 +22,105 @@
             <div class="logo">
                 <a href="index.html">BIKE<span>PROMAX</span></a>
             </div>
+            
+            <!-- Menu Central Fixo (Melhor para SEO do que injetar via JS) -->
             <ul class="menu-central" id="menu-navegacao">
-             
+                <li><a href="index.html" class="ativo">Início</a></li>
+                <li><a href="../produto/produto.html">Bicicletas</a></li>
+                <li><a href="../produto/produto.html?cat=acessorios">Acessórios</a></li>
+                <li><a href="../produto/produto.html?cat=vestuario">Vestuário</a></li>
             </ul>
+            
+            <!-- Menu Direita (Ícones de Acesso) -->
             <ul class="menu-direita" id="menu-direita">
+                <li><button onclick="abrirModalLogin()" class="btn-icone" aria-label="Minha Conta"><i class="fas fa-user"></i></button></li>
+                <li>
+                    <button onclick="abrirModalCarrinho()" class="btn-icone cart-btn" aria-label="Carrinho de Compras">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cart-count">0</span>
+                    </button>
+                </li>
             </ul>
         </nav>
     </header>
 
-    <section class="hero">
-        <div class="hero-overlay"></div>
-        <div class="container hero-content">
-            <span class="hero-badge">Nova Coleção 2024</span>
-            <h1>Domine Qualquer Trilha.</h1>
-            <p>Encontre a performance extrema que você busca com as melhores máquinas do mercado. Design, leveza e durabilidade.</p>
-            <a href="../produto/produto.html" class="btn-primario btn-large">Ver Catálogo Completo <i class="fas fa-arrow-right"></i></a>
+    <main>
+        <!-- Banner Principal -->
+        <section class="hero">
+            <div class="hero-overlay"></div>
+            <div class="container hero-content">
+                <span class="hero-badge">Nova Coleção 2024</span>
+                <h1>Domine Qualquer Trilha.</h1>
+                <p>Encontre a performance extrema que você busca com as melhores máquinas do mercado. Design, leveza e durabilidade.</p>
+                <a href="../produto/produto.html" class="btn-primario btn-large">Ver Catálogo Completo <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </section>
+
+        <!-- NOVO: Seção de Diferenciais / Trust Badges (Aumenta Conversão) -->
+        <section class="diferenciais-bg">
+            <div class="container diferenciais-grid">
+                <div class="diferencial-item">
+                    <i class="fas fa-truck-fast"></i>
+                    <div>
+                        <h4>Frete Grátis</h4>
+                        <p>Para todo o Brasil</p>
+                    </div>
+                </div>
+                <div class="diferencial-item">
+                    <i class="fas fa-shield-halved"></i>
+                    <div>
+                        <h4>Garantia Vitalícia</h4>
+                        <p>No quadro das bikes</p>
+                    </div>
+                </div>
+                <div class="diferencial-item">
+                    <i class="fas fa-credit-card"></i>
+                    <div>
+                        <h4>Pagamento Seguro</h4>
+                        <p>Até 12x sem juros ou Pix</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Catálogo de Destaques -->
+        <section class="container secao-produtos">
+            <div class="titulo-secao">
+                <h2>Destaques da Semana</h2>
+                <div class="linha-decorativa"></div>
+            </div>
             
-        </div>
-    </section>
+            <!-- Aqui o index.js vai injetar os produtos -->
+            <div class="grid-produtos" id="catalogo-home">
+                <!-- Fallback de carregamento -->
+                <p class="loading-text"><i class="fas fa-spinner fa-spin"></i> Carregando nossos melhores produtos...</p>
+            </div>
+            
+            <div class="ver-mais-container">
+                <a href="../produto/produto.html" class="btn-secundario">Explorar Mais Produtos</a>
+            </div>
+        </section>
+    </main>
 
-    <section class="container secao-produtos">
-        <div class="titulo-secao">
-            <h2>Destaques da Semana</h2>
-            <div class="linha-decorativa"></div>
-        </div>
-        <div class="grid-produtos" id="catalogo-home">
-        </div>
-        <div class="ver-mais-container">
-            <a href="../produto/produto.html" class="btn-secundario">Explorar Mais Produtos</a>
-        </div>
-    </section>
 
+    
+        <!-- SEÇÃO: SOBRE O PROJETO -->
+        <section class="about-section">
+            <div class="about-container">
+                <div class="about-content">
+                    <h2>About BIKEPROMAX</h2>
+                    <p>Welcome to BIKEPROMAX, your ultimate e-commerce platform for high-performance bicycles and accessories. Our focus is on delivering excellence, comfort, and innovation.</p>
+                    <p>Our mission is to provide all cyclists with reliable, durable, and stylish products to conquer any trail or city adventure. Enjoy a secure shopping experience, checkout, and fast delivery.</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="BIKEPROMAX High Performance Cycling">
+                </div>
+            </div>
+        </section>
+
+
+
+    <!-- Rodapé -->
     <footer class="footer-main">
         <div class="container footer-content">
             <div class="footer-brand">
@@ -59,6 +134,11 @@
                 <a href="#">Trocas e Devoluções</a>
             </div>
             <div class="footer-links">
+                <h4>Institucional</h4>
+                <a href="../about-project.html">Sobre o Projeto <i class="fas fa-info-circle"></i></a>
+                <a href="#">Políticas de Privacidade</a>
+            </div>
+            <div class="footer-links">
                 <h4>Redes Sociais</h4>
                 <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
                 <a href="#"><i class="fab fa-youtube"></i> YouTube</a>
@@ -69,15 +149,19 @@
         </div>
     </footer>
 
+    <!-- Modais e Overlays -->
+    
+    <!-- Modal Carrinho -->
     <div id="overlay-carrinho" class="overlay-escuro" onclick="fecharModalCarrinho()"></div>
     <div id="modal-carrinho" class="modal-centro">
         <button class="btn-fechar-modal" onclick="fecharModalCarrinho()">&times;</button>
         <div class="conteudo-modal">
-            <h2 style="border-bottom: 2px solid var(--fundo); padding-bottom: 15px; margin-bottom: 0;">
-                <i class="fas fa-shopping-cart" style="color: var(--primaria);"></i> Seu Carrinho
+            <h2 class="modal-titulo">
+                <i class="fas fa-shopping-cart"></i> Seu Carrinho
             </h2>
             
             <div class="carrinho-body-centro" id="itens-carrinho">
+                <!-- JS injeta os itens aqui -->
             </div>
             
             <div class="carrinho-footer-centro">
@@ -93,10 +177,13 @@
         </div>
     </div>
 
+
+    <!-- Modal Login/Cadastro -->
     <div id="overlay-login" class="overlay-escuro" onclick="fecharModalLogin()"></div>
     <div id="modal-login" class="modal-centro">
         <button class="btn-fechar-modal" onclick="fecharModalLogin()">&times;</button>
         
+        <!-- Tela de Login -->
         <div id="secao-login" class="conteudo-modal">
             <div class="icone-modal"><i class="fas fa-user-circle"></i></div>
             <h2>Acesse sua conta</h2>
@@ -117,6 +204,7 @@
             </div>
         </div>
 
+        <!-- Tela de Cadastro -->
         <div id="secao-cadastro" class="conteudo-modal" style="display: none;">
             <div class="icone-modal"><i class="fas fa-user-plus"></i></div>
             <h2>Criar Conta</h2>
@@ -124,6 +212,10 @@
                 <div class="input-group">
                     <i class="fas fa-user"></i>
                     <input type="text" id="cad-nome" required placeholder="Nome Completo">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-address-card"></i>
+                    <input type="text" id="cad-cpf" required placeholder="CPF (Apenas números)" maxlength="14">
                 </div>
                 <div class="input-group">
                     <i class="fas fa-envelope"></i>
@@ -140,11 +232,12 @@
             </div>
         </div>
 
+        <!-- Tela Esqueci a Senha -->
         <div id="secao-esqueci" class="conteudo-modal" style="display: none;">
             <div class="icone-modal"><i class="fas fa-key"></i></div>
             <h2>Recuperar Senha</h2>
             <p class="texto-instrucao">Enviaremos um link de recuperação para o seu e-mail.</p>
-            <form id="form-esqueci" class="form-moderno" onsubmit="event.preventDefault(); showToast('Link enviado com sucesso!', 'success'); alternarTela('login');">
+            <form id="form-esqueci" class="form-moderno" onsubmit="event.preventDefault(); alert('Link enviado com sucesso!'); alternarTela('login');">
                 <div class="input-group">
                     <i class="fas fa-envelope"></i>
                     <input type="email" id="esqueci-email" required placeholder="Seu e-mail">
@@ -157,9 +250,15 @@
         </div>
     </div>
 
+
+
+
+
+
+    <!-- Container de Notificações (Toasts) -->
     <div id="toast-container"></div>
 
-    <!-- 🔒 SCRIPT DE SEGURANÇA ADICIONADO AQUI -->
+    <!-- SCRIPT DE SEGURANÇA -->
     <script src="../assets/seguranca.js"></script>
 </body>
 </html>

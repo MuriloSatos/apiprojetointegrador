@@ -130,6 +130,85 @@ a { text-decoration: none; transition: var(--transicao); }
 .links-rodape-modal a:hover { color: var(--primaria); }
 .destaque-link { color: var(--primaria) !important; font-weight: bold; }
 
+
+
+/* ESTILOS DA SEÇÃO SOBRE */
+.about-section {
+  padding: 80px 20px;
+  background-color: #ffffff; /* Fundo branco e limpo */
+  color: #333;
+  border-top: 1px solid #eaeaea;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 50px;
+}
+
+.about-content {
+  flex: 1;
+  min-width: 320px;
+}
+
+.about-content h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #111; /* Preto forte para contraste */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.about-content p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.about-image {
+  flex: 1;
+  min-width: 320px;
+}
+
+.about-image img {
+  width: 100%;
+  border-radius: 16px; /* Bordas arredondadas modernas */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* Sombra elegante */
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.about-image img:hover {
+  transform: translateY(-5px); /* Efeito sutil ao passar o mouse */
+}
+
+/* Responsividade: Ajustes para Celular (Mobile) */
+@media (max-width: 768px) {
+  .about-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 30px;
+  }
+  
+  .about-section {
+    padding: 50px 20px;
+  }
+
+  .about-content h2 {
+    font-size: 2rem;
+  }
+}
+
+
+
+
+
 /* TOAST NOTIFICAÇÕES */
 #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
 .toast { background: white; color: var(--escura); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; font-weight: 500; transform: translateX(120%); animation: slideIn 0.4s forwards; }
@@ -160,3 +239,5 @@ a { text-decoration: none; transition: var(--transicao); }
     .hero h1 { font-size: 2.2rem; }
     .menu-central { display: none; }
 }
+
+
