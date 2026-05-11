@@ -141,6 +141,55 @@ a { text-decoration: none; transition: var(--transicao); }
   border-bottom: 1px solid #eaeaea;
 }
 
+
+/* SEÇÃO DE DIFERENCIAIS (TRUST BADGES) */
+.diferenciais-bg {
+    background-color: var(--card-bg);
+    padding: 30px 0;
+    border-bottom: 1px solid var(--borda);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02); /* Sombra bem leve para destacar */
+}
+
+.diferenciais-grid {
+    display: flex; /* Coloca os itens lado a lado */
+    justify-content: space-between; /* Espalha os itens por igual */
+    align-items: center; /* Centraliza verticalmente */
+    flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+    gap: 20px;
+}
+
+.diferencial-item {
+    display: flex; /* Coloca o ícone ao lado do texto */
+    align-items: center;
+    gap: 15px; /* Espaço entre o ícone e o texto */
+    flex: 1; /* Faz os itens terem a mesma largura */
+    min-width: 250px; /* Evita que fiquem muito espremidos */
+    justify-content: center; /* Centraliza o conteúdo da caixinha */
+}
+
+.diferencial-item i {
+    font-size: 2.2rem;
+    color: var(--primaria); /* Usa a cor laranja da loja para os ícones */
+    transition: transform 0.3s ease;
+}
+
+.diferencial-item:hover i {
+    transform: scale(1.1); /* Efeito sutil ao passar o mouse */
+}
+
+.diferencial-item h4 {
+    font-size: 1.05rem;
+    color: var(--escura);
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.diferencial-item p {
+    font-size: 0.85rem;
+    color: var(--texto-claro);
+    margin: 0;
+}
+
 .about-container {
   max-width: 1200px;
   margin: 0 auto;
