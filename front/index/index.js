@@ -491,3 +491,4 @@ async function verificarSessao() {
 
 // Executa a função assim que a página terminar de carregar
 document.addEventListener('DOMContentLoaded', verificarSessao);
+
